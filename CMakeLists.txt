@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.8) # Kittens will die if you switch to an earlier version of CMake.
-
+cmake_minimum_required(VERSION 3.20) # Kittens will die if you switch to an earlier version of CMake.
 project(WODA)
+
+enable_language(CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
