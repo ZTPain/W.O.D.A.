@@ -6,36 +6,22 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v5
-      - name: C/C++ Linter
-        uses: cpp-linter/cpp-linter-action@v2.16.6
-        id: linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          version: 20
-          style: 'file'  # Use .clang-format config file
-          tidy-checks: '-*'         # Disable clang-tidy checks
-          step-summary: 'true'  # Show summary of results in the step output
-          # only 'update' a single comment in a pull request thread.
-          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-      - name: Fail fast?!
-        if: steps.linter.outputs.clang-format-checks-failed > 0
-        run: exit 1
-      # - name: Install clang-format
-      #   run: |
-      #     if ! command -v clang-format-20 >/dev/null 2>&1
-      #     then
-      #       echo "clang-format-20 could not be found, installing..."
-      #       sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" && sudo apt install clang-format-20
-      #     else
-      #       echo "clang-format-20 is already installed."
-      #     fi
-      # - name: Validate code style
-      #   run: |
-      #     FILES=$(find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h')
-      #     for file in $FILES; do
-      #       clang-format-20 -style=file "$file" | diff "$file" - || { echo "Code style issues found in $file"; exit 1; }
-      #     done
-      #     echo "All files conform to the code style." 
+      - name: Install clang-format
+        run: |
+          if ! command -v clang-format-20 >/dev/null 2>&1
+          then
+            echo "clang-format-20 could not be found, installing..."
+            sudo apt add-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main"
+            sudo apt update && sudo apt install clang-format-20
+          else
+            echo "clang-format-20 is already installed."
+          fi
+      - name: Validate code style
+        run: |
+          FILES=$(find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h')
+          for file in $FILES; do
+            clang-format-20 -style=file "$file" | diff "$file" - || { echo "Code style issues found in $file"; exit 1; }
+          done
+          echo "All files conform to the code style." 
 
   
