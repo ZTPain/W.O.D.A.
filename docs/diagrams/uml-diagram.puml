@@ -1,0 +1,3 @@
+@startuml WODA
+Alice -> Bob: test
+@enduml
