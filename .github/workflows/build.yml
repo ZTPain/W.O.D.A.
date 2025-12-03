@@ -1,0 +1,109 @@
+name: build
+on: 
+  push:
+jobs:
+  build-linux:
+    runs-on: 
+      - self-hosted
+      - linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install clang
+        run: |
+          if ! command -v clang >/dev/null 2>&1
+          then
+            echo "clang could not be found, installing..."
+            sudo apt-get update && sudo apt-get install -y clang
+          else
+            echo "clang is already installed."
+          fi
+      - name: Install CMake
+        run: |
+          if ! command -v cmake >/dev/null 2>&1
+            then
+              echo "cmake could not be found, installing..."
+            sudo apt-get update && sudo apt-get install -y cmake
+            else
+              echo "cmake is already installed."
+            fi
+      - name: Configure CMake
+        run: cmake .
+        env:
+          CC: clang
+          CXX: clang++
+      - name: Build project
+        run: |
+          make 2>&1 | tee build.log
+          exit ${PIPESTATUS[0]}
+      - name: Parse build log for annotations
+        if: always()
+        run: |
+          regex="(src/[^:]*):([0-9]+):([0-9]+):\s*(warning|error):\s*(.*)$"
+          while read line; do
+            if [[ $line =~ $regex ]]
+              then
+                  file="${BASH_REMATCH[1]}"
+                  line="${BASH_REMATCH[2]}"
+                  col="${BASH_REMATCH[3]}"
+                  type="${BASH_REMATCH[4]}"
+                  message="${BASH_REMATCH[5]}"
+                  echo "::${type} file=${file},line=${line},col=${col}::${message}"
+              else
+                  echo "$line doesn't match" >&2
+              fi
+          done <build.log
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: linux-clang-build
+          path: bin/*
+
+  build-windows-gcc:
+    runs-on:
+      - self-hosted
+      - linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install mingw-w64
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
+      - name: Install CMake
+        run:  sudo apt-get update && sudo apt-get install -y cmake
+      - name: Configure CMake
+        run: cmake .
+        env:
+          CC: x86_64-w64-mingw32-gcc
+          CXX: x86_64-w64-mingw32-g++
+      - name: Build project
+        run: make
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: windows-gcc-build
+          path: bin/*.exe
+
+  # build-windows-clang:
+  #   runs-on:
+  #     - self-hosted
+  #     - linux
+  #   continue-on-error: true
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install mingw-w64
+  #       run: sudo apt-get update && sudo apt-get install -y mingw-w64
+  #     - name: Install CMake
+  #       run: |
+  #         echo "FAILING ..."
+  #         exit 1
+  #     - name: Configure CMake
+  #       run: mingw-w64-cmake .
+  #       env:
+  #         CC: mingw-w64-clang
+  #         CXX: mingw-w64-clang++
+  #     - name: Build project
+  #       run: make
+  #     - name: Archive build artifacts
+  #       uses: actions/upload-artifact@v5
+  #       with:
+  #         name: windows-clang-build
+  #         path: bin/*.exe

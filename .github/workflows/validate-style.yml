@@ -1,0 +1,27 @@
+name: validate-style
+on: 
+  push:
+jobs:
+  validate-using-clang-format:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install clang-format
+        run: |
+          if ! command -v clang-format-20 >/dev/null 2>&1
+          then
+            echo "clang-format-20 could not be found, installing..."
+            sudo apt add-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main"
+            sudo apt update && sudo apt install clang-format-20
+          else
+            echo "clang-format-20 is already installed."
+          fi
+      - name: Validate code style
+        run: |
+          FILES=$(find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h')
+          for file in $FILES; do
+            clang-format-20 -style=file "$file" | diff "$file" - || { echo "Code style issues found in $file"; exit 1; }
+          done
+          echo "All files conform to the code style." 
+
+  
