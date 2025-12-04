@@ -1,3 +1,81 @@
-@startuml WODA
-Alice -> Bob: test
+@startuml woda-uml
+
+enum BattleUnitType {
+    PatrolBoat,
+    Interceptor,
+    Cruiser,
+    Dreadnought,
+}
+
+abstract class BattleUnit {
+    # int segments;
+    - int destroyedSegments = 0;
+
+    + virtual ~BattleUnit() = default;
+    + virtual BattleUnitType GetType() const = 0;
+    + void DestroySegment();
+    + bool IsDestroyed() const;
+}
+
+class PatrolBoat {
+    + PatrolBoat();
+    + BattleUnitType GetType() const override;
+}
+
+class Interceptor {
+    + Interceptor();
+    + BattleUnitType GetType() const override;
+}
+
+class Cruiser {
+    + Cruiser();
+    + BattleUnitType GetType() const override;
+}
+
+class Dreadnought {
+    + Dreadnought();
+    + BattleUnitType GetType() const override;
+}
+
+BattleUnit --> BattleUnitType
+
+BattleUnit <|-- PatrolBoat
+BattleUnit <|-- Interceptor
+BattleUnit <|-- Cruiser
+BattleUnit <|-- Dreadnought
+
+class SegmentBoard <<template <size_t N, size_t M>>> {
+    - array<array<bool, M>, N> segments;
+
+    + SegmentBoard();
+    + ~SegmentBoard() = default;
+    + const array<array<bool, M>, N>& Segments() const;
+    + virtual bool ToggleSegment(int x, int y);
+    + void Clear();
+}
+
+' using StandardSegmentBoard = SegmentBoard<10, 10>;
+
+class ExtendedSegmentBoard {
+    + bool ToggleSegment(int x, int y) override;
+}
+
+SegmentBoard <|-- ExtendedSegmentBoard : SegmentBoard<22, 14>
+
+' TODO: Implements Object Pool
+class GameBoard <<template <size_t N, size_t M>>> {
+    - array<array<shared_ptr<BattleUnit>, M>, N> board;
+
+    + GameBoard(const SegmentBoard<N, M>& segments);
+    + const array<array<shared_ptr<BattleUnit>, M>, N>& Board() const;
+    + bool FireAt(int x, int y);
+    + bool IsGameOver();
+}
+
+' using StandardGameBoard = GameBoard<10, 10>;
+' using ExtendedGameBoard = GameBoard<22, 14>;
+
+GameBoard *-- BattleUnit
+GameBoard --> SegmentBoard
+
 @enduml
