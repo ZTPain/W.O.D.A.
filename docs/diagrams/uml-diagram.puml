@@ -1,81 +1,163 @@
 @startuml woda-uml
+left to right direction
 
-enum BattleUnitType {
-    PatrolBoat,
-    Interceptor,
-    Cruiser,
-    Dreadnought,
+package Units {
+    enum BattleUnitType {
+        PatrolBoat,
+        Interceptor,
+        Cruiser,
+        Dreadnought,
+    }
+
+    abstract class BattleUnit {
+        # unsigned int segments;
+        - unsigned int destroyedSegments = 0;
+
+        + BattleUnit();
+        + virtual ~BattleUnit() = default;
+        + virtual BattleUnitType GetType() const = 0;
+        + void DestroySegment();
+        + bool IsDestroyed() const;
+    }
+
+    ' Size: 1
+    class PatrolBoat {
+        + PatrolBoat();
+        + BattleUnitType GetType() const override;
+    }
+
+    ' Size: 2 
+    class Interceptor {
+        + Interceptor();
+        + BattleUnitType GetType() const override;
+    }
+
+    ' Size: 3
+    class Cruiser {
+        + Cruiser();
+        + BattleUnitType GetType() const override;
+    }
+
+    ' Size: 4
+    class Dreadnought {
+        + Dreadnought();
+        + BattleUnitType GetType() const override;
+    }
+
+    BattleUnit --> BattleUnitType
+
+    BattleUnit <|-- PatrolBoat
+    BattleUnit <|-- Interceptor
+    BattleUnit <|-- Cruiser
+    BattleUnit <|-- Dreadnought
 }
 
-abstract class BattleUnit {
-    # int segments;
-    - int destroyedSegments = 0;
+package Boards {
+    class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - array<array<bool, HEIGHT>, WIDTH> segments;
 
-    + virtual ~BattleUnit() = default;
-    + virtual BattleUnitType GetType() const = 0;
-    + void DestroySegment();
-    + bool IsDestroyed() const;
+        + SegmentBoard();
+        + ~SegmentBoard() = default;
+        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const;
+        + virtual bool ToggleSegment(size_t x, size_t y);
+        + void Clear();
+    }
+
+    ' using StandardSegmentBoard = SegmentBoard<10, 10>;
+
+    class ExtendedSegmentBoard {
+        + ExtendedSegmentBoard();
+        + bool ToggleSegment(size_t x, size_t y) override;
+    }
+
+    SegmentBoard <|-- ExtendedSegmentBoard : SegmentBoard<22, 14>
+
+    ' TODO: Implements Object Pool design pattern
+    class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - SegmentBoard<WIDTH, HEIGHT> segments;
+        - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> board;
+
+        + GameBoard();
+        + const SegmentBoard<WIDTH, HEIGHT>& Segments() const;
+        + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Board() const;
+        + void ParseSegments();
+        + bool FireAt(size_t x, size_t y);
+        + bool IsGameOver();
+    }
+
+    ' using StandardGameBoard = GameBoard<10, 10>;
+    ' using ExtendedGameBoard = GameBoard<22, 14>;
+
+    GameBoard *-- BattleUnit
+    GameBoard *-- SegmentBoard
 }
 
-class PatrolBoat {
-    + PatrolBoat();
-    + BattleUnitType GetType() const override;
+package Profile {
+    struct Statistics {
+        chrono::seconds fastestWonGame = 0;
+        chrono::seconds totalPlaytime = 0;
+        unsigned int longestHitStreak = 0;
+        unsigned int gamesPlayed = 0;
+        unsigned int gamesWon = 0;
+        unsinged int gamesLost = 0;
+        unsigned int highestScore = 0;
+        unsigned int unitsDestroyed = 0;
+    }
+
+    ' TODO: Add more unlocks
+    enum UnlockableContent <<flags>> {
+        None = 0,
+        MediumComputer = 1,
+        HardComputer = 2,
+        SalvoMode = 4,
+        ExtendedMode = 8,
+    }
+
+    struct Achievement {
+        string name;
+        string description;
+        UnlockableContent content;
+        bool unlocked;
+    }
+
+    ' Look up CRTP for Clone() implementation
+    interface IClone <<template <class Derived>>> {
+        + IClone() = default;
+        + ~IClone() = default;
+        + unique_ptr<Derived> Clone();
+    }
+
+    ' Implements Prototype design pattern
+    class AchievementPool {
+        - unordered_map<string, Achievement> NameToAchievementMap;
+
+        + AchievementPool();
+        + const Achievement& Achievement(string name) const;
+        + bool Unlock(string name);
+    }
+
+    AchievementPool --|> IClone
+    AchievementPool *-- Achievement
+
+    struct UserSettings {
+
+    }
+
+    class PlayerProfile {
+        + size_t id;
+        + string name;
+        + Statistics statistics;
+        + unique_ptr<AchievementPool> achievements;
+        + uint64_t unlockedContent;
+        + UserSettings settings;
+
+        + PlayerProfile(string name);
+    }
+
+    PlayerProfile *-- Statistics
+    PlayerProfile *-- AchievementPool
+    PlayerProfile --> UnlockableContent
+    PlayerProfile *-- Settings
 }
-
-class Interceptor {
-    + Interceptor();
-    + BattleUnitType GetType() const override;
-}
-
-class Cruiser {
-    + Cruiser();
-    + BattleUnitType GetType() const override;
-}
-
-class Dreadnought {
-    + Dreadnought();
-    + BattleUnitType GetType() const override;
-}
-
-BattleUnit --> BattleUnitType
-
-BattleUnit <|-- PatrolBoat
-BattleUnit <|-- Interceptor
-BattleUnit <|-- Cruiser
-BattleUnit <|-- Dreadnought
-
-class SegmentBoard <<template <size_t N, size_t M>>> {
-    - array<array<bool, M>, N> segments;
-
-    + SegmentBoard();
-    + ~SegmentBoard() = default;
-    + const array<array<bool, M>, N>& Segments() const;
-    + virtual bool ToggleSegment(int x, int y);
-    + void Clear();
-}
-
-' using StandardSegmentBoard = SegmentBoard<10, 10>;
-
-class ExtendedSegmentBoard {
-    + bool ToggleSegment(int x, int y) override;
-}
-
-SegmentBoard <|-- ExtendedSegmentBoard : SegmentBoard<22, 14>
-
-' TODO: Implements Object Pool
-class GameBoard <<template <size_t N, size_t M>>> {
-    - array<array<shared_ptr<BattleUnit>, M>, N> board;
-
-    + GameBoard(const SegmentBoard<N, M>& segments);
-    + const array<array<shared_ptr<BattleUnit>, M>, N>& Board() const;
-    + bool FireAt(int x, int y);
-    + bool IsGameOver();
-}
-
-' using StandardGameBoard = GameBoard<10, 10>;
-' using ExtendedGameBoard = GameBoard<22, 14>;
-
-GameBoard *-- BattleUnit
-GameBoard --> SegmentBoard
 
 @enduml
