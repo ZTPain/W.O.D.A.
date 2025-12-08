@@ -57,7 +57,6 @@ package Boards {
         - array<array<bool, HEIGHT>, WIDTH> segments;
 
         + SegmentBoard();
-        + ~SegmentBoard() = default;
         + const array<array<bool, HEIGHT>, WIDTH>& Segments() const;
         + virtual bool ToggleSegment(size_t x, size_t y);
         + void Clear();
@@ -82,6 +81,7 @@ package Boards {
         + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Board() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
+        + void FixSegment(size_t x, size_t y);
         + bool IsGameOver();
     }
 
@@ -101,7 +101,9 @@ package Profile {
         unsigned int gamesWon = 0;
         unsinged int gamesLost = 0;
         unsigned int highestScore = 0;
-        unsigned int unitsDestroyed = 0;
+        unsigned int totalShotsFired = 0;
+        unsigned int totalShotsHit = 0;
+        unsigned int totalUnitsDestroyed = 0;
     }
 
     ' TODO: Add more unlocks
@@ -139,11 +141,24 @@ package Profile {
     AchievementPool --|> IClone
     AchievementPool *-- Achievement
 
-    struct UserSettings {
+    enum Color {}
+    enum BorderPattern {}
+    enum UnitPattern {}
 
+    struct UserSettings {
+        Color unitColor;
+        Color boardColor;
+        Color borderColor;
+        BorderPattern borderPattern;
+        UnitPattern unitPattern;
+        bool autoMarkEmptyFields;
     }
 
-    class PlayerProfile {
+    UserSettings --> Color
+    UserSettings --> BorderPattern
+    UserSettings --> UnitPattern
+
+    class UserProfile {
         + size_t id;
         + string name;
         + Statistics statistics;
@@ -151,13 +166,115 @@ package Profile {
         + uint64_t unlockedContent;
         + UserSettings settings;
 
-        + PlayerProfile(string name);
+        + UserProfile(string name);
+        + UserProfile(...);
     }
 
-    PlayerProfile *-- Statistics
-    PlayerProfile *-- AchievementPool
-    PlayerProfile --> UnlockableContent
-    PlayerProfile *-- Settings
+    UserProfile *-- Statistics
+    UserProfile *-- AchievementPool
+    UserProfile --> UnlockableContent
+    UserProfile *-- UserSettings
+}
+
+package Game {
+    enum GameMode {
+        Standard,
+        Salvo,
+        Extended,
+    }
+
+    enum GameState {
+        Started,
+        Setting,
+        Playing,
+        Over,
+    }
+
+    struct Player {
+        UserProfile& profile;
+        GameBoard board;
+        unsigned int hitStreak = 0;
+        unsigned int longestHitStreak = 0;
+        unsigned int score = 0;
+        unsigned int shotsFired = 0;
+        unsigned int shotsHit = 0;
+        unsigned int unitsDestroyed = 0;
+    }
+
+    Player *.. UserProfile
+    Player *-- GameBoard
+
+    interface ICommand {
+        + virtual ~ICommand() = default;
+        + virtual bool execute() = 0;
+        + virtual void undo() = 0;
+    }
+
+    struct Coordinates {
+        size_t x;
+        size_t y;
+    }
+
+    class FireCommand {
+        - GameBoard& board;
+        - Coordinates coords;
+
+        + FireCommand(GameBoard& board, Coordinates coords);
+        + bool execute() override;
+        + void undo() override;
+    }
+
+    FireCommand --> Coordinates
+    FireCommand --|> ICommand
+
+    class SalvoFireCommand {
+        - GameBoard& board;
+        - vector<Coordinates> coords;
+
+        + SalvoFireCommand(GameBoard& board, vector<Coordinates> coords);
+        + bool execute() override;
+        + void undo() override;
+    }
+
+    SalvoFireCommand --> Coordinates
+    SalvoFireCommand --|> ICommand
+
+    struct Replay {
+        unsigned int id;
+        vector<Player> players;
+        vector<unique_ptr<ICommand>> history;
+        unsigned int winnerId;
+        chrono::seconds playtime;
+        time_t timestamp;
+    }
+
+    ' Implements Command design pattern
+    class GameManager {
+        - unsigned int id;
+        - GameMode mode;
+        - GameState state;
+        - vector<Player> players;
+        - unsigned int turn = 0;
+        - vector<unique_ptr<ICommand>> history;
+        - chrono::seconds playtime;
+
+        + GameManager(GameMode mode, vector<UserProfile&> profiles);
+        + ~GameManager();
+        + GameMode Mode() const;
+        + const vector<Player> Players() const;
+        + unsigned int Turn() const;
+        + void StartGame();
+        + void SetBoards();
+        + bool ExecuteCommand(unique_ptr<ICommand> command);
+        + void HandleGameOver();
+        + Replay SaveReplay();
+    }
+
+    GameManager --> GameMode
+    GameManager --> GameState
+    GameManager *-- Player
+    GameManager --> ICommand
+    GameManager ..> Replay
 }
 
 @enduml
