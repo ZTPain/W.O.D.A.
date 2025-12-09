@@ -9,13 +9,21 @@ package Units {
         Dreadnought,
     }
 
+    enum BattleUnitCategory {
+        Land,
+        Marine,
+        Aerial,
+    }
+
     abstract class BattleUnit {
         # unsigned int segments;
         - unsigned int destroyedSegments = 0;
+        - BattleUnitCategory category;
 
         + BattleUnit();
         + virtual ~BattleUnit() = default;
         + virtual BattleUnitType GetType() const = 0;
+        + BattleUnitCategory GetCategory();
         + void DestroySegment();
         + bool IsDestroyed() const;
     }
@@ -45,6 +53,7 @@ package Units {
     }
 
     BattleUnit --> BattleUnitType
+    BattleUnit --> BattleUnitCategory
 
     BattleUnit <|-- PatrolBoat
     BattleUnit <|-- Interceptor
@@ -56,22 +65,19 @@ package Boards {
     class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - array<array<bool, HEIGHT>, WIDTH> segments;
 
-        + SegmentBoard();
+        + SegmentBoard(const unordered_map<UnitType, size_t>& unitPool);
         + const array<array<bool, HEIGHT>, WIDTH>& Segments() const;
         + virtual bool ToggleSegment(size_t x, size_t y);
         + void Clear();
     }
 
-    ' using StandardSegmentBoard = SegmentBoard<10, 10>;
-
     class ExtendedSegmentBoard {
-        + ExtendedSegmentBoard();
+        + ExtendedSegmentBoard(const unordered_map<UnitType, size_t>& unitPool);
         + bool ToggleSegment(size_t x, size_t y) override;
     }
 
-    SegmentBoard <|-- ExtendedSegmentBoard : SegmentBoard<22, 14>
+    SegmentBoard <|-- ExtendedSegmentBoard
 
-    ' TODO: Implements Object Pool design pattern
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - SegmentBoard<WIDTH, HEIGHT> segments;
         - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> board;
@@ -84,9 +90,6 @@ package Boards {
         + void FixSegment(size_t x, size_t y);
         + bool IsGameOver();
     }
-
-    ' using StandardGameBoard = GameBoard<10, 10>;
-    ' using ExtendedGameBoard = GameBoard<22, 14>;
 
     GameBoard *-- BattleUnit
     GameBoard *-- SegmentBoard
@@ -177,19 +180,6 @@ package Profile {
 }
 
 package Game {
-    enum GameMode {
-        Standard,
-        Salvo,
-        Extended,
-    }
-
-    enum GameState {
-        Started,
-        Setting,
-        Playing,
-        Over,
-    }
-
     struct Player {
         UserProfile& profile;
         GameBoard board;
@@ -239,13 +229,28 @@ package Game {
     SalvoFireCommand --> Coordinates
     SalvoFireCommand --|> ICommand
 
-    struct Replay {
-        unsigned int id;
-        vector<Player> players;
-        vector<unique_ptr<ICommand>> history;
-        unsigned int winnerId;
-        chrono::seconds playtime;
-        time_t timestamp;
+    enum FireCommandType {
+        FireCommand,
+        SalvoFireCommand,
+    }
+
+    struct GameMode {
+        string name;
+        string description;
+        size_t boardWidth;
+        size_t boardHeight;
+        bool isExtended;
+        FireCommandType commandType;
+        unordered_map<UnitType, size_t> unitPool;
+    }
+
+    GameMode -> FireCommandType
+
+    enum GameState {
+        Started,
+        Setting,
+        Playing,
+        Over,
     }
 
     ' Implements Command design pattern
@@ -274,7 +279,21 @@ package Game {
     GameManager --> GameState
     GameManager *-- Player
     GameManager --> ICommand
-    GameManager ..> Replay
+}
+
+package Replays {
+    struct Replay {
+        unsigned int id;
+        vector<Player> players;
+        vector<unique_ptr<ICommand>> history;
+        unsigned int winnerId;
+        chrono::seconds playtime;
+        time_t timestamp;
+    }
+
+    Replay <.. GameManager
+
+    class ReplayManager {}
 }
 
 @enduml
