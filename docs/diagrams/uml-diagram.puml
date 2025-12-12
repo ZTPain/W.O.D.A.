@@ -80,11 +80,12 @@ package Boards {
 
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - SegmentBoard<WIDTH, HEIGHT> segments;
-        - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> board;
+        - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> units;
 
         + GameBoard();
+        + ~GameBoard();
         + const SegmentBoard<WIDTH, HEIGHT>& Segments() const;
-        + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Board() const;
+        + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
         + void FixSegment(size_t x, size_t y);
@@ -171,6 +172,7 @@ package Profile {
 
         + UserProfile(string name);
         + UserProfile(...);
+        + ~UserProfile();
     }
 
     UserProfile *-- Statistics
@@ -272,7 +274,7 @@ package Game {
         + void SetBoards();
         + bool ExecuteCommand(unique_ptr<ICommand> command);
         + void HandleGameOver();
-        + Replay SaveReplay();
+        + Replay GetReplay();
     }
 
     GameManager --> GameMode
@@ -293,7 +295,18 @@ package Replays {
 
     Replay <.. GameManager
 
-    class ReplayManager {}
+    class ReplayManager {
+        - vector<Replay> replays;
+
+        + ReplayManager();
+        + ~ReplayManager();
+        + const vector<Replay>& Replays() const;
+        + void SaveReplay(Replay replay);
+        + bool Play(size_t replayId);
+        + bool Analyze(size_t replayId);
+    }
+
+    ReplayManager *-- Replay
 }
 
 @enduml
