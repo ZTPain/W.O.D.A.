@@ -65,14 +65,14 @@ package Boards {
     class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - array<array<bool, HEIGHT>, WIDTH> segments;
 
-        + SegmentBoard(const unordered_map<UnitType, size_t>& unitPool);
+        + SegmentBoard();
         + const array<array<bool, HEIGHT>, WIDTH>& Segments() const;
         + virtual bool ToggleSegment(size_t x, size_t y);
         + void Clear();
     }
 
     class ExtendedSegmentBoard {
-        + ExtendedSegmentBoard(const unordered_map<UnitType, size_t>& unitPool);
+        + ExtendedSegmentBoard();
         + bool ToggleSegment(size_t x, size_t y) override;
     }
 
@@ -181,6 +181,26 @@ package Profile {
     UserProfile *-- UserSettings
 }
 
+' TODO: Adapt computer/player interface for frontend
+package Computers {
+    enum ComputerType {
+        Easy,
+        Medium,
+        Hard,
+    }
+
+    class Computer {
+        + ComputerType type;
+        + GameBoard board;
+
+        + Computer(ComputerType type);
+        + void MakeMove();
+    }
+
+    Computer -> ComputerType
+    Computer *-- GameBoard
+}
+
 package Game {
     struct Player {
         UserProfile& profile;
@@ -196,6 +216,7 @@ package Game {
     Player *.. UserProfile
     Player *-- GameBoard
 
+    ' TODO: Add field marking command
     interface ICommand {
         + virtual ~ICommand() = default;
         + virtual bool execute() = 0;
@@ -261,15 +282,19 @@ package Game {
         - GameMode mode;
         - GameState state;
         - vector<Player> players;
-        - unsigned int turn = 0;
+        - vector<Computers> computers;
+        - vector<unsigned int> turnList;
+        - unsigned int currentTurn;
         - vector<unique_ptr<ICommand>> history;
         - chrono::seconds playtime;
 
-        + GameManager(GameMode mode, vector<UserProfile&> profiles);
+        + GameManager(GameMode mode, vector<UserProfile&> profiles,
+        vector<ComputerType> computers, vector<unsigned int> turnList);
         + ~GameManager();
         + GameMode Mode() const;
         + const vector<Player> Players() const;
-        + unsigned int Turn() const;
+        + vector<unsigned int> TurnList() const;
+        + unsigned int CurrentTurn() const;
         + void StartGame();
         + void SetBoards();
         + bool ExecuteCommand(unique_ptr<ICommand> command);
@@ -280,6 +305,7 @@ package Game {
     GameManager --> GameMode
     GameManager --> GameState
     GameManager *-- Player
+    GameManager *-- Computer
     GameManager --> ICommand
 }
 
