@@ -93,7 +93,7 @@ package Boards {
         + bool IsGameOver();
     }
 
-    GameBoard --> BattleUnit
+    GameBoard -> BattleUnit
     GameBoard *-- SegmentBoard
 }
 
@@ -194,22 +194,25 @@ package Profile {
     AchievementPool *-- Achievement
 
     enum Color {
+        Default,
         ...
     }
     enum BorderPattern {
+        Default,
         ...
     }
     enum UnitPattern {
+        Default,
         ...
     }
 
     struct UserSettings {
-        Color unitColor;
-        Color boardColor;
-        Color borderColor;
-        BorderPattern borderPattern;
-        UnitPattern unitPattern;
-        bool autoMarkEmptyFields;
+        Color unitColor = Default;
+        Color boardColor = Default;
+        Color borderColor = Default;
+        BorderPattern borderPattern = Default;
+        UnitPattern unitPattern = Default;
+        bool autoMarkEmptyFields = false;
     }
 
     UserSettings --> Color
@@ -225,8 +228,10 @@ package Profile {
         + UserSettings settings;
         + unique_ptr<Computer> computer;
 
-        + UserProfile(string name);
-        + UserProfile(...);
+        + UserProfile(size_t userId, string name,
+        unique_ptr<AchievementPool> achievements);
+        + UserProfile(size_t userId, string name,
+        unique_ptr<AchievementPool> achievements, unique_ptr<Computer> computer);
         + ~UserProfile();
     }
 
@@ -312,7 +317,6 @@ package Game {
         - GameMode mode;
         - GameState state;
         - vector<Player> players;
-        - vector<unsigned int> turnList;
         - unsigned int currentTurn;
         - vector<Player> initialPlayerState;
         - vector<unique_ptr<ICommand>> history;
@@ -321,11 +325,10 @@ package Game {
 
         - bool ExecuteCommand(unique_ptr<ICommand> command);
         - void HandleComputerTurn();
-        + GameManager(GameMode mode, vector<UserProfile&> profiles, vector<unsigned int> turnList);
+        + GameManager(GameMode mode, vector<UserProfile&> profiles);
         + ~GameManager();
         + GameMode Mode() const;
         + const vector<Player> Players() const;
-        + vector<unsigned int> TurnList() const;
         + unsigned int CurrentTurn() const;
         + void SetBoards(vector<GameBoard> boards);
         + void StartGame();
@@ -361,11 +364,42 @@ package Replays {
         + ~ReplayManager();
         + const vector<Replay>& Replays() const;
         + void SaveReplay(Replay replay);
-        + bool Play(size_t replayId);
-        + bool Analyze(size_t replayId);
+        + bool Play(unsigned int replayId);
+        + bool Analyze(unsigned int replayId);
     }
 
     ReplayManager *-- Replay
+}
+
+' TODO: Add proper game handling
+package Main {
+    class Battleships {
+        - {static} Battleships instance;
+        - {static} nextUserId = 0;
+        - {static} nextGameId = 0;
+        - vector<UserProfile> users;
+        - unsigned int currentUserId;
+        - AchievementPool initialAchievementPool;
+        - Computer easyComputer;
+        - Computer mediumComputer;
+        - Computer hardComputer;
+        + ReplayManager replayManager;
+
+        - void ReadSave();
+        - void WriteToSave();
+        - Battleships();
+        + {static} Battleships GetInstance();
+        + ~Battleships();
+        + void CreateUser(string name);
+        + UserProfile& GetCurrentUser();
+        + bool ChangeCurrentUser(unsigned int userId);
+        + void NewGame(GameMode mode, vector<UserProfile&> profiles);
+    }
+
+    Battleships *-- UserProfile
+    Battleships *-- AchievementPool
+    Battleships *-- Computer
+    Battleships *- ReplayManager
 }
 
 @enduml
