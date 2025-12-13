@@ -97,6 +97,47 @@ package Boards {
     GameBoard *-- SegmentBoard
 }
 
+package Computers {
+    ' Implements Strategy design pattern
+    interface IComputerStrategy {
+        + ~IComputerStrategy() = default;
+        + virtual Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const = 0;
+    }
+
+    class EasyComputerStrategy {
+        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+    }
+
+    class MediumComputerStrategy {
+        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+    }
+
+    class HardComputerStrategy {
+        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+    }
+
+    EasyComputerStrategy --|> IComputerStrategy
+    MediumComputerStrategy --|> IComputerStrategy
+    HardComputerStrategy --|> IComputerStrategy
+
+    enum ComputerType {
+        None,
+        Easy,
+        Medium,
+        Hard,
+    }
+
+    class Computer {
+        - IComputerStrategy computerStrategy;
+
+        + Computer(ComputerType type);
+        + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
+    }
+
+    Computer --> ComputerType
+    Computer *-- IComputerStrategy
+}
+
 package Profile {
     struct Statistics {
         chrono::seconds fastestWonGame = 0;
@@ -136,7 +177,7 @@ package Profile {
     }
 
     class AchievementPool {
-        - unordered_map<string, Achievement> NameToAchievementMap;
+        - unordered_map<string, Achievement> nameToAchievementMap;
 
         + AchievementPool();
         + const Achievement& Achievement(string name) const;
@@ -176,6 +217,7 @@ package Profile {
         + unique_ptr<AchievementPool> achievements;
         + uint64_t unlockedContent;
         + UserSettings settings;
+        + unique_ptr<Computer> computer;
 
         + UserProfile(string name);
         + UserProfile(...);
@@ -186,50 +228,7 @@ package Profile {
     UserProfile *-- AchievementPool
     UserProfile --> UnlockableContent
     UserProfile *-- UserSettings
-}
-
-' TODO: Adapt computer/player interface for frontend
-package Computers {
-    ' Implements Strategy design pattern
-    interface IComputerStrategy {
-        + ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const = 0;
-    }
-
-    class EasyComputerStrategy {
-        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
-    }
-
-    class MediumComputerStrategy {
-        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
-    }
-
-    class HardComputerStrategy {
-        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
-    }
-
-    EasyComputerStrategy --|> IComputerStrategy
-    MediumComputerStrategy --|> IComputerStrategy
-    HardComputerStrategy --|> IComputerStrategy
-
-    enum ComputerType {
-        Easy,
-        Medium,
-        Hard,
-    }
-
-    class Computer {
-        - IComputerStrategy computerStrategy;
-        + ComputerType type;
-        + GameBoard board;
-
-        + Computer(ComputerType type);
-        + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
-    }
-
-    Computer --> ComputerType
-    Computer *-- IComputerStrategy
-    Computer *-- GameBoard
+    UserProfile --> Computer
 }
 
 package Game {
@@ -307,7 +306,7 @@ package Game {
         Over,
     }
 
-    ' TODO: Remove computers in favor of unified player/computer API
+    ' TODO: Save initial player state to replay
     class GameManager {
         - unsigned int id;
         - GameMode mode;
@@ -318,9 +317,9 @@ package Game {
         - vector<unique_ptr<ICommand>> history;
         - chrono::seconds playtime;
 
+        - bool ExecuteCommand(unique_ptr<ICommand> command);
         - void HandleComputerTurn();
-        + GameManager(GameMode mode, vector<UserProfile&> profiles,
-        vector<ComputerType> computers, vector<unsigned int> turnList);
+        + GameManager(GameMode mode, vector<UserProfile&> profiles, vector<unsigned int> turnList);
         + ~GameManager();
         + GameMode Mode() const;
         + const vector<Player> Players() const;
@@ -328,15 +327,13 @@ package Game {
         + unsigned int CurrentTurn() const;
         + void SetBoards(vector<GameBoard> boards);
         + void StartGame();
-        + bool ExecuteCommand(unique_ptr<ICommand> command);
         + void HandleGameOver();
         + Replay GetReplay();
     }
 
-    GameManager --> GameMode
+    GameManager *-- GameMode
     GameManager --> GameState
     GameManager *-- Player
-    GameManager *-- Computer
     GameManager --> ICommand
 }
 
