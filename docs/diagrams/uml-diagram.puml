@@ -126,6 +126,7 @@ package Profile {
         bool unlocked;
     }
 
+    ' Implements Prototype design pattern
     ' Look up CRTP for Clone() implementation
     interface IClone <<template <class Derived>>> {
         + IClone() = default;
@@ -133,7 +134,6 @@ package Profile {
         + unique_ptr<Derived> Clone();
     }
 
-    ' Implements Prototype design pattern
     class AchievementPool {
         - unordered_map<string, Achievement> NameToAchievementMap;
 
@@ -183,6 +183,28 @@ package Profile {
 
 ' TODO: Adapt computer/player interface for frontend
 package Computers {
+    ' Implements Strategy design pattern
+    interface IComputerStrategy {
+        + ~IComputerStrategy() = default;
+        + virtual Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const = 0;
+    }
+
+    class EasyComputerStrategy {
+        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+    }
+
+    class MediumComputerStrategy {
+        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+    }
+
+    class HardComputerStrategy {
+        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+    }
+
+    EasyComputerStrategy --|> IComputerStrategy
+    MediumComputerStrategy --|> IComputerStrategy
+    HardComputerStrategy --|> IComputerStrategy
+
     enum ComputerType {
         Easy,
         Medium,
@@ -190,14 +212,16 @@ package Computers {
     }
 
     class Computer {
+        - IComputerStrategy computerStrategy;
         + ComputerType type;
         + GameBoard board;
 
         + Computer(ComputerType type);
-        + void MakeMove();
+        + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
     }
 
-    Computer -> ComputerType
+    Computer --> ComputerType
+    Computer *-- IComputerStrategy
     Computer *-- GameBoard
 }
 
@@ -276,6 +300,7 @@ package Game {
         Over,
     }
 
+    ' TODO: Remove computers in favor of unified player/computer API
     class GameManager {
         - unsigned int id;
         - GameMode mode;
