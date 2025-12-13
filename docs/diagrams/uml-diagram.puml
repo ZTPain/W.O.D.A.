@@ -146,9 +146,15 @@ package Profile {
     AchievementPool --|> IClone
     AchievementPool *-- Achievement
 
-    enum Color {...}
-    enum BorderPattern {...}
-    enum UnitPattern {...}
+    enum Color {
+        ...
+    }
+    enum BorderPattern {
+        ...
+    }
+    enum UnitPattern {
+        ...
+    }
 
     struct UserSettings {
         Color unitColor;
@@ -307,12 +313,12 @@ package Game {
         - GameMode mode;
         - GameState state;
         - vector<Player> players;
-        - vector<Computers> computers;
         - vector<unsigned int> turnList;
         - unsigned int currentTurn;
         - vector<unique_ptr<ICommand>> history;
         - chrono::seconds playtime;
 
+        - void HandleComputerTurn();
         + GameManager(GameMode mode, vector<UserProfile&> profiles,
         vector<ComputerType> computers, vector<unsigned int> turnList);
         + ~GameManager();
@@ -320,7 +326,7 @@ package Game {
         + const vector<Player> Players() const;
         + vector<unsigned int> TurnList() const;
         + unsigned int CurrentTurn() const;
-        + void SetBoards();
+        + void SetBoards(vector<GameBoard> boards);
         + void StartGame();
         + bool ExecuteCommand(unique_ptr<ICommand> command);
         + void HandleGameOver();
