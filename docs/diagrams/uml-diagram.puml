@@ -7,6 +7,7 @@ package Units {
         Interceptor,
         Cruiser,
         Dreadnought,
+        ...
     }
 
     enum BattleUnitCategory {
@@ -110,13 +111,13 @@ package Profile {
         unsigned int totalUnitsDestroyed = 0;
     }
 
-    ' TODO: Add more unlocks
     enum UnlockableContent <<flags>> {
         None = 0,
         MediumComputer = 1,
         HardComputer = 2,
         SalvoMode = 4,
         ExtendedMode = 8,
+        ...
     }
 
     struct Achievement {
@@ -145,9 +146,9 @@ package Profile {
     AchievementPool --|> IClone
     AchievementPool *-- Achievement
 
-    enum Color {}
-    enum BorderPattern {}
-    enum UnitPattern {}
+    enum Color {...}
+    enum BorderPattern {...}
+    enum UnitPattern {...}
 
     struct UserSettings {
         Color unitColor;
