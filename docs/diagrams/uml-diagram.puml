@@ -93,11 +93,16 @@ package Boards {
         + bool IsGameOver();
     }
 
-    GameBoard *-- BattleUnit
+    GameBoard --> BattleUnit
     GameBoard *-- SegmentBoard
 }
 
 package Computers {
+    struct Coordinates {
+        size_t x;
+        size_t y;
+    }
+
     ' Implements Strategy design pattern
     interface IComputerStrategy {
         + ~IComputerStrategy() = default;
@@ -116,9 +121,9 @@ package Computers {
         + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
     }
 
-    EasyComputerStrategy --|> IComputerStrategy
-    MediumComputerStrategy --|> IComputerStrategy
-    HardComputerStrategy --|> IComputerStrategy
+    IComputerStrategy <|.. EasyComputerStrategy
+    IComputerStrategy <|.. MediumComputerStrategy
+    IComputerStrategy <|.. HardComputerStrategy
 
     enum ComputerType {
         None,
@@ -136,6 +141,7 @@ package Computers {
 
     Computer --> ComputerType
     Computer *-- IComputerStrategy
+    Computer --> Coordinates
 }
 
 package Profile {
@@ -184,7 +190,7 @@ package Profile {
         + bool Unlock(string name);
     }
 
-    AchievementPool --|> IClone
+    AchievementPool ..|> IClone
     AchievementPool *-- Achievement
 
     enum Color {
@@ -225,8 +231,8 @@ package Profile {
     }
 
     UserProfile *-- Statistics
-    UserProfile *-- AchievementPool
-    UserProfile --> UnlockableContent
+    UserProfile --> AchievementPool
+    UserProfile -> UnlockableContent
     UserProfile *-- UserSettings
     UserProfile --> Computer
 }
@@ -253,11 +259,6 @@ package Game {
         + virtual void undo() = 0;
     }
 
-    struct Coordinates {
-        size_t x;
-        size_t y;
-    }
-
     class FireCommand {
         - GameBoard& board;
         - Coordinates coords;
@@ -268,7 +269,7 @@ package Game {
     }
 
     FireCommand --> Coordinates
-    FireCommand --|> ICommand
+    FireCommand ..|> ICommand
 
     class SalvoFireCommand {
         - GameBoard& board;
@@ -280,7 +281,7 @@ package Game {
     }
 
     SalvoFireCommand --> Coordinates
-    SalvoFireCommand --|> ICommand
+    SalvoFireCommand ..|> ICommand
 
     enum FireCommandType {
         FireCommand,
