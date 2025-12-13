@@ -216,7 +216,7 @@ package Game {
     Player *.. UserProfile
     Player *-- GameBoard
 
-    ' TODO: Add field marking command
+    ' Implements Command design pattern
     interface ICommand {
         + virtual ~ICommand() = default;
         + virtual bool execute() = 0;
@@ -276,7 +276,6 @@ package Game {
         Over,
     }
 
-    ' Implements Command design pattern
     class GameManager {
         - unsigned int id;
         - GameMode mode;
@@ -295,8 +294,8 @@ package Game {
         + const vector<Player> Players() const;
         + vector<unsigned int> TurnList() const;
         + unsigned int CurrentTurn() const;
-        + void StartGame();
         + void SetBoards();
+        + void StartGame();
         + bool ExecuteCommand(unique_ptr<ICommand> command);
         + void HandleGameOver();
         + Replay GetReplay();
@@ -321,10 +320,13 @@ package Replays {
 
     Replay <.. GameManager
 
+    ' Implements Singleton design pattern
     class ReplayManager {
+        - {static} ReplayManager instance;
         - vector<Replay> replays;
 
-        + ReplayManager();
+        - ReplayManager();
+        + {static} ReplayManager GetInstance();
         + ~ReplayManager();
         + const vector<Replay>& Replays() const;
         + void SaveReplay(Replay replay);
