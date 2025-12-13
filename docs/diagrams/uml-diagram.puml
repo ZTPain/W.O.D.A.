@@ -217,7 +217,7 @@ package Profile {
     UserSettings --> UnitPattern
 
     class UserProfile {
-        + size_t id;
+        + size_t userId;
         + string name;
         + Statistics statistics;
         + unique_ptr<AchievementPool> achievements;
@@ -307,15 +307,16 @@ package Game {
         Over,
     }
 
-    ' TODO: Save initial player state to replay
     class GameManager {
-        - unsigned int id;
+        - unsigned int gameId;
         - GameMode mode;
         - GameState state;
         - vector<Player> players;
         - vector<unsigned int> turnList;
         - unsigned int currentTurn;
+        - vector<Player> initialPlayerState;
         - vector<unique_ptr<ICommand>> history;
+        - unsigned int winnerId;
         - chrono::seconds playtime;
 
         - bool ExecuteCommand(unique_ptr<ICommand> command);
@@ -340,7 +341,7 @@ package Game {
 
 package Replays {
     struct Replay {
-        unsigned int id;
+        unsigned int replayId;
         vector<Player> players;
         vector<unique_ptr<ICommand>> history;
         unsigned int winnerId;
