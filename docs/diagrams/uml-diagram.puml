@@ -332,6 +332,10 @@ package Game {
     }
 
     class GameManager {
+        - {static} nextGameId = 0;
+        - {static} Computer easyComputer;
+        - {static} Computer mediumComputer;
+        - {static} Computer hardComputer;
         - unsigned int gameId;
         - GameMode mode;
         - GameState state;
@@ -394,10 +398,6 @@ package Replays {
 package Main {
     class Battleships {
         - {static} Battleships instance;
-        - {static} nextGameId = 0;
-        - Computer easyComputer;
-        - Computer mediumComputer;
-        - Computer hardComputer;
         + UserManager userManager;
         + ReplayManager replayManager;
 
