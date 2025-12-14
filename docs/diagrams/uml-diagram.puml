@@ -126,9 +126,9 @@ package Computers {
         const GameBoard& enemyBoard) const override;
     }
 
-    IComputerStrategy <|.. EasyComputerStrategy
+    EasyComputerStrategy .|> IComputerStrategy
     IComputerStrategy <|.. MediumComputerStrategy
-    IComputerStrategy <|. HardComputerStrategy
+    IComputerStrategy <|.. HardComputerStrategy
 
     enum ComputerType {
         None,
@@ -144,7 +144,7 @@ package Computers {
         + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
     }
 
-    Computer -> ComputerType
+    ComputerType <- Computer
     Computer *-- IComputerStrategy
 }
 
