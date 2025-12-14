@@ -1,5 +1,11 @@
 @startuml woda-uml
-left to right direction
+' left to right direction
+
+' TODO: Link with Coordinates
+' struct Coordinates {
+'     size_t x;
+'     size_t y;
+' }
 
 package Units {
     enum BattleUnitType {
@@ -53,8 +59,8 @@ package Units {
         + BattleUnitType GetType() const override;
     }
 
-    BattleUnit --> BattleUnitType
-    BattleUnit --> BattleUnitCategory
+    BattleUnit -l> BattleUnitType
+    BattleUnit -l> BattleUnitCategory
 
     BattleUnit <|-- PatrolBoat
     BattleUnit <|-- Interceptor
@@ -77,7 +83,7 @@ package Boards {
         + bool ToggleSegment(size_t x, size_t y) override;
     }
 
-    SegmentBoard <|-- ExtendedSegmentBoard
+    SegmentBoard <|- ExtendedSegmentBoard
 
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - SegmentBoard<WIDTH, HEIGHT> segments;
@@ -93,37 +99,36 @@ package Boards {
         + bool IsGameOver();
     }
 
-    GameBoard -> BattleUnit
+    GameBoard -l> BattleUnit
     GameBoard *-- SegmentBoard
 }
 
 package Computers {
-    struct Coordinates {
-        size_t x;
-        size_t y;
-    }
-
     ' Implements Strategy design pattern
     interface IComputerStrategy {
         + ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const = 0;
+        + virtual Coordinates CalculateFireCoordinates(
+            const GameBoard& enemyBoard) const = 0;
     }
 
     class EasyComputerStrategy {
-        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& enemyBoard) const override;
     }
 
     class MediumComputerStrategy {
-        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& enemyBoard) const override;
     }
 
     class HardComputerStrategy {
-        + Coordinates CalculateFireCoordinates(const GameBoard& enemyBoard) const override;
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& enemyBoard) const override;
     }
 
     IComputerStrategy <|.. EasyComputerStrategy
     IComputerStrategy <|.. MediumComputerStrategy
-    IComputerStrategy <|.. HardComputerStrategy
+    IComputerStrategy <|. HardComputerStrategy
 
     enum ComputerType {
         None,
@@ -139,12 +144,11 @@ package Computers {
         + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
     }
 
-    Computer --> ComputerType
+    Computer -> ComputerType
     Computer *-- IComputerStrategy
-    Computer --> Coordinates
 }
 
-package User {
+package Users {
     struct Statistics {
         chrono::seconds fastestWonGame = 0;
         chrono::seconds totalPlaytime = 0;
@@ -237,9 +241,9 @@ package User {
 
     UserProfile *-- Statistics
     UserProfile --> AchievementPool
-    UserProfile -> UnlockableContent
+    UserProfile --> UnlockableContent
     UserProfile *-- UserSettings
-    UserProfile --> Computer
+    UserProfile -> Computer
 
     class UserManager {
         - {static} UserManager instance;
@@ -261,21 +265,7 @@ package User {
     UserManager *-- UserProfile
 }
 
-package Game {
-    struct Player {
-        UserProfile& profile;
-        GameBoard board;
-        unsigned int hitStreak = 0;
-        unsigned int longestHitStreak = 0;
-        unsigned int score = 0;
-        unsigned int shotsFired = 0;
-        unsigned int shotsHit = 0;
-        unsigned int unitsDestroyed = 0;
-    }
-
-    Player *.. UserProfile
-    Player *-- GameBoard
-
+package Games {
     ' Implements Command design pattern
     interface ICommand {
         + virtual ~ICommand() = default;
@@ -292,9 +282,6 @@ package Game {
         + void undo() override;
     }
 
-    FireCommand --> Coordinates
-    FireCommand ..|> ICommand
-
     class SalvoFireCommand {
         - GameBoard& board;
         - vector<Coordinates> coords;
@@ -304,8 +291,8 @@ package Game {
         + void undo() override;
     }
 
-    SalvoFireCommand --> Coordinates
-    SalvoFireCommand ..|> ICommand
+    ICommand <|.. FireCommand
+    ICommand <|.. SalvoFireCommand
 
     enum FireCommandType {
         FireCommand,
@@ -322,7 +309,7 @@ package Game {
         unordered_map<UnitType, size_t> unitPool;
     }
 
-    GameMode -> FireCommandType
+    GameMode --> FireCommandType
 
     enum GameState {
         Started,
@@ -330,6 +317,20 @@ package Game {
         Playing,
         Over,
     }
+
+    struct Player {
+        UserProfile& profile;
+        GameBoard board;
+        unsigned int hitStreak = 0;
+        unsigned int longestHitStreak = 0;
+        unsigned int score = 0;
+        unsigned int shotsFired = 0;
+        unsigned int shotsHit = 0;
+        unsigned int unitsDestroyed = 0;
+    }
+
+    Player *.. UserProfile
+    Player *-- GameBoard
 
     class GameManager {
         - {static} nextGameId = 0;
@@ -360,9 +361,10 @@ package Game {
     }
 
     GameManager *-- GameMode
-    GameManager --> GameState
+    GameManager -l> GameState
     GameManager *-- Player
     GameManager --> ICommand
+    GameManager *- Computer
 }
 
 package Replays {
@@ -375,7 +377,7 @@ package Replays {
         time_t timestamp;
     }
 
-    Replay <.. GameManager
+    Replay <. GameManager
 
     ' Implements Singleton design pattern
     class ReplayManager {
@@ -409,9 +411,9 @@ package Main {
         + void NewGame(GameMode mode, vector<UserProfile&> profiles);
     }
 
-    Battleships *-- Computer
     Battleships *-- UserManager
     Battleships *- ReplayManager
+    Battleships --> GameManager
 }
 
 @enduml
