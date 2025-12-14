@@ -2,6 +2,7 @@
 
 package Units {
     enum BattleUnitType {
+        None,
         PatrolBoat,
         Interceptor,
         Cruiser,
@@ -66,15 +67,20 @@ package Boards {
     interface ISegment {
         + ~ISegment() = default;
         + virtual bool ToggleSegment(size_t x, size_t y) = 0;
+        + virtual const array<array<bool, HEIGHT>, WIDTH>& Segments() const = 0;
+        + virtual void Clear() = 0;
+        ' Array[UnitType][UnitNumber] of Coordinates[]
+        + virtual const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const = 0;
     }
 
     class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - array<array<bool, HEIGHT>, WIDTH> segments;
 
         + SegmentBoard();
-        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const;
+        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
-        + void Clear();
+        + void Clear() override;
+        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
     }
 
     class SegmentBoardValidator <<template <size_t WIDTH, size_t HEIGHT>>> {
@@ -83,7 +89,10 @@ package Boards {
 
         + SegmentBoardValidator(SegmentBoard<WIDTH,
         HEIGHT>& segmentBoard, GameMode mode);
+        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
+        + void Clear() override;
+        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
     }
 
     ISegment <|.. SegmentBoard
