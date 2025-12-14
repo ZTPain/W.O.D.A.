@@ -83,7 +83,7 @@ package Boards {
         + bool ToggleSegment(size_t x, size_t y) override;
     }
 
-    SegmentBoard <|- ExtendedSegmentBoard
+    ExtendedSegmentBoard -|> SegmentBoard
 
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - SegmentBoard<WIDTH, HEIGHT> segments;
@@ -99,8 +99,8 @@ package Boards {
         + bool IsGameOver();
     }
 
-    GameBoard -l> BattleUnit
-    GameBoard *-- SegmentBoard
+    GameBoard --> BattleUnit
+    SegmentBoard --* GameBoard
 }
 
 package Computers {
@@ -194,7 +194,7 @@ package Users {
         + bool Unlock(string name);
     }
 
-    AchievementPool ..|> IClone
+    IClone <|.. AchievementPool
     AchievementPool *-- Achievement
 
     enum Color {
@@ -224,26 +224,26 @@ package Users {
     UserSettings --> UnitPattern
 
     class UserProfile {
-        + size_t userId;
+        + unsigned int userId;
         + string name;
         + Statistics statistics;
         + unique_ptr<AchievementPool> achievements;
         + uint64_t unlockedContent;
         + UserSettings settings;
-        + unique_ptr<Computer> computer;
+        + Computer& computer;
 
-        + UserProfile(size_t userId, string name,
+        + UserProfile(unsigned int userId, string name,
         unique_ptr<AchievementPool> achievements);
-        + UserProfile(size_t userId, string name,
-        unique_ptr<AchievementPool> achievements, unique_ptr<Computer> computer);
+        + UserProfile(unsigned int userId, string name,
+        unique_ptr<AchievementPool> achievements, Computer& computer);
         + ~UserProfile();
     }
 
     UserProfile *-- Statistics
-    UserProfile --> AchievementPool
+    UserProfile -> AchievementPool
     UserProfile --> UnlockableContent
     UserProfile *-- UserSettings
-    UserProfile -> Computer
+    UserProfile ..> Computer
 
     class UserManager {
         - {static} UserManager instance;
@@ -259,6 +259,7 @@ package Users {
         + void CreateUser(string name);
         + UserProfile& GetCurrentUser();
         + bool ChangeCurrentUser(unsigned int userId);
+        + UserProfile CreateComputer(string name, ComputerType computerType);
     }
 
     UserManager *-- AchievementPool
