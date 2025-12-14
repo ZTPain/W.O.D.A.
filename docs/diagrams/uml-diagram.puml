@@ -59,13 +59,13 @@ package Units {
         + BattleUnitType GetType() const override;
     }
 
-    BattleUnit -l> BattleUnitType
-    BattleUnit -l> BattleUnitCategory
+    BattleUnit --> BattleUnitType
+    BattleUnit --> BattleUnitCategory
 
-    BattleUnit <|-- PatrolBoat
+    PatrolBoat -|> BattleUnit
     BattleUnit <|-- Interceptor
     BattleUnit <|-- Cruiser
-    BattleUnit <|-- Dreadnought
+    BattleUnit <|- Dreadnought
 }
 
 package Boards {
