@@ -144,7 +144,7 @@ package Computers {
     Computer --> Coordinates
 }
 
-package Profile {
+package User {
     struct Statistics {
         chrono::seconds fastestWonGame = 0;
         chrono::seconds totalPlaytime = 0;
@@ -240,6 +240,25 @@ package Profile {
     UserProfile -> UnlockableContent
     UserProfile *-- UserSettings
     UserProfile --> Computer
+
+    class UserManager {
+        - {static} UserManager instance;
+        - {static} nextUserId = 0;
+        - vector<UserProfile> users;
+        - unsigned int currentUserId;
+        - AchievementPool initialAchievementPool;
+
+        - UserManager();
+        + {static} UserManager GetInstance();
+        + ~UserManager();
+        + const vector<UserProfile>& Users() const;
+        + void CreateUser(string name);
+        + UserProfile& GetCurrentUser();
+        + bool ChangeCurrentUser(unsigned int userId);
+    }
+
+    UserManager *-- AchievementPool
+    UserManager *-- UserProfile
 }
 
 package Game {
@@ -375,14 +394,11 @@ package Replays {
 package Main {
     class Battleships {
         - {static} Battleships instance;
-        - {static} nextUserId = 0;
         - {static} nextGameId = 0;
-        - vector<UserProfile> users;
-        - unsigned int currentUserId;
-        - AchievementPool initialAchievementPool;
         - Computer easyComputer;
         - Computer mediumComputer;
         - Computer hardComputer;
+        + UserManager userManager;
         + ReplayManager replayManager;
 
         - void ReadSave();
@@ -390,16 +406,11 @@ package Main {
         - Battleships();
         + {static} Battleships GetInstance();
         + ~Battleships();
-        + const vector<UserProfile>& Users() const;
-        + void CreateUser(string name);
-        + UserProfile& GetCurrentUser();
-        + bool ChangeCurrentUser(unsigned int userId);
         + void NewGame(GameMode mode, vector<UserProfile&> profiles);
     }
 
-    Battleships *-- UserProfile
-    Battleships *-- AchievementPool
     Battleships *-- Computer
+    Battleships *-- UserManager
     Battleships *- ReplayManager
 }
 
