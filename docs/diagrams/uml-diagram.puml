@@ -69,21 +69,32 @@ package Units {
 }
 
 package Boards {
+    ' Implements Protection Proxy design pattern
+    interface ISegment {
+        + ~ISegment() = default;
+        + virtual bool ToggleSegment(size_t x, size_t y) = 0;
+    }
+
     class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - array<array<bool, HEIGHT>, WIDTH> segments;
 
         + SegmentBoard();
         + const array<array<bool, HEIGHT>, WIDTH>& Segments() const;
-        + virtual bool ToggleSegment(size_t x, size_t y);
+        + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear();
     }
 
-    class ExtendedSegmentBoard {
-        + ExtendedSegmentBoard();
+    class SegmentBoardValidator <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - SegmentBoard<WIDTH, HEIGHT>& segmentBoard;
+        - GameMode mode;
+
+        + SegmentBoardValidator(SegmentBoard<WIDTH,
+        HEIGHT>& segmentBoard, GameMode mode);
         + bool ToggleSegment(size_t x, size_t y) override;
     }
 
-    ExtendedSegmentBoard -|> SegmentBoard
+    ISegment <|.. SegmentBoard
+    ISegment <|.. SegmentBoardValidator
 
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - SegmentBoard<WIDTH, HEIGHT> segments;
@@ -91,7 +102,7 @@ package Boards {
 
         + GameBoard();
         + ~GameBoard();
-        + SegmentBoard<WIDTH, HEIGHT>& Segments();
+        + SegmentBoardValidator<WIDTH, HEIGHT> Segments();
         + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
@@ -101,6 +112,7 @@ package Boards {
 
     GameBoard --> BattleUnit
     SegmentBoard --* GameBoard
+    SegmentBoardValidator <-- GameBoard
 }
 
 package Computers {
@@ -190,7 +202,7 @@ package Users {
         - unordered_map<string, Achievement> nameToAchievementMap;
 
         + AchievementPool();
-        + const Achievement& Achievement(string name) const;
+        + const unordered_map<string, Achievement>& NameToAchievementMap() const;
         + bool Unlock(string name);
     }
 
@@ -338,6 +350,9 @@ package Games {
         - {static} Computer easyComputer;
         - {static} Computer mediumComputer;
         - {static} Computer hardComputer;
+        - {static} GameMode standardGameMode;
+        - {static} GameMode salvoGameMode;
+        - {static} GameMode extendedGameMode;
         - unsigned int gameId;
         - GameMode mode;
         - GameState state = Started;
@@ -350,7 +365,7 @@ package Games {
 
         + GameManager(GameMode mode, vector<UserProfile&> profiles);
         + ~GameManager();
-        + GameMode Mode() const;
+        + const GameMode Mode() const;
         + const vector<Player> Players() const;
         + unsigned int CurrentTurn() const;
         + void StartGame();
