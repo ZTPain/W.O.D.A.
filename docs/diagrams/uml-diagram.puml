@@ -91,7 +91,7 @@ package Boards {
 
         + GameBoard();
         + ~GameBoard();
-        + const SegmentBoard<WIDTH, HEIGHT>& Segments() const;
+        + SegmentBoard<WIDTH, HEIGHT>& Segments();
         + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
@@ -339,7 +339,7 @@ package Games {
         - {static} Computer hardComputer;
         - unsigned int gameId;
         - GameMode mode;
-        - GameState state;
+        - GameState state = Started;
         - vector<Player> players;
         - unsigned int currentTurn;
         - vector<Player> initialPlayerState;
@@ -347,15 +347,13 @@ package Games {
         - unsigned int winnerId;
         - chrono::seconds playtime;
 
-        - bool ExecuteCommand(unique_ptr<ICommand> command);
-        - void HandleComputerTurn();
         + GameManager(GameMode mode, vector<UserProfile&> profiles);
         + ~GameManager();
         + GameMode Mode() const;
         + const vector<Player> Players() const;
         + unsigned int CurrentTurn() const;
-        + void SetBoards(vector<GameBoard> boards);
         + void StartGame();
+        + bool ExecuteCommand(unique_ptr<ICommand> command);
         + void HandleGameOver();
         + Replay GetReplay();
     }
@@ -379,6 +377,18 @@ package Replays {
 
     Replay <. GameManager
 
+    class ReplayPlayback {
+        - Replay replay;
+        - int currentStep = -1;
+
+        + ReplayPlayback(Replay replay);
+        + ~ReplayPlayback();
+        + const Replay& Replay() const;
+        + int CurrentStep() const;
+        + void StepForward();
+        + void StepBackward();
+    }
+
     ' Implements Singleton design pattern
     class ReplayManager {
         - {static} ReplayManager instance;
@@ -389,14 +399,13 @@ package Replays {
         + ~ReplayManager();
         + const vector<Replay>& Replays() const;
         + void SaveReplay(Replay replay);
-        + bool Play(unsigned int replayId);
-        + bool Analyze(unsigned int replayId);
+        + ReplayPlayback Play(unsigned int replayId);
     }
 
+    ReplayManager .> ReplayPlayback
     ReplayManager *-- Replay
 }
 
-' TODO: Add proper game handling
 package Main {
     class Battleships {
         - {static} Battleships instance;
@@ -404,11 +413,11 @@ package Main {
         + ReplayManager replayManager;
 
         - void ReadSave();
-        - void WriteToSave();
         - Battleships();
         + {static} Battleships GetInstance();
         + ~Battleships();
-        + void NewGame(GameMode mode, vector<UserProfile&> profiles);
+        + GameManager NewGame(GameMode mode, vector<UserProfile&> profiles);
+        + void WriteToSave();
     }
 
     Battleships *-- UserManager
