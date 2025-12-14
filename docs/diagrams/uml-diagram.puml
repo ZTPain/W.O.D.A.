@@ -1,11 +1,4 @@
 @startuml woda-uml
-' left to right direction
-
-' TODO: Link with Coordinates
-' struct Coordinates {
-'     size_t x;
-'     size_t y;
-' }
 
 package Units {
     enum BattleUnitType {
@@ -255,7 +248,7 @@ package Users {
     UserProfile -> AchievementPool
     UserProfile --> UnlockableContent
     UserProfile *-- UserSettings
-    UserProfile ..> Computer
+    UserProfile *.. Computer
 
     class UserManager {
         - {static} UserManager instance;
@@ -279,6 +272,11 @@ package Users {
 }
 
 package Games {
+    struct Coordinates {
+        size_t x;
+        size_t y;
+    }
+
     ' Implements Command design pattern
     interface ICommand {
         + virtual ~ICommand() = default;
@@ -306,6 +304,8 @@ package Games {
 
     ICommand <|.. FireCommand
     ICommand <|.. SalvoFireCommand
+    Coordinates <-- FireCommand
+    Coordinates <-- SalvoFireCommand
 
     enum FireCommandType {
         FireCommand,
@@ -375,7 +375,7 @@ package Games {
     }
 
     GameManager *-- GameMode
-    GameManager -l> GameState
+    GameManager --> GameState
     GameManager *-- Player
     GameManager --> ICommand
     GameManager *- Computer
