@@ -390,6 +390,7 @@ package Main {
         - Battleships();
         + {static} Battleships GetInstance();
         + ~Battleships();
+        + const vector<UserProfile>& Users() const;
         + void CreateUser(string name);
         + UserProfile& GetCurrentUser();
         + bool ChangeCurrentUser(unsigned int userId);
