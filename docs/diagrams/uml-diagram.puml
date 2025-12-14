@@ -88,6 +88,7 @@ package Boards {
 
     ISegment <|.. SegmentBoard
     ISegment <|.. SegmentBoardValidator
+    SegmentBoard --* SegmentBoardValidator
 
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
         - SegmentBoard<WIDTH, HEIGHT> segments;
