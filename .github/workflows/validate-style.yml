@@ -1,8 +1,6 @@
 name: validate-style
 on: 
   push:
-    paths:
-      - 'src/**'
 jobs:
   validate-using-clang-format:
     runs-on: self-hosted
@@ -52,6 +50,12 @@ jobs:
           else
             tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
           fi
+
+          if [ -z "$tst" ]; then
+            echo "No C++ source files to check."
+            exit 0
+          fi
+
           clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
           echo "All files conform to the code style." 
 
