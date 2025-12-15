@@ -17,14 +17,14 @@ package Units {
     }
 
     abstract class BattleUnit {
-        # unsigned int segments;
         - unsigned int destroyedSegments = 0;
-        - BattleUnitCategory category;
+        # unsigned int segments;
+        # BattleUnitCategory category;
 
         + BattleUnit();
         + virtual ~BattleUnit() = default;
         + virtual BattleUnitType GetType() const = 0;
-        + BattleUnitCategory GetCategory();
+        + BattleUnitCategory GetCategory() const;
         + void DestroySegment();
         + void FixSegment();
         + bool IsDestroyed() const;
