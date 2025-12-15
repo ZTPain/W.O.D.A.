@@ -1,0 +1,4 @@
+Diagnostics:
+  MissingIncludes: Strict
+  ClangTidy:
+    FastCheckFilter: Loose
