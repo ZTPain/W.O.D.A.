@@ -51,7 +51,7 @@ jobs:
             tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only`
           else  
             echo "Initial commit or unknown event, checking all source files."
-            tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
+            tst=`find src/ -name '*.cpp' -o -name '*.h'`
           fi
 
           echo "UnFiltered source files:"
@@ -59,13 +59,12 @@ jobs:
           tst=`cat $tst | egrep ".*\.((cpp)|(h))$" || true`
 
           echo "Files to be checked:"
-          echo "$tst"
           if [ -z "$tst" ]; then
             echo "No C++ source files to check."
             exit 0
           fi
+          echo "$tst"
 
           echo "Running clang-tidy-20 on selected files..."
-          #clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
-          clang-tidy-20 --warnings-as-errors \* -p . $tst
+          clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
           echo "All files conform to the code style."
