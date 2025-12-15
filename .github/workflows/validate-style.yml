@@ -44,18 +44,24 @@ jobs:
       - name: Validate code style
         run: |
           if ${{ github.event_name == 'pull_request' }}; then
+            echo "Pull request detected."
             tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
-          elif [ ${{ github.event.before != '0000000000000000000000000000000000000000' }} ]; then
+          elif ${{ github.event.before != '0000000000000000000000000000000000000000' }}; then
+            echo "Push event detected."
             tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
-          else
+          else  
+            echo "Initial commit or unknown event, checking all source files."
             tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
           fi
 
+          echo "Files to be checked:"
+          echo "$tst"
           if [ -z "$tst" ]; then
             echo "No C++ source files to check."
             exit 0
           fi
 
+          echo "Running clang-tidy-20 on selected files..."
           clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
           echo "All files conform to the code style." 
 
