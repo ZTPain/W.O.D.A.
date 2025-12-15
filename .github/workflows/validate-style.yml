@@ -56,7 +56,7 @@ jobs:
 
           echo "UnFiltered source files:"
           echo "$tst"
-          tst=`$tst | egrep ".*\.((cpp)|(h))$"`
+          tst=`cat $tst | egrep ".*\.((cpp)|(h))$"`
 
           echo "Files to be checked:"
           echo "$tst"
