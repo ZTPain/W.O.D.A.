@@ -26,6 +26,7 @@ package Units {
         + virtual BattleUnitType GetType() const = 0;
         + BattleUnitCategory GetCategory();
         + void DestroySegment();
+        + void FixSegment();
         + bool IsDestroyed() const;
     }
 
@@ -177,7 +178,7 @@ package Users {
         unsigned int totalUnitsDestroyed = 0;
     }
 
-    enum UnlockableContent <<flags>> {
+    enum UnlockableContent <<flags : uint64_t>> {
         None = 0,
         MediumComputer = 1,
         HardComputer = 2,
@@ -239,13 +240,13 @@ package Users {
     UserSettings --> UnitPattern
 
     class UserProfile {
-        + unsigned int userId;
+        - unsigned int userId;
+        - optional<Computer> computer;
         + string name;
         + Statistics statistics;
         + unique_ptr<AchievementPool> achievements;
-        + uint64_t unlockedContent;
+        + bitset<64> unlockedContent;
         + UserSettings settings;
-        + Computer& computer;
 
         + UserProfile(unsigned int userId, string name,
         unique_ptr<AchievementPool> achievements);
@@ -360,9 +361,6 @@ package Games {
         - {static} Computer easyComputer;
         - {static} Computer mediumComputer;
         - {static} Computer hardComputer;
-        - {static} GameMode standardGameMode;
-        - {static} GameMode salvoGameMode;
-        - {static} GameMode extendedGameMode;
         - unsigned int gameId;
         - GameMode mode;
         - GameState state = Started;
@@ -411,8 +409,8 @@ package Replays {
         + ~ReplayPlayback();
         + const Replay& Replay() const;
         + int CurrentStep() const;
-        + void StepForward();
-        + void StepBackward();
+        + bool StepForward();
+        + bool StepBackward();
     }
 
     ' Implements Singleton design pattern
@@ -435,6 +433,9 @@ package Replays {
 package Main {
     class Battleships {
         - {static} Battleships instance;
+        - {static} GameMode standardGameMode;
+        - {static} GameMode salvoGameMode;
+        - {static} GameMode extendedGameMode;
         + UserManager userManager;
         + ReplayManager replayManager;
 
