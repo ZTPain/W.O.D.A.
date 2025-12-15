@@ -1,5 +1,5 @@
 name: validate-style
-on: 
+on:
   push:
 jobs:
   validate-using-clang-format:
@@ -22,7 +22,7 @@ jobs:
           for file in $FILES; do
             clang-format-20 -style=file "$file" | diff "$file" - || { echo "Code style issues found in $file"; exit 1; }
           done
-          echo "All files conform to the code style." 
+          echo "All files conform to the code style."
   validate-using-clang-tidy:
     runs-on: self-hosted
     steps:
@@ -48,7 +48,7 @@ jobs:
             tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
           elif ${{ github.event.before != '0000000000000000000000000000000000000000' }}; then
             echo "Push event detected."
-            tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
+            tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only
           else  
             echo "Initial commit or unknown event, checking all source files."
             tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
@@ -64,6 +64,4 @@ jobs:
           echo "Running clang-tidy-20 on selected files..."
           #clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
           clang-tidy-20 --warnings-as-errors \* -p . $tst
-          echo "All files conform to the code style." 
-
-  
+          echo "All files conform to the code style."
