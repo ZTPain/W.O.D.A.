@@ -245,7 +245,7 @@ package Users {
         + string name;
         + Statistics statistics;
         + unique_ptr<AchievementPool> achievements;
-        + bitset<64> unlockedContent;
+        + uint64_t unlockedContent;
         + UserSettings settings;
 
         + UserProfile(unsigned int userId, string name,
