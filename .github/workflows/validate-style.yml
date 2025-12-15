@@ -23,5 +23,32 @@ jobs:
             clang-format-20 -style=file "$file" | diff "$file" - || { echo "Code style issues found in $file"; exit 1; }
           done
           echo "All files conform to the code style." 
+  validate-using-clang-tidy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+      - name: Install clang-tidy
+        run: |
+          if ! command -v clang-tidy-20 >/dev/null 2>&1
+          then
+            echo "clang-tidy-20 could not be found, installing..."
+            sudo apt add-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main"
+            sudo apt update && sudo apt install clang-tidy-20
+          else
+            echo "clang-tidy-20 is already installed."
+          fi
+      - name: Configure CMake
+        run: cmake .
+      - name: Validate code style
+        run: |
+          if ${{ github.event_name == 'pull_request' }}; then
+            tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
+          else
+            tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
+          fi
+          clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
+          echo "All files conform to the code style." 
 
   
