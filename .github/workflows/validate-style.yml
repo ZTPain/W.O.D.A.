@@ -45,8 +45,10 @@ jobs:
         run: |
           if ${{ github.event_name == 'pull_request' }}; then
             tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
-          else
+          elif [ "${{ github.event.before != '0000000000000000000000000000000000000000' }} ]; then
             tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
+          else
+            tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
           fi
           clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
           echo "All files conform to the code style." 
