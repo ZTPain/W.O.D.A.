@@ -271,7 +271,7 @@ package Users {
         - AchievementPool initialAchievementPool;
 
         - UserManager();
-        + {static} UserManager GetInstance();
+        + {static} UserManager& GetInstance();
         + ~UserManager();
         + const vector<UserProfile>& Users() const;
         + void CreateUser(string name);
@@ -421,7 +421,7 @@ package Replays {
         - vector<Replay> replays;
 
         - ReplayManager();
-        + {static} ReplayManager GetInstance();
+        + {static} ReplayManager& GetInstance();
         + ~ReplayManager();
         + const vector<Replay>& Replays() const;
         + void SaveReplay(Replay replay);
@@ -443,7 +443,7 @@ package Main {
 
         - void ReadSave();
         - Battleships();
-        + {static} Battleships GetInstance();
+        + {static} Battleships& GetInstance();
         + ~Battleships();
         + GameManager NewGame(GameMode mode, vector<UserProfile&> profiles);
         + void WriteToSave();
