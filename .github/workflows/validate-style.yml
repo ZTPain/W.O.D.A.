@@ -1,5 +1,5 @@
 name: validate-style
-on: 
+on:
   push:
 jobs:
   validate-using-clang-format:
@@ -22,6 +22,49 @@ jobs:
           for file in $FILES; do
             clang-format-20 -style=file "$file" | diff "$file" - || { echo "Code style issues found in $file"; exit 1; }
           done
-          echo "All files conform to the code style." 
+          echo "All files conform to the code style."
+  validate-using-clang-tidy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+      - name: Install clang-tidy
+        run: |
+          if ! command -v clang-tidy-20 >/dev/null 2>&1
+          then
+            echo "clang-tidy-20 could not be found, installing..."
+            sudo apt add-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main"
+            sudo apt update && sudo apt install clang-tidy-20
+          else
+            echo "clang-tidy-20 is already installed."
+          fi
+      - name: Configure CMake
+        run: cmake .
+      - name: Validate code style
+        run: |
+          if ${{ github.event_name == 'pull_request' }}; then
+            echo "Pull request detected."
+            tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only`
+          elif ${{ github.event.before != '0000000000000000000000000000000000000000' }}; then
+            echo "Push event detected."
+            tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only`
+          else  
+            echo "Initial commit or unknown event, checking all source files."
+            tst=`find src/ -name '*.cpp' -o -name '*.h'`
+          fi
 
-  
+          echo "UnFiltered source files:"
+          echo "$tst"
+          tst=`cat $tst | egrep ".*\.((cpp)|(h))$" || true`
+
+          echo "Files to be checked:"
+          if [ -z "$tst" ]; then
+            echo "No C++ source files to check."
+            exit 0
+          fi
+          echo "$tst"
+
+          echo "Running clang-tidy-20 on selected files..."
+          clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
+          echo "All files conform to the code style."
