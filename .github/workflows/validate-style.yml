@@ -45,7 +45,7 @@ jobs:
         run: |
           if ${{ github.event_name == 'pull_request' }}; then
             echo "Pull request detected."
-            tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
+            tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only`
           elif ${{ github.event.before != '0000000000000000000000000000000000000000' }}; then
             echo "Push event detected."
             tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only`
@@ -53,6 +53,10 @@ jobs:
             echo "Initial commit or unknown event, checking all source files."
             tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
           fi
+
+          echo "UnFiltered source files:"
+          echo "$tst"
+          tst=`$tst | egrep ".*\.((cpp)|(h))$"`
 
           echo "Files to be checked:"
           echo "$tst"
