@@ -1,3 +1,457 @@
-@startuml WODA
-Alice -> Bob: test
+@startuml woda-uml
+
+package Units {
+    enum BattleUnitType {
+        None,
+        PatrolBoat,
+        Interceptor,
+        Cruiser,
+        Dreadnought,
+        ...
+    }
+
+    enum BattleUnitCategory {
+        Land,
+        Marine,
+        Aerial,
+    }
+
+    abstract class BattleUnit {
+        # unsigned int segments;
+        - unsigned int destroyedSegments = 0;
+        - BattleUnitCategory category;
+
+        + BattleUnit();
+        + virtual ~BattleUnit() = default;
+        + virtual BattleUnitType GetType() const = 0;
+        + BattleUnitCategory GetCategory();
+        + void DestroySegment();
+        + void FixSegment();
+        + bool IsDestroyed() const;
+    }
+
+    ' Size: 1
+    class PatrolBoat {
+        + PatrolBoat();
+        + BattleUnitType GetType() const override;
+    }
+
+    ' Size: 2 
+    class Interceptor {
+        + Interceptor();
+        + BattleUnitType GetType() const override;
+    }
+
+    ' Size: 3
+    class Cruiser {
+        + Cruiser();
+        + BattleUnitType GetType() const override;
+    }
+
+    ' Size: 4
+    class Dreadnought {
+        + Dreadnought();
+        + BattleUnitType GetType() const override;
+    }
+
+    BattleUnit --> BattleUnitType
+    BattleUnit --> BattleUnitCategory
+
+    PatrolBoat -|> BattleUnit
+    BattleUnit <|-- Interceptor
+    BattleUnit <|-- Cruiser
+    BattleUnit <|- Dreadnought
+}
+
+package Boards {
+    ' Implements Protection Proxy design pattern
+    interface ISegment {
+        + ~ISegment() = default;
+        + virtual bool ToggleSegment(size_t x, size_t y) = 0;
+        + virtual const array<array<bool, HEIGHT>, WIDTH>& Segments() const = 0;
+        + virtual void Clear() = 0;
+        ' Array[UnitType][UnitNumber] of Coordinates[]
+        + virtual const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const = 0;
+    }
+
+    class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - array<array<bool, HEIGHT>, WIDTH> segments;
+
+        + SegmentBoard();
+        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
+        + bool ToggleSegment(size_t x, size_t y) override;
+        + void Clear() override;
+        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
+    }
+
+    class SegmentBoardValidator <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - SegmentBoard<WIDTH, HEIGHT>& segmentBoard;
+        - GameMode mode;
+
+        + SegmentBoardValidator(SegmentBoard<WIDTH,
+        HEIGHT>& segmentBoard, GameMode mode);
+        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
+        + bool ToggleSegment(size_t x, size_t y) override;
+        + void Clear() override;
+        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
+    }
+
+    ISegment <|.. SegmentBoard
+    ISegment <|.. SegmentBoardValidator
+    SegmentBoard --* SegmentBoardValidator
+
+    class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - SegmentBoard<WIDTH, HEIGHT> segments;
+        - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> units;
+
+        + GameBoard();
+        + ~GameBoard();
+        + SegmentBoardValidator<WIDTH, HEIGHT> Segments();
+        + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
+        + void ParseSegments();
+        + bool FireAt(size_t x, size_t y);
+        + void FixSegment(size_t x, size_t y);
+        + bool IsGameOver();
+    }
+
+    GameBoard --> BattleUnit
+    SegmentBoard --* GameBoard
+    SegmentBoardValidator <-- GameBoard
+}
+
+package Computers {
+    ' Implements Strategy design pattern
+    interface IComputerStrategy {
+        + ~IComputerStrategy() = default;
+        + virtual Coordinates CalculateFireCoordinates(
+            const GameBoard& enemyBoard) const = 0;
+    }
+
+    class EasyComputerStrategy {
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& enemyBoard) const override;
+    }
+
+    class MediumComputerStrategy {
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& enemyBoard) const override;
+    }
+
+    class HardComputerStrategy {
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& enemyBoard) const override;
+    }
+
+    EasyComputerStrategy .|> IComputerStrategy
+    IComputerStrategy <|.. MediumComputerStrategy
+    IComputerStrategy <|.. HardComputerStrategy
+
+    enum ComputerType {
+        None,
+        Easy,
+        Medium,
+        Hard,
+    }
+
+    class Computer {
+        - IComputerStrategy computerStrategy;
+
+        + Computer(ComputerType type);
+        + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
+    }
+
+    ComputerType <- Computer
+    Computer *-- IComputerStrategy
+}
+
+package Users {
+    struct Statistics {
+        chrono::seconds fastestWonGame = 0;
+        chrono::seconds totalPlaytime = 0;
+        unsigned int longestHitStreak = 0;
+        unsigned int gamesPlayed = 0;
+        unsigned int gamesWon = 0;
+        unsinged int gamesLost = 0;
+        unsigned int highestScore = 0;
+        unsigned int totalShotsFired = 0;
+        unsigned int totalShotsHit = 0;
+        unsigned int totalUnitsDestroyed = 0;
+    }
+
+    enum UnlockableContent <<flags : uint64_t>> {
+        None = 0,
+        MediumComputer = 1,
+        HardComputer = 2,
+        SalvoMode = 4,
+        ExtendedMode = 8,
+        ...
+    }
+
+    struct Achievement {
+        string name;
+        string description;
+        UnlockableContent content;
+        bool unlocked;
+    }
+
+    ' Implements Prototype design pattern
+    ' Look up CRTP for Clone() implementation
+    interface IClone <<template <class Derived>>> {
+        + IClone() = default;
+        + ~IClone() = default;
+        + unique_ptr<Derived> Clone();
+    }
+
+    class AchievementPool {
+        - unordered_map<string, Achievement> nameToAchievementMap;
+
+        + AchievementPool();
+        + const unordered_map<string, Achievement>& NameToAchievementMap() const;
+        + bool Unlock(string name);
+    }
+
+    IClone <|.. AchievementPool
+    AchievementPool *-- Achievement
+
+    enum Color {
+        Default,
+        ...
+    }
+    enum BorderPattern {
+        Default,
+        ...
+    }
+    enum UnitPattern {
+        Default,
+        ...
+    }
+
+    struct UserSettings {
+        Color unitColor = Default;
+        Color boardColor = Default;
+        Color borderColor = Default;
+        BorderPattern borderPattern = Default;
+        UnitPattern unitPattern = Default;
+        bool autoMarkEmptyFields = false;
+    }
+
+    UserSettings --> Color
+    UserSettings --> BorderPattern
+    UserSettings --> UnitPattern
+
+    class UserProfile {
+        - unsigned int userId;
+        - Computer* computer;
+        + string name;
+        + Statistics statistics;
+        + unique_ptr<AchievementPool> achievements;
+        + uint64_t unlockedContent;
+        + UserSettings settings;
+
+        + UserProfile(unsigned int userId, string name,
+        unique_ptr<AchievementPool> achievements);
+        + UserProfile(unsigned int userId, string name,
+        unique_ptr<AchievementPool> achievements, Computer& computer);
+        + ~UserProfile();
+        + unsigned int UserId();
+        + Computer* Computer();
+    }
+
+    UserProfile *-- Statistics
+    UserProfile -> AchievementPool
+    UserProfile --> UnlockableContent
+    UserProfile *-- UserSettings
+    UserProfile *.. Computer
+
+    class UserManager {
+        - {static} UserManager instance;
+        - {static} nextUserId = 0;
+        - vector<UserProfile> users;
+        - unsigned int currentUserId;
+        - AchievementPool initialAchievementPool;
+
+        - UserManager();
+        + {static} UserManager& GetInstance();
+        + ~UserManager();
+        + const vector<UserProfile>& Users() const;
+        + void CreateUser(string name);
+        + UserProfile& GetCurrentUser();
+        + bool ChangeCurrentUser(unsigned int userId);
+        + UserProfile CreateComputer(string name, ComputerType computerType);
+    }
+
+    UserManager *-- AchievementPool
+    UserManager *-- UserProfile
+}
+
+package Games {
+    struct Coordinates {
+        size_t x;
+        size_t y;
+    }
+
+    ' Implements Command design pattern
+    interface ICommand {
+        + virtual ~ICommand() = default;
+        + virtual bool execute() = 0;
+        + virtual void undo() = 0;
+    }
+
+    class FireCommand {
+        - GameBoard& board;
+        - Coordinates coords;
+
+        + FireCommand(GameBoard& board, Coordinates coords);
+        + bool execute() override;
+        + void undo() override;
+    }
+
+    class SalvoFireCommand {
+        - GameBoard& board;
+        - vector<Coordinates> coords;
+
+        + SalvoFireCommand(GameBoard& board, vector<Coordinates> coords);
+        + bool execute() override;
+        + void undo() override;
+    }
+
+    ICommand <|.. FireCommand
+    ICommand <|.. SalvoFireCommand
+    Coordinates <-- FireCommand
+    Coordinates <-- SalvoFireCommand
+
+    enum FireCommandType {
+        FireCommand,
+        SalvoFireCommand,
+    }
+
+    struct GameMode {
+        string name;
+        string description;
+        size_t boardWidth;
+        size_t boardHeight;
+        bool isExtended;
+        FireCommandType commandType;
+        unordered_map<UnitType, size_t> unitPool;
+    }
+
+    GameMode --> FireCommandType
+
+    enum GameState {
+        Started,
+        Setting,
+        Playing,
+        Over,
+    }
+
+    struct Player {
+        UserProfile& profile;
+        GameBoard board;
+        unsigned int hitStreak = 0;
+        unsigned int longestHitStreak = 0;
+        unsigned int score = 0;
+        unsigned int shotsFired = 0;
+        unsigned int shotsHit = 0;
+        unsigned int unitsDestroyed = 0;
+    }
+
+    Player *.. UserProfile
+    Player *-- GameBoard
+
+    class GameManager {
+        - {static} nextGameId = 0;
+        - {static} Computer easyComputer;
+        - {static} Computer mediumComputer;
+        - {static} Computer hardComputer;
+        - unsigned int gameId;
+        - GameMode mode;
+        - GameState state = Started;
+        - vector<Player> players;
+        - unsigned int currentTurn;
+        - vector<Player> initialPlayerState;
+        - vector<unique_ptr<ICommand>> history;
+        - unsigned int winnerId;
+        - chrono::seconds playtime;
+
+        + GameManager(GameMode mode, vector<UserProfile&> profiles);
+        + ~GameManager();
+        + const GameMode Mode() const;
+        + const vector<Player> Players() const;
+        + unsigned int CurrentTurn() const;
+        + void StartGame();
+        + bool ExecuteCommand(unique_ptr<ICommand> command);
+        + void HandleGameOver();
+        + Replay GetReplay();
+    }
+
+    GameManager *-- GameMode
+    GameManager --> GameState
+    GameManager *-- Player
+    GameManager --> ICommand
+    GameManager *- Computer
+}
+
+package Replays {
+    struct Replay {
+        unsigned int replayId;
+        vector<Player> players;
+        vector<unique_ptr<ICommand>> history;
+        unsigned int winnerId;
+        chrono::seconds playtime;
+        time_t timestamp;
+    }
+
+    Replay <. GameManager
+
+    class ReplayPlayback {
+        - Replay replay;
+        - int currentStep = -1;
+
+        + ReplayPlayback(Replay replay);
+        + ~ReplayPlayback();
+        + const Replay& Replay() const;
+        + int CurrentStep() const;
+        + bool StepForward();
+        + bool StepBackward();
+    }
+
+    ' Implements Singleton design pattern
+    class ReplayManager {
+        - {static} ReplayManager instance;
+        - vector<Replay> replays;
+
+        - ReplayManager();
+        + {static} ReplayManager& GetInstance();
+        + ~ReplayManager();
+        + const vector<Replay>& Replays() const;
+        + void SaveReplay(Replay replay);
+        + ReplayPlayback Play(unsigned int replayId);
+    }
+
+    ReplayManager .> ReplayPlayback
+    ReplayManager *-- Replay
+}
+
+package Main {
+    class Battleships {
+        - {static} Battleships instance;
+        - {static} GameMode standardGameMode;
+        - {static} GameMode salvoGameMode;
+        - {static} GameMode extendedGameMode;
+        + UserManager userManager;
+        + ReplayManager replayManager;
+
+        - void ReadSave();
+        - Battleships();
+        + {static} Battleships& GetInstance();
+        + ~Battleships();
+        + GameManager NewGame(GameMode mode, vector<UserProfile&> profiles);
+        + void WriteToSave();
+    }
+
+    Battleships *-- UserManager
+    Battleships *- ReplayManager
+    Battleships --> GameManager
+}
+
 @enduml
