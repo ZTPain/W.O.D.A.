@@ -62,7 +62,8 @@ jobs:
           fi
 
           echo "Running clang-tidy-20 on selected files..."
-          clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
+          #clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
+          clang-tidy-20 --warnings-as-errors \* -p . $tst
           echo "All files conform to the code style." 
 
   
