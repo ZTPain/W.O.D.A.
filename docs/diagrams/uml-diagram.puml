@@ -241,7 +241,7 @@ package Users {
 
     class UserProfile {
         - unsigned int userId;
-        - optional<Computer> computer;
+        - Computer* computer;
         + string name;
         + Statistics statistics;
         + unique_ptr<AchievementPool> achievements;
@@ -253,6 +253,8 @@ package Users {
         + UserProfile(unsigned int userId, string name,
         unique_ptr<AchievementPool> achievements, Computer& computer);
         + ~UserProfile();
+        + unsigned int UserId();
+        + Computer* Computer();
     }
 
     UserProfile *-- Statistics
