@@ -11,7 +11,7 @@ include_directories(src)
 
 set(CMAKE_BUILD_TYPE DEBUG)
 
-set(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+set(LIBRARY_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 add_compile_options(-MP -O0 -g -Wall -Wextra -Wpedantic)
 
@@ -19,6 +19,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/**.cpp")
 
-add_executable(${CMAKE_PROJECT_NAME} 
+add_library(${CMAKE_PROJECT_NAME} SHARED
   ${SOURCES}
 )
