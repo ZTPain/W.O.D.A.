@@ -48,7 +48,7 @@ jobs:
             tst=`git diff -r HEAD^1 HEAD -U0 --no-color --name-only | egrep ".*\.((cpp)|(h))$"`
           elif ${{ github.event.before != '0000000000000000000000000000000000000000' }}; then
             echo "Push event detected."
-            tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only
+            tst=`git diff ${{ github.event.before }} ${{ github.event.after }} -U0 --no-color --name-only`
           else  
             echo "Initial commit or unknown event, checking all source files."
             tst=`find src/ -name '*.cpp' -o -name '*.hpp' -o -name '*.h'`
