@@ -36,6 +36,8 @@ Checks: >
 
   -cppcoreguidelines-avoid-const-or-ref-data-members,
 
+  -bugprone-suspicious-stringview-data-usage,
+
 # Turn all the warnings from the checks above into errors.
 WarningsAsErrors: >
   -*,
