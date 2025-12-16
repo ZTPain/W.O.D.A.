@@ -197,7 +197,6 @@ package Users {
     ' Implements Prototype design pattern
     ' Look up CRTP for Clone() implementation
     interface IClone <<template <class Derived>>> {
-        + virtual IClone() = default;
         + virtual ~IClone() = default;
         + virtual unique_ptr<Derived> Clone() = 0;
     }
