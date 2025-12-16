@@ -23,6 +23,8 @@ void BoxDrawing::DrawBox(
     const char* title,
     bool flush
 ) {
+  const auto styleDef = boxStyles[style];
+
   DrawHorizontalLine(x + 1, y, width - 2, style, false);              // Top edge
   DrawHorizontalLine(x + 1, y + height - 1, width - 2, style, false); // Bottom edge
 
@@ -30,18 +32,18 @@ void BoxDrawing::DrawBox(
   DrawVerticalLine(x + width - 1, y + 1, height - 2, style, false); // Right edge
 
   // Draw corners
-  std::cout << MoveCursor(x, y) << boxStyles[style].topLeft;
-  std::cout << MoveCursor(x + width - 1, y) << boxStyles[style].topRight;
-  std::cout << MoveCursor(x, y + height - 1) << boxStyles[style].bottomLeft;
-  std::cout << MoveCursor(x + width - 1, y + height - 1) << boxStyles[style].bottomRight;
+  std::cout << MoveCursor(x, y) << styleDef.topLeft;
+  std::cout << MoveCursor(x + width - 1, y) << styleDef.topRight;
+  std::cout << MoveCursor(x, y + height - 1) << styleDef.bottomLeft;
+  std::cout << MoveCursor(x + width - 1, y + height - 1) << styleDef.bottomRight;
 
   // Draw title if provided
   if (title != nullptr) {
-    auto t = boxStyles[style].breakLeft + std::string(title) + boxStyles[style].breakRight;
-    const size_t titleLength = t.length();
+    auto titleWithBrackets = styleDef.breakLeft + std::string(title) + styleDef.breakRight;
+    const size_t titleLength = titleWithBrackets.length();
     if (titleLength < width - 4) { // Ensure title fits within the box
-      const size_t titleX = x + ((width - titleLength) / 2);
-      std::cout << MoveCursor(titleX, y) << t; // Position title at the top center
+      const size_t titleX = x + 1 + ((width / 2 - titleLength / 2));
+      std::cout << MoveCursor(titleX, y) << titleWithBrackets; // Position title at the top center
     }
   }
 
