@@ -121,25 +121,25 @@ package Boards {
 
 package Computers {
     ' Implements Strategy design pattern
-    interface IComputerStrategy {
+    interface IComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
         + virtual ~IComputerStrategy() = default;
         + virtual Coordinates CalculateFireCoordinates(
-            const GameBoard& enemyBoard) const = 0;
+            const GameBoard<WIDTH, HEIGHT>& enemyBoard) const = 0;
     }
 
-    class EasyComputerStrategy {
+    class EasyComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
         + Coordinates CalculateFireCoordinates(
-        const GameBoard& enemyBoard) const override;
+        const GameBoard<WIDTH, HEIGHT>& enemyBoard) const override;
     }
 
-    class MediumComputerStrategy {
+    class MediumComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
         + Coordinates CalculateFireCoordinates(
-        const GameBoard& enemyBoard) const override;
+        const GameBoard<WIDTH, HEIGHT>& enemyBoard) const override;
     }
 
-    class HardComputerStrategy {
+    class HardComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
         + Coordinates CalculateFireCoordinates(
-        const GameBoard& enemyBoard) const override;
+        const GameBoard<WIDTH, HEIGHT>& enemyBoard) const override;
     }
 
     EasyComputerStrategy .|> IComputerStrategy
@@ -153,11 +153,11 @@ package Computers {
         Hard,
     }
 
-    class Computer {
-        - IComputerStrategy computerStrategy;
+    class Computer <<template <size_t WIDTH, size_t HEIGHT>>> {
+        - IComputerStrategy<WIDTH, HEIGHT> computerStrategy;
 
         + Computer(ComputerType type);
-        + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
+        + Coordinates GetFireCoordinates(const GameBoard<WIDTH, HEIGHT>& enemyBoard) const;
     }
 
     ComputerType <- Computer
