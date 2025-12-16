@@ -25,11 +25,14 @@ void MainMenuWindow::OnEnter() {
 
 void MainMenuWindow::OnExit() { printf("Exited Main Menu Window\n"); }
 
-void MainMenuWindow::OnKeyPressed(ConsoleKey key, ConsoleModifiers modifiers) {
+bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   printf(
       "MainMenuWindow received key press: %d with modifiers: %d and char: %c\n",
-      static_cast<int>(key),
-      static_cast<int>(modifiers),
-      static_cast<char>(key)
+      static_cast<int>(keyDetails.key),
+      static_cast<int>(keyDetails.modifiers),
+      static_cast<char>(keyDetails.key)
   );
+  return false;
+}
+
 }

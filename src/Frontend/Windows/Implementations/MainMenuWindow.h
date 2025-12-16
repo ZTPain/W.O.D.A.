@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Api/Window.h"
-#include "Frontend/Input/ConsoleKey.h"
+#include "Frontend/Input/InputManager.h"
 
 class MainMenuWindow : public Window {
 public:
@@ -10,5 +10,5 @@ public:
 protected:
   void OnEnter() override;
   void OnExit() override;
-  void OnKeyPressed(ConsoleKey key, ConsoleModifiers modifiers) override;
+  bool OnKeyPressed(ConsoleKeyDetails keyDetails) override;
 };

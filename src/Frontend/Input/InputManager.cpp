@@ -4,17 +4,17 @@
 #include <cstdint>
 #include <iostream>
 #include <mutex>
+#include <queue>
 #include <unordered_map>
 
 #include "ConsoleKey.h"
 
 std::unordered_map<uint8_t, OnKeyPressedCallback> InputManager::keyPressedCallbacks;
 uint8_t InputManager::nextCallbackId = 0;
+std::queue<ConsoleKeyDetails> InputManager::keyPressQueue;
 
 static std::condition_variable waitForKeyCv;
 static std::mutex waitForKeyCvM;
-
-static bool suppressNextKeyPress = false;
 
 int InputManager::SubscribeToOnKeyPressed(const OnKeyPressedCallback& callback) {
   keyPressedCallbacks[nextCallbackId] = callback;
@@ -30,36 +30,32 @@ int InputManager::UnsubscribeFromOnKeyPressed(int subscriptionId) {
   return 0;
 }
 
-void InputManager::NotifyKeyPressed(ConsoleKey key, ConsoleModifiers modifiers) {
+void InputManager::NotifyKeyPressed(ConsoleKeyDetails keyDetails) {
   for (auto& callback : keyPressedCallbacks) {
-    callback.second(key, modifiers);
+    if (callback.second(keyDetails)) {
+      return; // Suppress further processing
+    }
   }
+
+  keyPressQueue.push(keyDetails);
 }
 
-static int lastKeyCode = -1;
-static ConsoleKey lastKeyPressed = ConsoleKey::None;
-static ConsoleModifiers lastModifiers = ConsoleModifiers::None;
+static ConsoleKeyDetails lastKeyDetails;
 
 extern "C" void OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) {
 
-  lastKeyCode = keyCode;
-  lastKeyPressed = static_cast<ConsoleKey>(key);
-  lastModifiers = static_cast<ConsoleModifiers>(modifier);
+  lastKeyDetails.keyCode = keyCode;
+  lastKeyDetails.key = static_cast<ConsoleKey>(key);
+  lastKeyDetails.modifiers = static_cast<ConsoleModifiers>(modifier);
 
-  if (lastKeyPressed == ConsoleKey::None) {
+  if (lastKeyDetails.key == ConsoleKey::None) {
     // Fallback to keyCode if key is None
-    lastKeyPressed = static_cast<ConsoleKey>(lastKeyCode);
-  }
-
-  if (suppressNextKeyPress) {
-    suppressNextKeyPress = false;
-    waitForKeyCv.notify_all();
-    return;
+    lastKeyDetails.key = static_cast<ConsoleKey>(lastKeyDetails.keyCode);
   }
 
   waitForKeyCv.notify_all();
 
-  InputManager::NotifyKeyPressed(lastKeyPressed, lastModifiers);
+  InputManager::NotifyKeyPressed(lastKeyDetails);
 }
 
 using CallbackFunction = void (*)(int* x, int* y);
@@ -68,7 +64,15 @@ extern "C" void SetConsoleGetCursorPositionCallback(CallbackFunction callback) {
   consoleGetCursorPositionCallback = callback;
 }
 
-void InputManager::WaitUntillKeyPressed() {
+void InputManager::WaitUntillKeyPressed(bool flushQueue) {
+  if (flushQueue) {
+    while (!keyPressQueue.empty()) {
+      keyPressQueue.pop();
+    }
+  } else if (!keyPressQueue.empty()) {
+    return;
+  }
+
   std::unique_lock<std::mutex> lk(waitForKeyCvM);
   waitForKeyCv.wait(lk);
 }
@@ -78,10 +82,8 @@ void InputManager::GetCursorPosition(int& x, int& y) {
   consoleGetCursorPositionCallback(&x, &y);
 }
 
-void InputManager::GetNextKeyPress(ConsoleKey& key, ConsoleModifiers& modifiers) {
-  suppressNextKeyPress = true;
+void InputManager::GetNextKeyPress(ConsoleKeyDetails& keyDetails) {
   WaitUntillKeyPressed();
 
-  key = lastKeyPressed;
-  modifiers = lastModifiers;
+  keyDetails = lastKeyDetails;
 }

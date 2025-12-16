@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../Input/InputManager.h"
-#include "Frontend/Input/ConsoleKey.h"
 #include <cstdint>
 
 enum class WindowType : uint8_t {
@@ -21,7 +20,7 @@ public:
 
   void Enter() {
     onKeyPressedSubscriptionId = InputManager::SubscribeToOnKeyPressed(
-        ([this](ConsoleKey key, ConsoleModifiers modifiers) { OnKeyPressed(key, modifiers); })
+        ([this](ConsoleKeyDetails keyDetails) { return OnKeyPressed(keyDetails); })
     );
     OnEnter();
   }
@@ -37,7 +36,7 @@ protected:
 
   virtual void OnEnter() = 0;
   virtual void OnExit() = 0;
-  virtual void OnKeyPressed(ConsoleKey key, ConsoleModifiers modifiers) = 0;
+  virtual bool OnKeyPressed(ConsoleKeyDetails keyDetails) = 0;
 
 private:
   WindowType type = WindowType::None;
