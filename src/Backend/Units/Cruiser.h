@@ -4,8 +4,8 @@
 
 #include "BattleUnit.h"
 
-class PatrolBoat : public BattleUnit {
+class Cruiser : public BattleUnit {
 public:
-  PatrolBoat();
+  Cruiser();
   [[nodiscard]] BattleUnitType GetType() const override;
 };
