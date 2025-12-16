@@ -4,8 +4,7 @@
 #include <cstdint>
 #include <string>
 
-constexpr auto ANSI_ESCAPE_CODE = "\x1B[";
-
+#define ANSI_ESCAPE_CODE "\x1B["
 #define ANSI_RESET ANSI_ESCAPE_CODE "0m"
 #define ANSI_BOLD ANSI_ESCAPE_CODE "1m"
 #define ANSI_UNDERLINE ANSI_ESCAPE_CODE "4m"
