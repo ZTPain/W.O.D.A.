@@ -56,7 +56,7 @@ jobs:
 
           echo "UnFiltered source files:"
           echo "$tst"
-          tst=`cat $tst | egrep ".*\.((cpp)|(h))$" || true`
+          tst=`echo $tst | egrep ".*\.((cpp)|(h))$" || true`
 
           echo "Files to be checked:"
           if [ -z "$tst" ]; then
