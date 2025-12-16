@@ -65,13 +65,13 @@ package Units {
 
 package Boards {
     ' Implements Protection Proxy design pattern
-    interface ISegment {
-        + ~ISegment() = default;
+    interface ISegment <<template <size_t WIDTH, size_t HEIGHT>>> {
+        + virtual ~ISegment() = default;
         + virtual bool ToggleSegment(size_t x, size_t y) = 0;
         + virtual const array<array<bool, HEIGHT>, WIDTH>& Segments() const = 0;
         + virtual void Clear() = 0;
         ' Array[UnitType][UnitNumber] of Coordinates[]
-        + virtual const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const = 0;
+        + virtual const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const = 0;
     }
 
     class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
@@ -81,7 +81,7 @@ package Boards {
         + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
+        + const unordered_map<UnitType, vector<vector<Coordinates>>>& GetUnits() const override;
     }
 
     class SegmentBoardValidator <<template <size_t WIDTH, size_t HEIGHT>>> {
@@ -93,7 +93,7 @@ package Boards {
         + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
+        + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
     }
 
     ISegment <|.. SegmentBoard
@@ -122,7 +122,7 @@ package Boards {
 package Computers {
     ' Implements Strategy design pattern
     interface IComputerStrategy {
-        + ~IComputerStrategy() = default;
+        + virtual ~IComputerStrategy() = default;
         + virtual Coordinates CalculateFireCoordinates(
             const GameBoard& enemyBoard) const = 0;
     }
@@ -197,9 +197,9 @@ package Users {
     ' Implements Prototype design pattern
     ' Look up CRTP for Clone() implementation
     interface IClone <<template <class Derived>>> {
-        + IClone() = default;
-        + ~IClone() = default;
-        + unique_ptr<Derived> Clone();
+        + virtual IClone() = default;
+        + virtual ~IClone() = default;
+        + virtual unique_ptr<Derived> Clone() = 0;
     }
 
     class AchievementPool {
@@ -332,7 +332,7 @@ package Games {
         size_t boardHeight;
         bool isExtended;
         FireCommandType commandType;
-        unordered_map<UnitType, size_t> unitPool;
+        unordered_map<BattleUnitType, size_t> unitPool;
     }
 
     GameMode --> FireCommandType

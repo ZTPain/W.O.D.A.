@@ -2,18 +2,12 @@
 
 #pragma once
 
+#include "BattleUnitType.h"
+
 enum class BattleUnitCategory {
   Land,
   Marine,
   Aerial,
-};
-
-enum class BattleUnitType {
-  None,
-  PatrolBoat,
-  Interceptor,
-  Cruiser,
-  Dreadnought,
 };
 
 class BattleUnit {
