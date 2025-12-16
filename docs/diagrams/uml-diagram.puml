@@ -100,14 +100,22 @@ package Boards {
     ISegment <|.. SegmentBoardValidator
     SegmentBoard --* SegmentBoardValidator
 
+    struct SegmentBoardView {
+        const bool* data;
+        size_t width;
+        size_t height;
+    }
+
     class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - SegmentBoard<WIDTH, HEIGHT> segments;
+        - SegmentBoard<WIDTH, HEIGHT> segmentBoard;
         - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> units;
 
         + GameBoard();
         + ~GameBoard();
         + SegmentBoardValidator<WIDTH, HEIGHT> Segments();
         + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
+        ' Returns pointer to and dimensions of segment board
+        + SegmentBoardView View() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
         + void FixSegment(size_t x, size_t y);
@@ -117,29 +125,26 @@ package Boards {
     GameBoard --> BattleUnit
     SegmentBoard --* GameBoard
     SegmentBoardValidator <-- GameBoard
+    SegmentBoardView <- GameBoard
 }
 
 package Computers {
     ' Implements Strategy design pattern
-    interface IComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
+    interface IComputerStrategy {
         + virtual ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(
-            const GameBoard<WIDTH, HEIGHT>& enemyBoard) const = 0;
+        + virtual Coordinates CalculateFireCoordinates(SegmentBoardView view) const = 0;
     }
 
-    class EasyComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
-        + Coordinates CalculateFireCoordinates(
-        const GameBoard<WIDTH, HEIGHT>& enemyBoard) const override;
+    class EasyComputerStrategy {
+        + Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
     }
 
-    class MediumComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
-        + Coordinates CalculateFireCoordinates(
-        const GameBoard<WIDTH, HEIGHT>& enemyBoard) const override;
+    class MediumComputerStrategy {
+        + Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
     }
 
-    class HardComputerStrategy <<template <size_t WIDTH, size_t HEIGHT>>> {
-        + Coordinates CalculateFireCoordinates(
-        const GameBoard<WIDTH, HEIGHT>& enemyBoard) const override;
+    class HardComputerStrategy {
+        + Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
     }
 
     EasyComputerStrategy .|> IComputerStrategy
@@ -153,11 +158,11 @@ package Computers {
         Hard,
     }
 
-    class Computer <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - IComputerStrategy<WIDTH, HEIGHT> computerStrategy;
+    class Computer {
+        - IComputerStrategy& computerStrategy;
 
         + Computer(ComputerType type);
-        + Coordinates GetFireCoordinates(const GameBoard<WIDTH, HEIGHT>& enemyBoard) const;
+        + Coordinates GetFireCoordinates(SegmentBoardView view) const;
     }
 
     ComputerType <- Computer
@@ -171,7 +176,7 @@ package Users {
         unsigned int longestHitStreak = 0;
         unsigned int gamesPlayed = 0;
         unsigned int gamesWon = 0;
-        unsinged int gamesLost = 0;
+        unsigned int gamesLost = 0;
         unsigned int highestScore = 0;
         unsigned int totalShotsFired = 0;
         unsigned int totalShotsHit = 0;
@@ -264,7 +269,7 @@ package Users {
 
     class UserManager {
         - {static} UserManager instance;
-        - {static} nextUserId = 0;
+        - {static} unsigned int nextUserId;
         - vector<UserProfile> users;
         - unsigned int currentUserId;
         - AchievementPool initialAchievementPool;

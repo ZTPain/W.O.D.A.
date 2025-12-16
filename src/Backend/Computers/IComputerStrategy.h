@@ -2,14 +2,12 @@
 
 #pragma once
 
-#include "../Boards/GameBoard.h"
+#include "../Boards/SegmentBoardView.h"
 #include "../Games/Coordinates.h"
 #include <cstddef>
 
-template <size_t WIDTH, size_t HEIGHT> class IComputerStrategy {
+class IComputerStrategy {
 public:
   virtual ~IComputerStrategy() = default;
-  virtual Coordinates CalculateFireCoordinates(
-      const GameBoard<WIDTH, HEIGHT>& enemyBoard
-  ) const = 0;
+  [[nodiscard]] virtual Coordinates CalculateFireCoordinates(SegmentBoardView view) const = 0;
 };

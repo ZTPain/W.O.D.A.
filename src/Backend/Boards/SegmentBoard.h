@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../Games/Coordinates.h"
+#include "../Units/BattleUnitType.h"
 #include "ISegment.h"
 #include <array>
 #include <cstddef>

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Boards/GameBoard.h"
+#include "../Boards/SegmentBoardView.h"
 #include "../Games/Coordinates.h"
 #include "IComputerStrategy.h"
 #include <cstddef>
@@ -14,10 +14,10 @@ enum class ComputerType {
   Hard,
 };
 
-template <size_t WIDTH, size_t HEIGHT> class Computer {
-  IComputerStrategy<WIDTH, HEIGHT> computerStrategy;
+class Computer {
+  IComputerStrategy& computerStrategy;
 
 public:
   Computer(ComputerType type);
-  Coordinates GetFireCoordinates(const GameBoard<WIDTH, HEIGHT>& enemyBoard) const;
+  [[nodiscard]] Coordinates GetFireCoordinates(SegmentBoardView view) const;
 };
