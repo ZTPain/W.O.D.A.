@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BattleUnit.h"
+#include "BattleUnitType.h"
 
 class Cruiser : public BattleUnit {
 public:
