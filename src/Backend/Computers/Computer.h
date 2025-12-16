@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Boards/SegmentBoardView.h"
+#include "../Boards/SegmentBoard.h"
 #include "../Games/Coordinates.h"
 #include "IComputerStrategy.h"
 #include <cstddef>
@@ -19,5 +19,5 @@ class Computer {
 
 public:
   Computer(ComputerType type);
-  [[nodiscard]] Coordinates GetFireCoordinates(SegmentBoardView view) const;
+  [[nodiscard]] Coordinates GetFireCoordinates(SegmentBoard& segmentBoard) const;
 };

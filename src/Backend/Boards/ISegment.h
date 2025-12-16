@@ -4,16 +4,18 @@
 
 #include "../Games/Coordinates.h"
 #include "../Units/BattleUnitType.h"
-#include <array>
 #include <cstddef>
 #include <unordered_map>
 #include <vector>
 
-template <size_t WIDTH, size_t HEIGHT> class ISegment {
+class ISegment {
 public:
+  ISegment(size_t width, size_t height);
   virtual ~ISegment() = default;
+  [[nodiscard]] virtual size_t Width() const = 0;
+  [[nodiscard]] virtual size_t Height() const = 0;
+  [[nodiscard]] virtual const std::vector<std::vector<bool>>& Segments() const = 0;
   virtual bool ToggleSegment(size_t x, size_t y) = 0;
-  [[nodiscard]] virtual const std::array<std::array<bool, HEIGHT>, WIDTH>& Segments() const = 0;
   virtual void Clear() = 0;
   // Array[UnitType][UnitNumber] of Coordinates[]
   [[nodiscard]] virtual const std::

@@ -1,0 +1,18 @@
+// Player.h
+
+#pragma once
+
+#include "../Boards/GameBoard.h"
+#include "../Users/UserProfile.h"
+#include <cstddef>
+
+struct Player {
+  UserProfile& profile;
+  GameBoard board;
+  unsigned int hitStreak = 0;
+  unsigned int longestHitStreak = 0;
+  unsigned int score = 0;
+  unsigned int shotsFired = 0;
+  unsigned int shotsHit = 0;
+  unsigned int unitsDestroyed = 0;
+};

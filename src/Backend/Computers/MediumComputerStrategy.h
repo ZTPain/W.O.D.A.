@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "../Boards/SegmentBoardView.h"
+#include "../Boards/SegmentBoard.h"
 #include "../Games/Coordinates.h"
 #include "IComputerStrategy.h"
 #include <cstddef>
 
 class MediumComputerStrategy : public IComputerStrategy {
 public:
-  [[nodiscard]] Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
+  [[nodiscard]] Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
 };

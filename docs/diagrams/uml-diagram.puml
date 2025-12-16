@@ -65,32 +65,38 @@ package Units {
 
 package Boards {
     ' Implements Protection Proxy design pattern
-    interface ISegment <<template <size_t WIDTH, size_t HEIGHT>>> {
+    interface ISegment {
+        + ISegment(size_t width, size_t height);
         + virtual ~ISegment() = default;
+        + virtual const vector<vector<bool>>& Segments() const = 0;
         + virtual bool ToggleSegment(size_t x, size_t y) = 0;
-        + virtual const array<array<bool, HEIGHT>, WIDTH>& Segments() const = 0;
         + virtual void Clear() = 0;
         ' Array[UnitType][UnitNumber] of Coordinates[]
         + virtual const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const = 0;
     }
 
-    class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - array<array<bool, HEIGHT>, WIDTH> segments;
+    class SegmentBoard {
+        - size_t width;
+        - size_t height;
+        - vector<vector<bool>> segments;
 
-        + SegmentBoard();
-        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
+        + SegmentBoard(size_t width, size_t height);
+        + size_t Width() const override;
+        + size_t Height() const override;
+        + const vector<vector<bool>>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<UnitType, vector<vector<Coordinates>>>& GetUnits() const override;
+        + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
     }
 
-    class SegmentBoardValidator <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - SegmentBoard<WIDTH, HEIGHT>& segmentBoard;
+    class SegmentBoardValidator {
+        - SegmentBoard& segmentBoard;
         - GameMode mode;
 
-        + SegmentBoardValidator(SegmentBoard<WIDTH,
-        HEIGHT>& segmentBoard, GameMode mode);
-        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
+        + SegmentBoardValidator(size_t width, size_t height);
+        + size_t Width() const override;
+        + size_t Height() const override;
+        + const vector<vector<bool>>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
         + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
@@ -100,22 +106,18 @@ package Boards {
     ISegment <|.. SegmentBoardValidator
     SegmentBoard --* SegmentBoardValidator
 
-    struct SegmentBoardView {
-        const bool* data;
-        size_t width;
-        size_t height;
-    }
+    class GameBoard {
+        - size_t width;
+        - size_t height;
+        - SegmentBoard segmentBoard;
+        - vector<vector<shared_ptr<BattleUnit>>> units;
 
-    class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - SegmentBoard<WIDTH, HEIGHT> segmentBoard;
-        - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> units;
-
-        + GameBoard();
+        + GameBoard(size_t width, size_t height);
         + ~GameBoard();
-        + SegmentBoardValidator<WIDTH, HEIGHT> Segments();
-        + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
-        ' Returns pointer to and dimensions of segment board
-        + SegmentBoardView View() const;
+        + size_t Width() const;
+        + size_t Height() const;
+        + SegmentBoardValidator SegmentBoard();
+        + const vector<vector<shared_ptr<BattleUnit>>>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
         + void FixSegment(size_t x, size_t y);
@@ -125,26 +127,25 @@ package Boards {
     GameBoard --> BattleUnit
     SegmentBoard --* GameBoard
     SegmentBoardValidator <-- GameBoard
-    SegmentBoardView <- GameBoard
 }
 
 package Computers {
     ' Implements Strategy design pattern
     interface IComputerStrategy {
         + virtual ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(SegmentBoardView view) const = 0;
+        + virtual Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const = 0;
     }
 
     class EasyComputerStrategy {
-        + Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
+        + Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
     }
 
     class MediumComputerStrategy {
-        + Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
+        + Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
     }
 
     class HardComputerStrategy {
-        + Coordinates CalculateFireCoordinates(SegmentBoardView view) const override;
+        + Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
     }
 
     EasyComputerStrategy .|> IComputerStrategy
@@ -297,8 +298,8 @@ package Games {
     ' Implements Command design pattern
     interface ICommand {
         + virtual ~ICommand() = default;
-        + virtual bool execute() = 0;
-        + virtual void undo() = 0;
+        + virtual bool Execute() = 0;
+        + virtual void Undo() = 0;
     }
 
     class FireCommand {
@@ -306,8 +307,8 @@ package Games {
         - Coordinates coords;
 
         + FireCommand(GameBoard& board, Coordinates coords);
-        + bool execute() override;
-        + void undo() override;
+        + bool Execute() override;
+        + void Undo() override;
     }
 
     class SalvoFireCommand {
@@ -315,8 +316,8 @@ package Games {
         - vector<Coordinates> coords;
 
         + SalvoFireCommand(GameBoard& board, vector<Coordinates> coords);
-        + bool execute() override;
-        + void undo() override;
+        + bool Execute() override;
+        + void Undo() override;
     }
 
     ICommand <|.. FireCommand
@@ -363,7 +364,7 @@ package Games {
     Player *-- GameBoard
 
     class GameManager {
-        - {static} nextGameId = 0;
+        - {static} unsigned int nextGameId;
         - {static} Computer easyComputer;
         - {static} Computer mediumComputer;
         - {static} Computer hardComputer;
@@ -418,6 +419,8 @@ package Replays {
         + bool StepForward();
         + bool StepBackward();
     }
+
+    ReplayPlayback *-- Replay
 
     ' Implements Singleton design pattern
     class ReplayManager {
