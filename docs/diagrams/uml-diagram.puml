@@ -92,7 +92,7 @@ package Boards {
     }
 
     class SegmentBoardValidator {
-        - SegmentBoard& segmentBoard;
+        - ISegment& segmentBoard;
         - GameMode mode;
 
         + SegmentBoardValidator(size_t width, size_t height);

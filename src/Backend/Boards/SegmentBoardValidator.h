@@ -6,13 +6,12 @@
 #include "../Games/GameMode.h"
 #include "../Units/BattleUnitType.h"
 #include "ISegment.h"
-#include "SegmentBoard.h"
 #include <cstddef>
 #include <unordered_map>
 #include <vector>
 
 class SegmentBoardValidator : public ISegment {
-  SegmentBoard& segmentBoard;
+  ISegment& segmentBoard;
   GameMode mode;
 
 public:
