@@ -49,12 +49,11 @@ void BoxDrawing::DrawBox(
 
   if (filled) {
     // Fill the box interior
-    std::cout << MoveCursor(x + 1, y + 1);
     for (size_t row = y + 1; row < y + height - 1; ++row) {
+      std::cout << MoveCursor(x + 1, row);
       for (size_t col = x + 1; col < x + width - 1; ++col) {
         std::cout << ' ';
       }
-      std::cout << '\n';
     }
   }
 
