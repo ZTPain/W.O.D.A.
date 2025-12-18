@@ -19,7 +19,7 @@ public:
   virtual ~Window() = default;
 
   void Enter() {
-    onKeyPressedSubscriptionId = InputManager::SubscribeToOnKeyPressed(
+    onKeyPressedSubscriptionId = InputManager::onKeyPressedProvider.Subscribe(
         ([this](ConsoleKeyDetails keyDetails) { return OnKeyPressed(keyDetails); })
     );
     OnEnter();
@@ -27,7 +27,7 @@ public:
 
   void Exit() {
     OnExit();
-    InputManager::UnsubscribeFromOnKeyPressed(onKeyPressedSubscriptionId);
+    InputManager::onKeyPressedProvider.Unsubscribe(onKeyPressedSubscriptionId);
     onKeyPressedSubscriptionId = -1;
   }
 

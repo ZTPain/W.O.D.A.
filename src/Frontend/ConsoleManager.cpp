@@ -1,0 +1,37 @@
+#include "ConsoleManager.h"
+#include "Frontend/Input/InputManager.h"
+#include <cstdint>
+#include <iostream>
+
+extern "C" void OnTerminalResize(int width, int height) {
+  InputManager::OnTerminalResize(width, height);
+}
+
+static void (*consoleSetTitleCallback)(const char*) = nullptr;
+extern "C" void SetConsoleSetTitleCallback(void (*callback)(const char*)) {
+  consoleSetTitleCallback = callback;
+}
+
+static void (*consoleGetSizeCallback)(int*, int*) = nullptr;
+extern "C" void SetConsoleGetSizeCallback(void (*callback)(int*, int*)) {
+  consoleGetSizeCallback = callback;
+}
+
+using CallbackFunction = void (*)(int* x, int* y);
+static CallbackFunction consoleGetCursorPositionCallback = nullptr;
+extern "C" void SetConsoleGetCursorPositionCallback(CallbackFunction callback) {
+  consoleGetCursorPositionCallback = callback;
+}
+
+extern "C" void OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) {
+  InputManager::OnKeyPressed(key, modifier, keyCode);
+}
+
+void ConsoleManager::SetTitle(const char* title) { consoleSetTitleCallback(title); }
+
+void ConsoleManager::GetCursorPosition(int& x, int& y) {
+  std::cout.flush();
+  consoleGetCursorPositionCallback(&x, &y);
+}
+
+void ConsoleManager::GetSize(int& width, int& height) { consoleGetSizeCallback(&width, &height); }

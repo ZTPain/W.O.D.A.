@@ -2,47 +2,26 @@
 #include <cassert>
 #include <condition_variable>
 #include <cstdint>
-#include <iostream>
+#include <functional>
 #include <mutex>
 #include <queue>
-#include <unordered_map>
 
 #include "ConsoleKey.h"
 
-std::unordered_map<uint8_t, OnKeyPressedCallback> InputManager::keyPressedCallbacks;
-uint8_t InputManager::nextCallbackId = 0;
+#include "Frontend/ConsoleManager.h"
+#include "SubscriptionProvider.h"
+
+SubscriptionProvider<OnKeyPressedCallback> InputManager::onKeyPressedProvider;
+SubscriptionProvider<OnTerminalResizeCallback> InputManager::onTerminalResizeProvider;
+
 std::queue<ConsoleKeyDetails> InputManager::keyPressQueue;
 
 static std::condition_variable waitForKeyCv;
 static std::mutex waitForKeyCvM;
 
-int InputManager::SubscribeToOnKeyPressed(const OnKeyPressedCallback& callback) {
-  keyPressedCallbacks[nextCallbackId] = callback;
-  return nextCallbackId++;
-}
-
-int InputManager::UnsubscribeFromOnKeyPressed(int subscriptionId) {
-  if (subscriptionId < 0 || subscriptionId >= static_cast<int>(nextCallbackId)) {
-    return -1; // Invalid subscription ID
-  }
-
-  keyPressedCallbacks.erase(subscriptionId);
-  return 0;
-}
-
-void InputManager::NotifyKeyPressed(ConsoleKeyDetails keyDetails) {
-  for (auto& callback : keyPressedCallbacks) {
-    if (callback.second(keyDetails)) {
-      return; // Suppress further processing
-    }
-  }
-
-  keyPressQueue.push(keyDetails);
-}
-
 static ConsoleKeyDetails lastKeyDetails;
 
-extern "C" void OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) {
+void InputManager::OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) {
 
   lastKeyDetails.keyCode = keyCode;
   lastKeyDetails.key = static_cast<ConsoleKey>(key);
@@ -55,13 +34,14 @@ extern "C" void OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) {
 
   waitForKeyCv.notify_all();
 
-  InputManager::NotifyKeyPressed(lastKeyDetails);
-}
+  auto keyDetails = lastKeyDetails;
+  if (onKeyPressedProvider.Call([keyDetails](const OnKeyPressedCallback& callback) {
+        return callback(keyDetails);
+      })) {
+    return; // Suppress further processing
+  }
 
-using CallbackFunction = void (*)(int* x, int* y);
-static CallbackFunction consoleGetCursorPositionCallback = nullptr;
-extern "C" void SetConsoleGetCursorPositionCallback(CallbackFunction callback) {
-  consoleGetCursorPositionCallback = callback;
+  keyPressQueue.push(keyDetails);
 }
 
 void InputManager::WaitUntillKeyPressed(bool flushQueue) {
@@ -77,13 +57,24 @@ void InputManager::WaitUntillKeyPressed(bool flushQueue) {
   waitForKeyCv.wait(lk);
 }
 
-void InputManager::GetCursorPosition(int& x, int& y) {
-  std::cout.flush();
-  consoleGetCursorPositionCallback(&x, &y);
-}
+void InputManager::GetCursorPosition(int& x, int& y) { ConsoleManager::GetCursorPosition(x, y); }
 
 void InputManager::GetNextKeyPress(ConsoleKeyDetails& keyDetails) {
   WaitUntillKeyPressed();
 
   keyDetails = lastKeyDetails;
+}
+
+void InputManager::GetTerminalSize(int& width, int& height) {
+  ConsoleManager::GetSize(width, height);
+}
+
+void InputManager::OnTerminalResize(int width, int height) {
+  // Handle terminal resize if needed
+
+  InputManager::onTerminalResizeProvider.Call([width,
+                                               height](const OnTerminalResizeCallback& callback) {
+    callback(width, height);
+    return false;
+  });
 }
