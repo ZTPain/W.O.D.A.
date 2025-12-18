@@ -8,28 +8,29 @@
 #include <cstdio>
 #include <iostream>
 
-void MainMenuWindow::OnEnter() {
-  BoxDrawing::DrawBox(10, 5, 50, 15, BoxStyle::Rounded, false, "Main Menu");
-
-  Draw();
-}
+void MainMenuWindow::OnEnter() { Draw(); }
 
 void MainMenuWindow::OnExit() { printf("Exited Main Menu Window\n"); }
 
 bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   switch (keyDetails.key) {
+    case ConsoleKey::W:
     case ConsoleKey::UpArrow:
       if (selectedIndex > 0) {
         --selectedIndex;
         DrawOptions();
       }
       return true;
+
+    case ConsoleKey::S:
     case ConsoleKey::DownArrow:
       if (selectedIndex + 1 < OPTIONS.size()) {
         ++selectedIndex;
         DrawOptions();
       }
       return true;
+
+    case ConsoleKey::Spacebar:
     case ConsoleKey::Enter:
       HandleSelection();
       return true;
@@ -39,7 +40,7 @@ bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 }
 
 void MainMenuWindow::Draw() const {
-  BoxDrawing::DrawBox(10, 5, 50, 15, BoxStyle::Rounded, false, "Main Menu");
+  BoxDrawing::DrawBox(10, 1, 50, 10, BoxStyle::Rounded, true, "Main Menu");
 
   DrawOptions();
 }
@@ -54,10 +55,10 @@ void MainMenuWindow::DrawOptions() const {
 
 void MainMenuWindow::DrawOption(size_t index, const char* text, bool selected) {
   auto x = 12;
-  auto y = 7 + (index * 2);
+  auto y = 3 + (index * 2);
   std::cout << MoveCursor(x, y);
   if (selected) {
-    std::cout << "> " << text;
+    std::cout << ANSI_SET_RGB_TEXT_COLOR(255, 128, 128) "> " << text << ANSI_SET_TEXT_COLOR(9);
   } else {
     std::cout << "  " << text;
   }
@@ -66,13 +67,13 @@ void MainMenuWindow::DrawOption(size_t index, const char* text, bool selected) {
 void MainMenuWindow::HandleSelection() const {
   switch (selectedIndex) {
     case 0:
-      std::cout << MoveCursor(0, 22) << "Starting game..." << '\n';
+      std::cout << MoveCursor(0, 11) << "Starting game..." << '\n';
       break;
     case 1:
-      std::cout << MoveCursor(0, 22) << "Opening settings..." << '\n';
+      std::cout << MoveCursor(0, 11) << "Opening settings..." << '\n';
       break;
     case 2:
-      std::cout << MoveCursor(0, 22) << "Quitting..." << '\n';
+      std::cout << MoveCursor(0, 11) << "Quitting..." << '\n';
       break;
     default:
       break;
