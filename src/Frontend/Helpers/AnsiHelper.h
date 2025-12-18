@@ -24,8 +24,8 @@
 #define ANSI_HIDE_CURSOR ANSI_ESCAPE_CODE "?25l"
 #define ANSI_SHOW_CURSOR ANSI_ESCAPE_CODE "?25h"
 
-// #define ANSI_SET_TEXT_COLOR(color) ANSI_ESCAPE_CODE "38;2;" #color "m"
-// #define ANSI_SET_BACKGROUND_COLOR(color) ANSI_ESCAPE_CODE "48;2;" #color "m"
+#define ANSI_SET_TEXT_COLOR(color) ANSI_ESCAPE_CODE "38;2;" #color "m"
+#define ANSI_SET_BACKGROUND_COLOR(color) ANSI_ESCAPE_CODE "48;2;" #color "m"
 
 inline std::string MoveCursor(size_t x, size_t y) {
   return ANSI_ESCAPE_CODE + std::to_string(y) + ";" + std::to_string(x) + "H";
