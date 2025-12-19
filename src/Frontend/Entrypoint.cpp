@@ -1,6 +1,6 @@
 #include "Frontend/ConsoleManager.h"
 #include "Helpers/AnsiHelper.h"
-#include "Input/InputManager.h"
+#include "Helpers/AppHelper.h"
 #include "Windows/WindowManager.h"
 #include <clocale>
 #include <cstdlib>
@@ -23,6 +23,5 @@ extern "C" void EntryPoint() {
 
   wm.Initialize();
 
-  while (true)
-    InputManager::WaitUntillKeyPressed();
+  AppHelper::AwaitExit();
 }

@@ -1,7 +1,7 @@
 #include "MainMenuWindow.h"
 
-#include "../../Helpers/BoxDrawing.h"
 #include "Frontend/Helpers/AnsiHelper.h"
+#include "Frontend/Helpers/AppHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/InputManager.h"
@@ -74,6 +74,7 @@ void MainMenuWindow::HandleSelection() const {
       break;
     case 2:
       std::cout << MoveCursor(0, 11) << "Quitting..." << '\n';
+      AppHelper::Exit();
       break;
     default:
       break;
