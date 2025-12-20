@@ -5,6 +5,8 @@
 #include "Frontend/Helpers/BoxDrawing.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/InputManager.h"
+#include "Frontend/Windows/Api/Window.h"
+#include "Frontend/Windows/WindowManager.h"
 #include <cstdio>
 #include <iostream>
 
@@ -67,7 +69,7 @@ void MainMenuWindow::DrawOption(size_t index, const char* text, bool selected) {
 void MainMenuWindow::HandleSelection() const {
   switch (selectedIndex) {
     case 0:
-      std::cout << MoveCursor(0, 11) << "Starting game..." << '\n';
+      WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
       break;
     case 1:
       std::cout << MoveCursor(0, 11) << "Opening settings..." << '\n';
