@@ -109,7 +109,7 @@ void Grid::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       auto isAlpha = (keyDetails.key >= ConsoleKey::A && keyDetails.key <= ConsoleKey::Z);
 
       if (isAlpha) {
-        size_t x = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::A);
+        size_t const x = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::A);
         if (x < width) {
           MoveCursorTo(x, cursorY);
         }
@@ -163,7 +163,7 @@ void Grid::DrawNumbersLegend(size_t row) const {
 
 void Grid::DrawLettersLegend(size_t cols) const {
   for (size_t col = 0; col < cols; ++col) {
-    char letter = static_cast<char>(static_cast<int>('A') + col);
+    char const letter = static_cast<char>(static_cast<int>('A') + col);
     std::cout << MoveCursor(((col + 1) * cellWidthWithBorders) + xOffset - 1, yOffset) << letter;
   }
 }
