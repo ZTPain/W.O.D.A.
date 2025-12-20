@@ -22,13 +22,22 @@ public:
     onKeyPressedSubscriptionId = InputManager::onKeyPressedProvider.Subscribe(
         ([this](ConsoleKeyDetails keyDetails) { return OnKeyPressed(keyDetails); })
     );
+
+    onResizeSubscriptionId = InputManager::onTerminalResizeProvider.Subscribe(
+        ([this](int width, int height) { OnResize(width, height); })
+    );
+
     OnEnter();
   }
 
   void Exit() {
     OnExit();
+
     InputManager::onKeyPressedProvider.Unsubscribe(onKeyPressedSubscriptionId);
     onKeyPressedSubscriptionId = -1;
+
+    InputManager::onTerminalResizeProvider.Unsubscribe(onResizeSubscriptionId);
+    onResizeSubscriptionId = -1;
   }
 
 protected:
@@ -37,8 +46,10 @@ protected:
   virtual void OnEnter() = 0;
   virtual void OnExit() = 0;
   virtual bool OnKeyPressed(ConsoleKeyDetails keyDetails) = 0;
+  virtual void OnResize(int /*width*/, int /*height*/) {}
 
 private:
   WindowType type = WindowType::None;
   int onKeyPressedSubscriptionId = -1;
+  int onResizeSubscriptionId = -1;
 };
