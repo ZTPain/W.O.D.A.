@@ -1,4 +1,4 @@
 Diagnostics:
   MissingIncludes: Strict
   ClangTidy:
-    FastCheckFilter: Loose
+    FastCheckFilter: None
