@@ -11,4 +11,8 @@ public:
   void OnEnter() override;
   void OnExit() override;
   bool OnKeyPressed(ConsoleKeyDetails keyDetails) override;
+  void OnResize(int width, int height) override;
+
+private:
+  static void Render();
 };
