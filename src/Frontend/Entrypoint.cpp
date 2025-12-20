@@ -7,8 +7,6 @@
 #include <iostream>
 
 extern "C" void EntryPoint() {
-  WindowManager wm;
-
   // Set locale to support UTF-8 box drawing characters
   std::setlocale(LC_ALL, "en_US.UTF-8");
 #ifdef _WIN32
@@ -21,7 +19,7 @@ extern "C" void EntryPoint() {
 
   ConsoleManager::SetTitle("W.O.D.A - Waiting for input...");
 
-  wm.Initialize();
+  WindowManager::GetInstance().Initialize();
 
   AppHelper::AwaitExit();
 }

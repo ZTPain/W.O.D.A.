@@ -10,5 +10,14 @@ void WindowManager::Initialize() {
   windows[WindowType::MainMenu] = std::make_unique<MainMenuWindow>();
   windows[WindowType::InGame] = std::make_unique<POCGameView>();
 
-  windows[WindowType::MainMenu]->Enter();
+  SwitchToWindow(WindowType::MainMenu);
+}
+
+void WindowManager::SwitchToWindow(WindowType type) {
+  if (currentWindowType != WindowType::None) {
+    windows[currentWindowType]->Exit();
+  }
+
+  currentWindowType = type;
+  windows[currentWindowType]->Enter();
 }
