@@ -17,14 +17,14 @@ package Units {
     }
 
     abstract class BattleUnit {
-        # unsigned int segments;
         - unsigned int destroyedSegments = 0;
-        - BattleUnitCategory category;
+        # unsigned int segments;
+        # BattleUnitCategory category;
 
         + BattleUnit();
         + virtual ~BattleUnit() = default;
         + virtual BattleUnitType GetType() const = 0;
-        + BattleUnitCategory GetCategory();
+        + BattleUnitCategory GetCategory() const;
         + void DestroySegment();
         + void FixSegment();
         + bool IsDestroyed() const;
@@ -66,48 +66,60 @@ package Units {
 package Boards {
     ' Implements Protection Proxy design pattern
     interface ISegment {
-        + ~ISegment() = default;
+        + ISegment(size_t width, size_t height);
+        + virtual ~ISegment() = default;
+        + virtual size_t Width() const = 0;
+        + virtual size_t Height() const = 0;
+        + virtual const vector<vector<bool>>& Segments() const = 0;
         + virtual bool ToggleSegment(size_t x, size_t y) = 0;
-        + virtual const array<array<bool, HEIGHT>, WIDTH>& Segments() const = 0;
         + virtual void Clear() = 0;
         ' Array[UnitType][UnitNumber] of Coordinates[]
-        + virtual const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const = 0;
+        + virtual const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const = 0;
     }
 
-    class SegmentBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - array<array<bool, HEIGHT>, WIDTH> segments;
+    class SegmentBoard {
+        - size_t width;
+        - size_t height;
+        - vector<vector<bool>> segments;
 
-        + SegmentBoard();
-        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
+        + SegmentBoard(size_t width, size_t height);
+        + size_t Width() const override;
+        + size_t Height() const override;
+        + const vector<vector<bool>>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
+        + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
     }
 
-    class SegmentBoardValidator <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - SegmentBoard<WIDTH, HEIGHT>& segmentBoard;
+    class SegmentBoardValidator {
+        - ISegment& segmentBoard;
         - GameMode mode;
 
-        + SegmentBoardValidator(SegmentBoard<WIDTH,
-        HEIGHT>& segmentBoard, GameMode mode);
-        + const array<array<bool, HEIGHT>, WIDTH>& Segments() const override;
+        + SegmentBoardValidator(size_t width, size_t height);
+        + size_t Width() const override;
+        + size_t Height() const override;
+        + const vector<vector<bool>>& Segments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<UnitType, vector<vector<Coordinates>>> GetUnits() const override;
+        + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
     }
 
-    ISegment <|.. SegmentBoard
-    ISegment <|.. SegmentBoardValidator
-    SegmentBoard --* SegmentBoardValidator
+    SegmentBoard ..|> ISegment
+    ISegment <|. SegmentBoardValidator
+    ISegment -* SegmentBoardValidator
 
-    class GameBoard <<template <size_t WIDTH, size_t HEIGHT>>> {
-        - SegmentBoard<WIDTH, HEIGHT> segments;
-        - array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH> units;
+    class GameBoard {
+        - size_t width;
+        - size_t height;
+        - ISegment segmentBoard;
+        - vector<vector<shared_ptr<BattleUnit>>> units;
 
-        + GameBoard();
+        + GameBoard(size_t width, size_t height);
         + ~GameBoard();
-        + SegmentBoardValidator<WIDTH, HEIGHT> Segments();
-        + const array<array<shared_ptr<BattleUnit>, HEIGHT>, WIDTH>& Units() const;
+        + size_t Width() const;
+        + size_t Height() const;
+        + ISegment SegmentBoard();
+        + const vector<vector<shared_ptr<BattleUnit>>>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
         + void FixSegment(size_t x, size_t y);
@@ -115,31 +127,26 @@ package Boards {
     }
 
     GameBoard --> BattleUnit
-    SegmentBoard --* GameBoard
-    SegmentBoardValidator <-- GameBoard
+    ISegment --* GameBoard
 }
 
 package Computers {
     ' Implements Strategy design pattern
     interface IComputerStrategy {
-        + ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(
-            const GameBoard& enemyBoard) const = 0;
+        + virtual ~IComputerStrategy() = default;
+        + virtual Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const = 0;
     }
 
     class EasyComputerStrategy {
-        + Coordinates CalculateFireCoordinates(
-        const GameBoard& enemyBoard) const override;
+        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
     }
 
     class MediumComputerStrategy {
-        + Coordinates CalculateFireCoordinates(
-        const GameBoard& enemyBoard) const override;
+        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
     }
 
     class HardComputerStrategy {
-        + Coordinates CalculateFireCoordinates(
-        const GameBoard& enemyBoard) const override;
+        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
     }
 
     EasyComputerStrategy .|> IComputerStrategy
@@ -154,10 +161,10 @@ package Computers {
     }
 
     class Computer {
-        - IComputerStrategy computerStrategy;
+        - IComputerStrategy& computerStrategy;
 
         + Computer(ComputerType type);
-        + Coordinates GetFireCoordinates(const GameBoard& enemyBoard) const;
+        + Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
     }
 
     ComputerType <- Computer
@@ -171,7 +178,7 @@ package Users {
         unsigned int longestHitStreak = 0;
         unsigned int gamesPlayed = 0;
         unsigned int gamesWon = 0;
-        unsinged int gamesLost = 0;
+        unsigned int gamesLost = 0;
         unsigned int highestScore = 0;
         unsigned int totalShotsFired = 0;
         unsigned int totalShotsHit = 0;
@@ -197,9 +204,8 @@ package Users {
     ' Implements Prototype design pattern
     ' Look up CRTP for Clone() implementation
     interface IClone <<template <class Derived>>> {
-        + IClone() = default;
-        + ~IClone() = default;
-        + unique_ptr<Derived> Clone();
+        + virtual ~IClone() = default;
+        + virtual unique_ptr<Derived> Clone() = 0;
     }
 
     class AchievementPool {
@@ -265,7 +271,7 @@ package Users {
 
     class UserManager {
         - {static} UserManager instance;
-        - {static} nextUserId = 0;
+        - {static} unsigned int nextUserId;
         - vector<UserProfile> users;
         - unsigned int currentUserId;
         - AchievementPool initialAchievementPool;
@@ -293,8 +299,8 @@ package Games {
     ' Implements Command design pattern
     interface ICommand {
         + virtual ~ICommand() = default;
-        + virtual bool execute() = 0;
-        + virtual void undo() = 0;
+        + virtual bool Execute() = 0;
+        + virtual void Undo() = 0;
     }
 
     class FireCommand {
@@ -302,8 +308,8 @@ package Games {
         - Coordinates coords;
 
         + FireCommand(GameBoard& board, Coordinates coords);
-        + bool execute() override;
-        + void undo() override;
+        + bool Execute() override;
+        + void Undo() override;
     }
 
     class SalvoFireCommand {
@@ -311,8 +317,8 @@ package Games {
         - vector<Coordinates> coords;
 
         + SalvoFireCommand(GameBoard& board, vector<Coordinates> coords);
-        + bool execute() override;
-        + void undo() override;
+        + bool Execute() override;
+        + void Undo() override;
     }
 
     ICommand <|.. FireCommand
@@ -332,7 +338,7 @@ package Games {
         size_t boardHeight;
         bool isExtended;
         FireCommandType commandType;
-        unordered_map<UnitType, size_t> unitPool;
+        unordered_map<BattleUnitType, size_t> unitPool;
     }
 
     GameMode --> FireCommandType
@@ -359,7 +365,7 @@ package Games {
     Player *-- GameBoard
 
     class GameManager {
-        - {static} nextGameId = 0;
+        - {static} unsigned int nextGameId;
         - {static} Computer easyComputer;
         - {static} Computer mediumComputer;
         - {static} Computer hardComputer;
@@ -414,6 +420,8 @@ package Replays {
         + bool StepForward();
         + bool StepBackward();
     }
+
+    ReplayPlayback *-- Replay
 
     ' Implements Singleton design pattern
     class ReplayManager {
