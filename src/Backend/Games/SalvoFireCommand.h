@@ -5,7 +5,6 @@
 #include "Backend/Boards/GameBoard.h"
 #include "Coordinates.h"
 #include "ICommand.h"
-#include <cstddef>
 #include <vector>
 
 class SalvoFireCommand : ICommand {

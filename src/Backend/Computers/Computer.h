@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include "Backend/Boards/SegmentBoard.h"
+#include "Backend/Boards/ISegment.h"
 #include "Backend/Games/Coordinates.h"
 #include "IComputerStrategy.h"
-#include <cstddef>
 
 enum class ComputerType {
   None,
@@ -19,5 +18,5 @@ class Computer {
 
 public:
   Computer(ComputerType type);
-  [[nodiscard]] Coordinates GetFireCoordinates(SegmentBoard& segmentBoard) const;
+  [[nodiscard]] Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
 };

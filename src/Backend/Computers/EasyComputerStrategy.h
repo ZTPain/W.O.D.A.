@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "Backend/Boards/SegmentBoard.h"
+#include "Backend/Boards/ISegment.h"
 #include "Backend/Games/Coordinates.h"
 #include "IComputerStrategy.h"
-#include <cstddef>
 
 class EasyComputerStrategy : public IComputerStrategy {
 public:
-  [[nodiscard]] Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
+  [[nodiscard]] Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
 };

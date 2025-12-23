@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Replay.h"
-#include <cstddef>
 
 class ReplayPlayback {
   Replay replay;
