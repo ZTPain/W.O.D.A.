@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "../Boards/SegmentBoard.h"
-#include "../Games/Coordinates.h"
+#include "Backend/Boards/SegmentBoard.h"
+#include "Backend/Games/Coordinates.h"
 #include <cstddef>
 
 class IComputerStrategy {

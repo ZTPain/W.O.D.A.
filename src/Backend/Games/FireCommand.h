@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include "../Boards/GameBoard.h"
+#include "Backend/Boards/GameBoard.h"
 #include "Coordinates.h"
 #include "ICommand.h"
-#include <cstddef>
 
 class FireCommand : ICommand {
   GameBoard& board;

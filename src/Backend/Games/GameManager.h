@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "../Computers/Computer.h"
-#include "../Replays/Replay.h"
-#include "../Users/UserProfile.h"
+#include "Backend/Computers/Computer.h"
+#include "Backend/Replays/Replay.h"
+#include "Backend/Users/UserProfile.h"
 #include "GameMode.h"
 #include "ICommand.h"
 #include "Player.h"

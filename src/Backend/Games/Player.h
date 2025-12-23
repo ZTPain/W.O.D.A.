@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "../Boards/GameBoard.h"
-#include "../Users/UserProfile.h"
-#include <cstddef>
+#include "Backend/Boards/GameBoard.h"
+#include "Backend/Users/UserProfile.h"
 
 struct Player {
   UserProfile& profile;

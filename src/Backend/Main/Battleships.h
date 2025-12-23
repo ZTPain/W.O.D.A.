@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "../Games/GameManager.h"
-#include "../Games/GameMode.h"
-#include "../Replays/ReplayManager.h"
-#include "../Users/UserManager.h"
-#include "../Users/UserProfile.h"
+#include "Backend/Games/GameManager.h"
+#include "Backend/Games/GameMode.h"
+#include "Backend/Replays/ReplayManager.h"
+#include "Backend/Users/UserManager.h"
+#include "Backend/Users/UserProfile.h"
 #include <vector>
 
 class Battleships {

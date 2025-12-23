@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "../Games/ICommand.h"
-#include "../Games/Player.h"
+#include "Backend/Games/ICommand.h"
+#include "Backend/Games/Player.h"
 #include <chrono>
 #include <ctime>
 #include <memory>

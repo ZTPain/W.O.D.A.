@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "../Games/Coordinates.h"
-#include "../Games/GameMode.h"
-#include "../Units/BattleUnitType.h"
+#include "Backend/Games/Coordinates.h"
+#include "Backend/Games/GameMode.h"
+#include "Backend/Units/BattleUnitType.h"
 #include "ISegment.h"
 #include <cstddef>
 #include <unordered_map>
