@@ -111,7 +111,7 @@ package Boards {
     class GameBoard {
         - size_t width;
         - size_t height;
-        - ISegment segmentBoard;
+        - ISegment& segmentBoard;
         - vector<vector<shared_ptr<BattleUnit>>> units;
 
         + GameBoard(size_t width, size_t height);

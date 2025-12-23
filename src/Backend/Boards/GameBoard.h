@@ -2,9 +2,8 @@
 
 #pragma once
 
+#include "Backend/Boards/ISegment.h"
 #include "Backend/Units/BattleUnit.h"
-#include "SegmentBoard.h"
-#include "SegmentBoardValidator.h"
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -12,7 +11,7 @@
 class GameBoard {
   size_t width;
   size_t height;
-  SegmentBoard segmentBoard;
+  ISegment& segmentBoard;
   std::vector<std::vector<std::shared_ptr<BattleUnit>>> units;
 
 public:
@@ -20,7 +19,7 @@ public:
   ~GameBoard();
   [[nodiscard]] size_t Width() const;
   [[nodiscard]] size_t Height() const;
-  SegmentBoardValidator SegmentBoard();
+  ISegment SegmentBoard();
   [[nodiscard]] const std::vector<std::vector<std::shared_ptr<BattleUnit>>>& Units() const;
   void ParseSegments();
   bool FireAt(size_t x, size_t y);
