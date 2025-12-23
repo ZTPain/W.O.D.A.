@@ -106,19 +106,19 @@ package Boards {
 
     ISegment <|.. SegmentBoard
     ISegment <|.. SegmentBoardValidator
-    SegmentBoard --* SegmentBoardValidator
+    ISegment --* SegmentBoardValidator
 
     class GameBoard {
         - size_t width;
         - size_t height;
-        - SegmentBoard segmentBoard;
+        - ISegment segmentBoard;
         - vector<vector<shared_ptr<BattleUnit>>> units;
 
         + GameBoard(size_t width, size_t height);
         + ~GameBoard();
         + size_t Width() const;
         + size_t Height() const;
-        + SegmentBoardValidator SegmentBoard();
+        + ISegment SegmentBoard();
         + const vector<vector<shared_ptr<BattleUnit>>>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
@@ -127,27 +127,27 @@ package Boards {
     }
 
     GameBoard --> BattleUnit
-    SegmentBoard --* GameBoard
-    SegmentBoardValidator <-- GameBoard
+    ISegment --* GameBoard
+    ISegment <-- GameBoard
 }
 
 package Computers {
     ' Implements Strategy design pattern
     interface IComputerStrategy {
         + virtual ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const = 0;
+        + virtual Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const = 0;
     }
 
     class EasyComputerStrategy {
-        + Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
+        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
     }
 
     class MediumComputerStrategy {
-        + Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
+        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
     }
 
     class HardComputerStrategy {
-        + Coordinates CalculateFireCoordinates(SegmentBoard& segmentBoard) const override;
+        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
     }
 
     EasyComputerStrategy .|> IComputerStrategy
@@ -165,7 +165,7 @@ package Computers {
         - IComputerStrategy& computerStrategy;
 
         + Computer(ComputerType type);
-        + Coordinates GetFireCoordinates(SegmentBoardView view) const;
+        + Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
     }
 
     ComputerType <- Computer
