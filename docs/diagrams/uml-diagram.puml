@@ -104,9 +104,9 @@ package Boards {
         + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
     }
 
-    ISegment <|.. SegmentBoard
-    ISegment <|.. SegmentBoardValidator
-    ISegment --* SegmentBoardValidator
+    SegmentBoard ..|> ISegment
+    ISegment <|. SegmentBoardValidator
+    ISegment -* SegmentBoardValidator
 
     class GameBoard {
         - size_t width;
@@ -128,7 +128,6 @@ package Boards {
 
     GameBoard --> BattleUnit
     ISegment --* GameBoard
-    ISegment <-- GameBoard
 }
 
 package Computers {
