@@ -20,10 +20,10 @@ enum class GameState {
 };
 
 class GameManager {
-  static unsigned int nextGameId;
-  static Computer easyComputer;
-  static Computer mediumComputer;
-  static Computer hardComputer;
+  inline static unsigned int nextGameId = 1;
+  inline static Computer easyComputer = Computer(ComputerType::Easy);
+  inline static Computer mediumComputer = Computer(ComputerType::Medium);
+  inline static Computer hardComputer = Computer(ComputerType::Hard);
   unsigned int gameId;
   GameMode mode;
   GameState state = GameState::Started;
@@ -35,10 +35,10 @@ class GameManager {
   std::chrono::seconds playtime;
 
 public:
-  GameManager(GameMode mode, std::vector<UserProfile&> profiles);
+  GameManager(GameMode mode, std::vector<UserProfile*>& profiles);
   ~GameManager();
-  [[nodiscard]] const GameMode Mode() const;
-  const std::vector<Player> Players() const;
+  [[nodiscard]] GameMode Mode() const;
+  [[nodiscard]] const std::vector<Player>& Players();
   [[nodiscard]] unsigned int CurrentTurn() const;
   void StartGame();
   bool ExecuteCommand(std::unique_ptr<ICommand> command);
