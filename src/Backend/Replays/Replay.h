@@ -4,7 +4,6 @@
 
 #include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
-#include <chrono>
 #include <ctime>
 #include <memory>
 #include <vector>
@@ -14,6 +13,6 @@ struct Replay {
   std::vector<Player> players;
   std::vector<std::unique_ptr<ICommand>> history;
   unsigned int winnerId{};
-  std::chrono::seconds playtime{};
+  long long playtime{};
   time_t timestamp{};
 };
