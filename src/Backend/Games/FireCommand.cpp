@@ -6,6 +6,6 @@
 
 FireCommand::FireCommand(GameBoard& board, Coordinates coords) : board(board), coords(coords) {}
 
-bool FireCommand::Execute() { return true; }
+bool FireCommand::Execute() { return board.FireAt(coords.x, coords.y); }
 
-void FireCommand::Undo() {}
+void FireCommand::Undo() { board.FixSegment(coords.x, coords.y); }
