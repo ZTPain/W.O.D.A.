@@ -11,7 +11,7 @@
 class GameBoard {
   size_t width;
   size_t height;
-  ISegment& segmentBoard;
+  std::unique_ptr<ISegment> segmentBoard;
   std::vector<std::vector<std::shared_ptr<BattleUnit>>> units;
 
 public:
@@ -19,7 +19,7 @@ public:
   ~GameBoard();
   [[nodiscard]] size_t Width() const;
   [[nodiscard]] size_t Height() const;
-  ISegment SegmentBoard();
+  ISegment GetSegmentBoard();
   [[nodiscard]] const std::vector<std::vector<std::shared_ptr<BattleUnit>>>& Units() const;
   void ParseSegments();
   bool FireAt(size_t x, size_t y);
