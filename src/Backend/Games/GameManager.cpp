@@ -34,13 +34,14 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
   if (!command->Execute())
     return false;
 
+  players[currentTurn].shotsFired++;
   history.push_back(command);
   currentTurn = (currentTurn + 1) % players.size();
   return true;
 }
 
 void GameManager::HandleGameOver() {
-  // TODO: Update player statistics (and achievements?)
+  // TODO: Update player statistics, achievements and unlocks
   // for (auto& p : players) {
 
   // }
