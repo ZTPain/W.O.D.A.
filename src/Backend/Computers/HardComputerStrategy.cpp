@@ -1,45 +1,68 @@
 #include "HardComputerStrategy.h"
-#include <vector>
+#include "Backend/Boards/ISegment.h"
+#include "Backend/Games/Coordinates.h"
+#include <cstddef>
 #include <random>
+#include <vector>
+static std::mt19937& Rng() {
+  static std::mt19937 rng{std::random_device{}()};
+  return rng;
+}
+static Coordinates RandomFrom(const std::vector<Coordinates>& v) {
+  std::uniform_int_distribution<size_t> d(0, v.size() - 1);
+  return v[d(Rng())];
+}
+static std::vector<Coordinates> AllFree(const ISegment& board) {
+  std::vector<Coordinates> out;
+  const auto& s = board.Segments();
 
-Coordinates HardComputerStrategy::CalculateFireCoordinates(
-    ISegment& board,
-    const Computer& self) 
-const {
-    static std::mt19937 rng{ std::random_device{}() };
-    std::uniform_real_distribution<double> chance(0.0,1.0);
+  for (size_t y = 0; y < board.Height(); ++y)
+    for (size_t x = 0; x < board.Width(); ++x)
+      if (!s[y][x])
+        out.push_back({x, y});
 
-    size_t w = board.Width(), h = board.Height();
-    const auto& grid = board.Segments();
+  return out;
+}
+static std::vector<Coordinates> ChessboardFree(const ISegment& board) {
+  std::vector<Coordinates> out;
+  const auto& s = board.Segments();
 
-    // 20%: cheatin'
-    if (chance(rng) <= 0.20) {
-        std::vector<Coordinates> targets;
-        for (size_t y=0;y<h;y++)
-            for (size_t x=0;x<w;x++)
-                if (grid[y][x] && !self.HasFiredAt(x,y))
-                    targets.push_back({x,y});
+  for (size_t y = 0; y < board.Height(); ++y)
+    for (size_t x = 0; x < board.Width(); ++x)
+      if ((x + y) % 2 == 0 && !s[y][x])
+        out.push_back({x, y});
 
-        if (!targets.empty()) {
-            std::uniform_int_distribution<size_t> d(0,targets.size()-1);
-            return targets[d(rng)];
-        }
-    }
+  return out;
+}
+static std::vector<Coordinates> CheatableTargets(const ISegment& board) {
+  std::vector<Coordinates> out;
+  const auto& s = board.Segments();
+  const auto& units = board.GetUnits();
 
-    // 80%: checkerboard
-    std::vector<Coordinates> pool;
-    for (size_t y=0;y<h;y++)
-        for (size_t x=0;x<w;x++)
-            if ((x+y)%2==0 && !self.HasFiredAt(x,y))
-                pool.push_back({x,y});
+  for (const auto& [_, ships] : units)
+    for (const auto& ship : ships)
+      for (const auto& c : ship)
+        if (!s[c.y][c.x])
+          out.push_back(c);
 
-    if (pool.empty()) {
-        for (size_t y=0;y<h;y++)
-            for (size_t x=0;x<w;x++)
-                if (!self.HasFiredAt(x,y))
-                    pool.push_back({x,y});
-    }
+  return out;
+}
+static bool ShouldCheat() {
+  std::uniform_int_distribution<int> d(1, 100);
+  return d(Rng()) <= 20;
+}
 
-    std::uniform_int_distribution<size_t> d(0,pool.size()-1);
-    return pool[d(rng)];
+Coordinates HardComputerStrategy::CalculateFireCoordinates(ISegment& board) const {
+  if (ShouldCheat()) {
+    auto cheatTargets = CheatableTargets(board);
+    if (!cheatTargets.empty())
+      return RandomFrom(cheatTargets);
+  }
+
+  auto chess = ChessboardFree(board);
+  if (!chess.empty())
+    return RandomFrom(chess);
+
+  auto all = AllFree(board);
+  return RandomFrom(all);
 }
