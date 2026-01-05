@@ -33,6 +33,9 @@ void GameBoard::FixSegment(size_t x, size_t y) {
   if (x >= width || y >= height)
     return;
 
+  if (!segmentBoard->Segments()[y][x])
+    return;
+
   segmentBoard->ToggleSegment(x, y);
 
   if (units[y][x] != nullptr) {
