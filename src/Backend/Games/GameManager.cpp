@@ -31,13 +31,12 @@ void GameManager::StartGame() {
 }
 
 bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
-  if (command->Execute()) {
-    history.push_back(command);
-    currentTurn = (currentTurn + 1) % players.size();
-    return true;
-  }
+  if (!command->Execute())
+    return false;
 
-  return false;
+  history.push_back(command);
+  currentTurn = (currentTurn + 1) % players.size();
+  return true;
 }
 
 void GameManager::HandleGameOver() {
