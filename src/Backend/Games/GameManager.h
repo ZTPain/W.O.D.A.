@@ -13,7 +13,6 @@
 #include <vector>
 
 enum class GameState {
-  Started,
   Setting,
   Playing,
   Over,
@@ -26,17 +25,17 @@ class GameManager {
   inline static Computer hardComputer = Computer(ComputerType::Hard);
   unsigned int gameId;
   GameMode mode;
-  GameState state = GameState::Started;
+  GameState state;
   std::vector<Player> players;
   unsigned int currentTurn;
   std::vector<Player> initialPlayerState;
   std::vector<std::unique_ptr<ICommand>> history;
   unsigned int winnerId;
-  std::chrono::seconds playtime;
+  std::chrono::time_point<std::chrono::steady_clock> gameStartPoint;
+  long long playtime;
 
 public:
-  GameManager(GameMode mode, std::vector<UserProfile*>& profiles);
-  ~GameManager();
+  GameManager(GameMode& mode, std::vector<UserProfile*>& profiles);
   [[nodiscard]] GameMode Mode() const;
   [[nodiscard]] const std::vector<Player>& Players();
   [[nodiscard]] unsigned int CurrentTurn() const;
