@@ -8,4 +8,8 @@
 struct Player {
   UserProfile& profile;
   GameBoard board;
+  unsigned int score = 0;
+  unsigned int shotsFired = 0;
+  unsigned int shotsHit = 0;
+  unsigned int unitsDestroyed = 0;
 };
