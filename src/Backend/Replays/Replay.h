@@ -10,10 +10,10 @@
 #include <vector>
 
 struct Replay {
-  unsigned int replayId;
+  unsigned int replayId{};
   std::vector<Player> players;
   std::vector<std::unique_ptr<ICommand>> history;
-  unsigned int winnerId;
-  std::chrono::seconds playtime;
-  time_t timestamp;
+  unsigned int winnerId{};
+  std::chrono::seconds playtime{};
+  time_t timestamp{};
 };

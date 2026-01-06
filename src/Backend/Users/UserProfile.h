@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 
-using namespace std::chrono_literals;
+using std::chrono_literals::operator""s;
 
 struct Statistics {
   std::chrono::seconds fastestWonGame = 0s;
