@@ -4,13 +4,17 @@
 
 #include "AchievementPool.h"
 #include "Backend/Computers/Computer.h"
+#include <__chrono/duration.h>
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
 
+using namespace std::chrono_literals;
+
 struct Statistics {
-  long long fastestWonGame{0};
-  long long totalPlaytime{0};
+  std::chrono::seconds fastestWonGame = 0s;
+  std::chrono::seconds totalPlaytime = 0s;
   unsigned int gamesPlayed = 0;
   unsigned int gamesWon = 0;
   unsigned int gamesLost = 0;
