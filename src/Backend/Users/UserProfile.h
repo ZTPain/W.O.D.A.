@@ -9,10 +9,11 @@
 #include <memory>
 #include <string>
 
+using std::chrono_literals::operator""s;
+
 struct Statistics {
-  std::chrono::seconds fastestWonGame{0};
-  std::chrono::seconds totalPlaytime{0};
-  unsigned int longestHitStreak = 0;
+  std::chrono::seconds fastestWonGame = 0s;
+  std::chrono::seconds totalPlaytime = 0s;
   unsigned int gamesPlayed = 0;
   unsigned int gamesWon = 0;
   unsigned int gamesLost = 0;
@@ -46,13 +47,14 @@ struct UserSettings {
 class UserProfile {
   unsigned int userId;
   Computer* computer;
+
+public:
   std::string name;
   Statistics statistics;
   std::unique_ptr<AchievementPool> achievements;
   uint64_t unlockedContent;
   UserSettings settings;
 
-public:
   UserProfile(unsigned int userId, std::string name, std::unique_ptr<AchievementPool> achievements);
   UserProfile(
       unsigned int userId,
