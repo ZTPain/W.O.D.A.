@@ -10,11 +10,17 @@
 #include <unordered_map>
 
 enum class UnlockableContent : uint64_t {
-  None = 0,
-  MediumComputer = 1,
-  HardComputer = 2,
-  SalvoMode = 4,
-  ExtendedMode = 8,
+  None = 0x0,
+  MediumComputer = 0x1,
+  HardComputer = 0x1 << 1,
+  SalvoMode = 0x1 << 2,
+  ExtendedMode = 0x1 << 3,
+  FlowerShipIcon = 0x1 << 4,
+  CrosshairShipIcon = 0x1 << 5,
+  StarShipIcon = 0x1 << 6,
+  StoneShipIcon = 0x1 << 7,
+  RedBorderColor = 0x1 << 8,
+  BlueBorderColor = 0x1 << 9,
 };
 
 struct Achievement {
