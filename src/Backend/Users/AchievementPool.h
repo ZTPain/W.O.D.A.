@@ -23,6 +23,8 @@ struct Achievement {
   UnlockableContent content;
   bool unlocked;
 
+  // Not planning on runtime dynamic name constructed Achievement struct, thats why there will be no
+  // std::string version
   Achievement(
       std::string_view name, std::string_view description, UnlockableContent content, bool unlocked
   );
@@ -30,6 +32,9 @@ struct Achievement {
 
 class AchievementPool : IClone<AchievementPool> {
   std::unordered_map<std::string, Achievement> nameToAchievementMap;
+
+  // Use for const initialization (hence std::string_view). It is not constexpr initialization,
+  // due to compile-time unordered_maps being a C++20 feature.
   void InitMapElement(
       std::string_view name, std::string_view description, UnlockableContent content
   );
