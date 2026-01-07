@@ -1,4 +1,6 @@
 #include "SegmentBoard.h"
+#include "Backend/Games/Coordinates.h"
+#include "Backend/Units/BattleUnitType.h"
 #include "ISegment.h"
 #include <algorithm>
 #include <cstddef>
