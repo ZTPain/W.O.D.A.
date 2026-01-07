@@ -4,33 +4,8 @@
 #include <cstdint>
 #include <string>
 
-#define ANSI_ESCAPE_CODE "\x1B[" // NOLINT(cppcoreguidelines-macro-usage)
-
-#define ANSI_RESET ANSI_ESCAPE_CODE "0m"
-#define ANSI_BOLD ANSI_ESCAPE_CODE "1m"
-#define ANSI_UNDERLINE ANSI_ESCAPE_CODE "4m"
-#define ANSI_REVERSED ANSI_ESCAPE_CODE "7m"
-#define ANSI_CLEAR_SCREEN ANSI_ESCAPE_CODE "2J"
-#define ANSI_CLEAR_LINE ANSI_ESCAPE_CODE "2K"
-
-// #define ANSI_MOVE_CURSOR(x, y) ANSI_ESCAPE_CODE #x ";" #y "H"
-// #define ANSI_MOVE_CURSOR_UP(n) ANSI_ESCAPE_CODE #n "A"
-// #define ANSI_MOVE_CURSOR_DOWN(n) ANSI_ESCAPE_CODE #n "B"
-// #define ANSI_MOVE_CURSOR_RIGHT(n) ANSI_ESCAPE_CODE #n "C"
-// #define ANSI_MOVE_CURSOR_LEFT(n) ANSI_ESCAPE_CODE #n "D"
-#define ANSI_SAVE_CURSOR_POSITION ANSI_ESCAPE_CODE "s"
-#define ANSI_RESTORE_CURSOR_POSITION ANSI_ESCAPE_CODE "u"
-
-#define ANSI_GET_CURSOR_POSITION ANSI_ESCAPE_CODE "6n"
-#define ANSI_HIDE_CURSOR ANSI_ESCAPE_CODE "?25l"
-#define ANSI_SHOW_CURSOR ANSI_ESCAPE_CODE "?25h"
-
-#define ANSI_SET_TEXT_COLOR(color) ANSI_ESCAPE_CODE "38;2;" #color "m"
-#define ANSI_SET_BACKGROUND_COLOR(color) ANSI_ESCAPE_CODE "48;2;" #color "m"
-
-inline std::string MoveCursor(size_t x, size_t y) {
-  return ANSI_ESCAPE_CODE + std::to_string(y) + ";" + std::to_string(x) + "H";
-}
+#define USE_ANSI_CODES
+// #define USE_WODA_CODES
 
 enum class AnsiColor : uint8_t {
   Black = 0,
@@ -44,6 +19,220 @@ enum class AnsiColor : uint8_t {
   Default = 9
 };
 
-#define ANSI_SET_RGB_TEXT_COLOR(r, g, b) ANSI_ESCAPE_CODE "38;2;" #r ";" #g ";" #b "m"
+class AnsiHelper {
+public:
+  static std::string MoveCursor(size_t x, size_t y);
 
-#define ANSI_SET_RGB_BACKGROUND_COLOR(r, g, b) ANSI_ESCAPE_CODE "48;2;" #r ";" #g ";" #b "m"
+  static std::string SetTextColor(uint8_t r, uint8_t g, uint8_t b);
+  static std::string SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b);
+
+  static std::string SetTextColor(AnsiColor color);
+  static std::string SetBackgroundColor(AnsiColor color);
+
+  constexpr static const char* Reset();
+  constexpr static const char* Bold();
+  constexpr static const char* Underline();
+  constexpr static const char* Reversed();
+  constexpr static const char* ClearScreen();
+  constexpr static const char* ClearLine();
+  constexpr static const char* SaveCursorPosition();
+  constexpr static const char* RestoreCursorPosition();
+  constexpr static const char* HideCursor();
+  constexpr static const char* ShowCursor();
+  constexpr static const char* SaveScreen();
+  constexpr static const char* RestoreScreen();
+};
+
+#ifdef USE_ANSI_CODES
+
+#define ANSI_ESCAPE_CODE "\x1B[" // NOLINT(cppcoreguidelines-macro-usage)
+
+#define ANSI_RESET ANSI_ESCAPE_CODE "0m"
+#define ANSI_BOLD ANSI_ESCAPE_CODE "1m"
+#define ANSI_UNDERLINE ANSI_ESCAPE_CODE "4m"
+#define ANSI_REVERSED ANSI_ESCAPE_CODE "7m"
+#define ANSI_CLEAR_SCREEN ANSI_ESCAPE_CODE "2J"
+#define ANSI_CLEAR_LINE ANSI_ESCAPE_CODE "2K"
+
+#define ANSI_SAVE_CURSOR_POSITION ANSI_ESCAPE_CODE "s"
+#define ANSI_RESTORE_CURSOR_POSITION ANSI_ESCAPE_CODE "u"
+
+#define ANSI_HIDE_CURSOR ANSI_ESCAPE_CODE "?25l"
+#define ANSI_SHOW_CURSOR ANSI_ESCAPE_CODE "?25h"
+
+#define ANSI_SAVE_SCREEN ANSI_ESCAPE_CODE "?47h"
+#define ANSI_RESTORE_SCREEN ANSI_ESCAPE_CODE "?47l"
+
+inline std::string AnsiHelper::MoveCursor(size_t x, size_t y) {
+  return ANSI_ESCAPE_CODE + std::to_string(y) + ";" + std::to_string(x) + "H";
+}
+
+inline std::string AnsiHelper::SetTextColor(uint8_t r, uint8_t g, uint8_t b) {
+  return ANSI_ESCAPE_CODE "38;2;" + std::to_string(r) + ";" + std::to_string(g) + ";" +
+         std::to_string(b) + "m";
+}
+
+inline std::string AnsiHelper::SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b) {
+  return ANSI_ESCAPE_CODE "48;2;" + std::to_string(r) + ";" + std::to_string(g) + ";" +
+         std::to_string(b) + "m";
+}
+
+inline std::string AnsiHelper::SetTextColor(AnsiColor color) {
+  return ANSI_ESCAPE_CODE + std::to_string(static_cast<uint8_t>(color) + 30) + "m";
+}
+
+inline std::string AnsiHelper::SetBackgroundColor(AnsiColor color) {
+  return ANSI_ESCAPE_CODE + std::to_string(static_cast<uint8_t>(color) + 40) + "m";
+}
+
+constexpr const char* AnsiHelper::Reset() { return ANSI_RESET; }
+
+constexpr const char* AnsiHelper::Bold() { return ANSI_BOLD; }
+
+constexpr const char* AnsiHelper::Underline() { return ANSI_UNDERLINE; }
+
+constexpr const char* AnsiHelper::Reversed() { return ANSI_REVERSED; }
+
+constexpr const char* AnsiHelper::ClearScreen() { return ANSI_CLEAR_SCREEN; }
+
+constexpr const char* AnsiHelper::ClearLine() { return ANSI_CLEAR_LINE; }
+
+constexpr const char* AnsiHelper::SaveCursorPosition() { return ANSI_SAVE_CURSOR_POSITION; }
+
+constexpr const char* AnsiHelper::RestoreCursorPosition() { return ANSI_RESTORE_CURSOR_POSITION; }
+
+constexpr const char* AnsiHelper::HideCursor() { return ANSI_HIDE_CURSOR; }
+
+constexpr const char* AnsiHelper::ShowCursor() { return ANSI_SHOW_CURSOR; }
+
+constexpr const char* AnsiHelper::SaveScreen() { return ANSI_SAVE_SCREEN; }
+
+constexpr const char* AnsiHelper::RestoreScreen() { return ANSI_RESTORE_SCREEN; }
+
+#elif defined(USE_WODA_CODES)
+
+// W.O.D.A specific console codes
+#define WODA_ESCAPE_CODE "\x1B" // NOLINT(cppcoreguidelines-macro-usage)
+
+enum class WodaAnsiCode : uint8_t {
+  None,
+
+  MoveCursor,
+
+  ChangeForegroundColor,
+  ChangeBackgroundColor,
+
+  ResetColors,
+
+  ChangeForegroundRgbColor,
+  ChangeBackgroundRgbColor,
+
+  ClearScreen,
+  ClearLine,
+
+  ShowCursor,
+  HideCursor,
+
+  BoldText,
+  UnderlineText,
+  InverseText,
+
+  SaveCursorPosition,
+  RestoreCursorPosition,
+};
+
+inline std::string AnsiHelper::MoveCursor(size_t x, size_t y) {
+  std::array<char, 5> buffer{};
+  buffer[0] = '\x1B';
+  buffer[1] = static_cast<char>(WodaAnsiCode::MoveCursor);
+  buffer[2] = static_cast<char>(x);
+  buffer[3] = static_cast<char>(y);
+  buffer[4] = ';';
+  return std::string(buffer.data(), 5);
+}
+
+inline std::string AnsiHelper::SetTextColor(uint8_t r, uint8_t g, uint8_t b) {
+  std::array<char, 6> buffer{};
+  buffer[0] = '\x1B';
+  buffer[1] = static_cast<char>(WodaAnsiCode::ChangeForegroundRgbColor);
+  buffer[2] = static_cast<char>(r);
+  buffer[3] = static_cast<char>(g);
+  buffer[4] = static_cast<char>(b);
+  buffer[5] = ';';
+  return std::string(buffer.data(), 6);
+}
+
+inline std::string AnsiHelper::SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b) {
+  std::array<char, 6> buffer{};
+  buffer[0] = '\x1B';
+  buffer[1] = static_cast<char>(WodaAnsiCode::ChangeBackgroundRgbColor);
+  buffer[2] = static_cast<char>(r);
+  buffer[3] = static_cast<char>(g);
+  buffer[4] = static_cast<char>(b);
+  buffer[5] = ';';
+  return std::string(buffer.data(), 6);
+}
+
+inline std::string AnsiHelper::SetTextColor(AnsiColor color) {
+  return std::string{WODA_ESCAPE_CODE, static_cast<char>(WodaAnsiCode::ChangeForegroundColor)} +
+         static_cast<char>(color) + ';';
+}
+
+inline std::string AnsiHelper::SetBackgroundColor(AnsiColor color) {
+  return std::string{WODA_ESCAPE_CODE, static_cast<char>(WodaAnsiCode::ChangeBackgroundColor)} +
+         static_cast<char>(color) + ';';
+}
+
+constexpr const char* AnsiHelper::Reset() {
+  return WODA_ESCAPE_CODE "\x04"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::Bold() {
+  return WODA_ESCAPE_CODE "\x0B"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::Underline() {
+  return WODA_ESCAPE_CODE "\x0C"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::Reversed() {
+  return WODA_ESCAPE_CODE "\x0D"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::ClearScreen() {
+  return WODA_ESCAPE_CODE "\x07"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::ClearLine() {
+  return WODA_ESCAPE_CODE "\x08"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::SaveCursorPosition() {
+  return WODA_ESCAPE_CODE "\x0E"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::RestoreCursorPosition() {
+  return WODA_ESCAPE_CODE "\x0F"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::HideCursor() {
+  return WODA_ESCAPE_CODE "\x0A"
+                          ";";
+}
+
+constexpr const char* AnsiHelper::ShowCursor() {
+  return WODA_ESCAPE_CODE "\x09"
+                          ";";
+}
+
+#else
+#error "No console code system defined. Define either USE_ANSI_CODES or USE_WODA_CODES."
+#endif

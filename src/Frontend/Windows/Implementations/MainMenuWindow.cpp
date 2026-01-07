@@ -4,15 +4,28 @@
 #include "Frontend/Helpers/AppHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
 #include "Frontend/Input/ConsoleKey.h"
+#include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
 #include "Frontend/Windows/WindowManager.h"
 #include <cstdio>
 #include <iostream>
 
-void MainMenuWindow::OnEnter() { Draw(); }
+void MainMenuWindow::OnEnter() {
+  static bool firstEnter = true;
+  if (firstEnter) {
+    Draw();
+    firstEnter = false;
+  } else {
+    IO::cout << AnsiHelper::RestoreScreen();
+    IO::cout.flush();
+  }
+}
 
-void MainMenuWindow::OnExit() { printf("Exited Main Menu Window\n"); }
+void MainMenuWindow::OnExit() {
+  IO::cout << AnsiHelper::SaveScreen();
+  printf("Exited Main Menu Window\n");
+}
 
 bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   switch (keyDetails.key) {
@@ -53,16 +66,19 @@ void MainMenuWindow::DrawOptions() const {
     DrawOption(i, var.data(), selectedIndex == i);
     ++i;
   }
+
+  IO::cout.flush();
 }
 
 void MainMenuWindow::DrawOption(size_t index, const char* text, bool selected) {
   auto x = 12;
   auto y = 3 + (index * 2);
-  std::cout << MoveCursor(x, y);
+  IO::cout << AnsiHelper::MoveCursor(x, y);
   if (selected) {
-    std::cout << ANSI_SET_RGB_TEXT_COLOR(255, 128, 128) "> " << text << ANSI_SET_TEXT_COLOR(9);
+    IO::cout << AnsiHelper::SetTextColor(255, 128, 128) << "> " << text
+             << AnsiHelper::SetTextColor(AnsiColor::Default);
   } else {
-    std::cout << "  " << text;
+    IO::cout << "  " << text;
   }
 }
 
@@ -72,10 +88,10 @@ void MainMenuWindow::HandleSelection() const {
       WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
       break;
     case 1:
-      std::cout << MoveCursor(0, 11) << "Opening settings..." << '\n';
+      IO::cout << AnsiHelper::MoveCursor(0, 11) << "Opening settings..." << '\n';
       break;
     case 2:
-      std::cout << MoveCursor(0, 11) << "Quitting..." << '\n';
+      IO::cout << AnsiHelper::MoveCursor(0, 11) << "Quitting..." << '\n';
       AppHelper::Exit();
       break;
     default:

@@ -1,4 +1,5 @@
 #include "Frontend/ConsoleManager.h"
+#include "Frontend/Input/IO.h"
 #include "Helpers/AnsiHelper.h"
 #include "Helpers/AppHelper.h"
 #include "Windows/WindowManager.h"
@@ -13,9 +14,11 @@ extern "C" void EntryPoint() {
   std::system("chcp 65001");
 #endif
 
-  std::cout << ANSI_HIDE_CURSOR << ANSI_RESET;
-  std::cout << ANSI_CLEAR_SCREEN;
-  std::cout.flush();
+  IO::Initialize();
+
+  IO::cout << AnsiHelper::HideCursor();
+  IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
+  IO::cout.flush();
 
   ConsoleManager::SetTitle("W.O.D.A - Waiting for input...");
 

@@ -20,15 +20,14 @@ public:
 
   void Render();
 
-  void Subscribe();
-  void Unsubscribe();
-
   void MoveCursorUp();
   void MoveCursorDown();
   void MoveCursorLeft();
   void MoveCursorRight();
 
   void ToggleCellAtCursor();
+
+  void OnKeyPressed(ConsoleKeyDetails keyDetails);
 
 private:
   size_t xOffset;
@@ -43,9 +42,7 @@ private:
   std::function<void(size_t, size_t, size_t, size_t)> onToggleCellCallback;
   size_t cursorX;
   size_t cursorY;
-  int subscriptionId;
 
-  void OnKeyPressed(ConsoleKeyDetails keyDetails);
   void MoveCursorTo(size_t x, size_t y);
 
   void DrawNumbersLegend(size_t row) const;

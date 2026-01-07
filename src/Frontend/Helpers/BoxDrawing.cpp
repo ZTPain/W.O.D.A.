@@ -1,5 +1,6 @@
 #include "BoxDrawing.h"
 #include "AnsiHelper.h"
+#include "Frontend/Input/IO.h"
 #include <cstddef>
 #include <iostream>
 #include <ostream>
@@ -32,10 +33,10 @@ void BoxDrawing::DrawBox(
   DrawVerticalLine(x + width - 1, y + 1, height - 2, style, false); // Right edge
 
   // Draw corners
-  std::cout << MoveCursor(x, y) << styleDef.topLeft;
-  std::cout << MoveCursor(x + width - 1, y) << styleDef.topRight;
-  std::cout << MoveCursor(x, y + height - 1) << styleDef.bottomLeft;
-  std::cout << MoveCursor(x + width - 1, y + height - 1) << styleDef.bottomRight;
+  IO::cout << AnsiHelper::MoveCursor(x, y) << styleDef.topLeft;
+  IO::cout << AnsiHelper::MoveCursor(x + width - 1, y) << styleDef.topRight;
+  IO::cout << AnsiHelper::MoveCursor(x, y + height - 1) << styleDef.bottomLeft;
+  IO::cout << AnsiHelper::MoveCursor(x + width - 1, y + height - 1) << styleDef.bottomRight;
 
   // Draw title if provided
   if (title != nullptr) {
@@ -43,65 +44,66 @@ void BoxDrawing::DrawBox(
     const size_t titleLength = titleWithBrackets.length();
     if (titleLength < width - 4) { // Ensure title fits within the box
       const size_t titleX = x + 1 + ((width / 2 - titleLength / 2));
-      std::cout << MoveCursor(titleX, y) << titleWithBrackets; // Position title at the top center
+      IO::cout << AnsiHelper::MoveCursor(titleX, y)
+               << titleWithBrackets; // Position title at the top center
     }
   }
 
   if (filled) {
     // Fill the box interior
     for (size_t row = y + 1; row < y + height - 1; ++row) {
-      std::cout << MoveCursor(x + 1, row);
+      IO::cout << AnsiHelper::MoveCursor(x + 1, row);
       for (size_t col = x + 1; col < x + width - 1; ++col) {
-        std::cout << ' ';
+        IO::cout << ' ';
       }
     }
   }
 
   if (flush)
-    std::cout.flush();
+    IO::cout.flush();
 }
 
 void BoxDrawing::ClearBox(
     size_t x, size_t y, size_t width, size_t height, bool filled, bool flush
 ) {
   if (filled) {
-    std::cout << MoveCursor(x + 1, y + 1);
+    IO::cout << AnsiHelper::MoveCursor(x + 1, y + 1);
     for (size_t row = y + 1; row < y + height - 1; ++row) {
       for (size_t col = x + 1; col < x + width - 1; ++col) {
-        std::cout << ' ';
+        IO::cout << ' ';
       }
-      std::cout << '\n';
+      IO::cout << '\n';
     }
   } else {
     // Clear edges
     for (size_t col = x; col < x + width; ++col) {
-      std::cout << MoveCursor(col, y) << ' ';              // Top edge
-      std::cout << MoveCursor(col, y + height - 1) << ' '; // Bottom edge
+      IO::cout << AnsiHelper::MoveCursor(col, y) << ' ';              // Top edge
+      IO::cout << AnsiHelper::MoveCursor(col, y + height - 1) << ' '; // Bottom edge
     }
     for (size_t row = y; row < y + height; ++row) {
-      std::cout << MoveCursor(x, row) << ' ';             // Left edge
-      std::cout << MoveCursor(x + width - 1, row) << ' '; // Right edge
+      IO::cout << AnsiHelper::MoveCursor(x, row) << ' ';             // Left edge
+      IO::cout << AnsiHelper::MoveCursor(x + width - 1, row) << ' '; // Right edge
     }
   }
 
   if (flush)
-    std::cout.flush();
+    IO::cout.flush();
 }
 
 void BoxDrawing::DrawHorizontalLine(size_t x, size_t y, size_t length, BoxStyle style, bool flush) {
   for (size_t col = x; col < x + length; ++col) {
-    std::cout << MoveCursor(col, y) << boxStyles[style].horizontal;
+    IO::cout << AnsiHelper::MoveCursor(col, y) << boxStyles[style].horizontal;
   }
 
   if (flush)
-    std::cout.flush();
+    IO::cout.flush();
 }
 
 void BoxDrawing::DrawVerticalLine(size_t x, size_t y, size_t length, BoxStyle style, bool flush) {
   for (size_t row = y; row < y + length; ++row) {
-    std::cout << MoveCursor(x, row) << boxStyles[style].vertical;
+    IO::cout << AnsiHelper::MoveCursor(x, row) << boxStyles[style].vertical;
   }
 
   if (flush)
-    std::cout.flush();
+    IO::cout.flush();
 }

@@ -1,6 +1,7 @@
 #include "InteractiveGrid.h"
 #include "AnsiHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
+#include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
 #include <cstddef>
 #include <functional>
@@ -20,8 +21,7 @@ Grid::Grid(
     : xOffset(xOffset), yOffset(yOffset), width(width), height(height), cellWidth(cellWidth),
       cellHeight(cellHeight), cellWidthWithBorders(cellWidth + 2),
       cellHeightWithBorders(cellHeight + 1), renderCellCallback(std::move(renderCellCallback)),
-      onToggleCellCallback(std::move(onToggleCellCallback)), cursorX(0), cursorY(0),
-      subscriptionId(-1) {}
+      onToggleCellCallback(std::move(onToggleCellCallback)), cursorX(0), cursorY(0) {}
 
 Grid::~Grid() = default;
 
@@ -40,21 +40,6 @@ void Grid::Render() {
 
       InvokeOnRenderCell(x - 1, y - 1, cursorX == x - 1 && cursorY == y - 1);
     }
-  }
-}
-
-void Grid::Subscribe() {
-  subscriptionId =
-      InputManager::onKeyPressedProvider.Subscribe([this](const ConsoleKeyDetails& keyDetails) {
-        OnKeyPressed(keyDetails);
-        return false;
-      });
-}
-
-void Grid::Unsubscribe() {
-  if (subscriptionId != -1) {
-    InputManager::onKeyPressedProvider.Unsubscribe(subscriptionId);
-    subscriptionId = -1;
   }
 }
 
@@ -158,45 +143,46 @@ void Grid::DrawNumbersLegend(size_t row) const {
   if (row == 0)
     return;
 
-  std::cout << MoveCursor(xOffset, (row * cellHeightWithBorders) + yOffset) << row;
+  IO::cout << AnsiHelper::MoveCursor(xOffset, (row * cellHeightWithBorders) + yOffset) << row;
 }
 
 void Grid::DrawLettersLegend(size_t cols) const {
   for (size_t col = 0; col < cols; ++col) {
     char const letter = static_cast<char>(static_cast<int>('A') + col);
-    std::cout << MoveCursor(((col + 1) * cellWidthWithBorders) + xOffset - 1, yOffset) << letter;
+    IO::cout << AnsiHelper::MoveCursor(((col + 1) * cellWidthWithBorders) + xOffset - 1, yOffset)
+             << letter;
   }
 }
 
 void Grid::RenderBorders() const {
   for (size_t y = 0; y < height + 1; y++) {
     for (size_t x = 0; x < (width * cellWidthWithBorders) + (cellWidthWithBorders / 2); x++) {
-      std::cout << MoveCursor(
+      IO::cout << AnsiHelper::MoveCursor(
           x + xOffset, (y * cellHeightWithBorders) + (cellHeightWithBorders / 2) + yOffset
       );
-      std::cout << "─";
+      IO::cout << "─";
     }
   }
 
   for (size_t x = 0; x < width + 1; x++) {
     for (size_t y = 0; y < (height + 1) * cellHeightWithBorders; y++) {
-      std::cout << MoveCursor(
+      IO::cout << AnsiHelper::MoveCursor(
           (x * cellWidthWithBorders) + (cellWidthWithBorders / 2) + xOffset, y + yOffset
       );
       if (y % cellHeightWithBorders == cellHeightWithBorders / 2)
         if (y == 0)
-          std::cout << "┬";
+          IO::cout << "┬";
         else if (y == (height * cellHeightWithBorders) + (cellHeightWithBorders / 2)) {
           if (x == width)
-            std::cout << "┘";
+            IO::cout << "┘";
           else
-            std::cout << "┴";
+            IO::cout << "┴";
         } else if (x == width)
-          std::cout << "┤";
+          IO::cout << "┤";
         else
-          std::cout << "┼";
+          IO::cout << "┼";
       else
-        std::cout << "│";
+        IO::cout << "│";
     }
   }
 }
