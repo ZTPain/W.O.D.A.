@@ -2,8 +2,11 @@
 
 #pragma once
 
+#include "IClone.h"
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 enum class UnlockableContent : uint64_t {
@@ -19,13 +22,21 @@ struct Achievement {
   std::string description;
   UnlockableContent content;
   bool unlocked;
+
+  Achievement(
+      std::string_view name, std::string_view description, UnlockableContent content, bool unlocked
+  );
 };
 
-class AchievementPool {
+class AchievementPool : IClone<AchievementPool> {
   std::unordered_map<std::string, Achievement> nameToAchievementMap;
+  void InitMapElement(
+      std::string_view name, std::string_view description, UnlockableContent content
+  );
 
 public:
   AchievementPool();
   [[nodiscard]] const std::unordered_map<std::string, Achievement>& NameToAchievementMap() const;
-  bool Unlock(std::string name);
+  void Unlock(const std::string& name);
+  std::unique_ptr<AchievementPool> Clone() override;
 };
