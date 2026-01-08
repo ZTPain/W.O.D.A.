@@ -16,10 +16,14 @@ GameBoard::GameBoard(const GameMode& mode)
       units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
 void GameBoard::ParseSegments() {
+  allUnits.clear();
+
   const UnitsMap& unitsMap = segmentValidator->GetUnits();
   for (const auto& [unitType, groups] : unitsMap) {
     for (const auto& group : groups) {
       const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
+
+      allUnits.push_back(battleUnit);
 
       for (const auto& coord : group) {
         units[coord.y][coord.x] = battleUnit;
