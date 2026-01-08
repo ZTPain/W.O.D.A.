@@ -15,6 +15,7 @@ class GameBoard {
   std::unique_ptr<ISegment> segmentBoard;
   std::unique_ptr<SegmentBoardValidator> segmentValidator;
   std::vector<std::vector<std::shared_ptr<BattleUnit>>> units;
+  std::vector<std::shared_ptr<BattleUnit>> allUnits;
 
 public:
   GameBoard(const GameMode& mode);
