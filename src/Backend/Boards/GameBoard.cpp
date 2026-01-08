@@ -75,3 +75,5 @@ size_t GameBoard::Width() const { return mode.boardWidth; }
 size_t GameBoard::Height() const { return mode.boardHeight; }
 
 ISegment& GameBoard::GetSegmentBoard() { return *segmentValidator; }
+
+const std::vector<std::shared_ptr<BattleUnit>>& GameBoard::GetAllUnits() const { return allUnits; }

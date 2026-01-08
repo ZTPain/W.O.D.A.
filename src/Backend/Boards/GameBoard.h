@@ -28,4 +28,5 @@ public:
   bool FireAt(size_t x, size_t y);
   void FixSegment(size_t x, size_t y);
   bool IsGameOver();
+  [[nodiscard]] const std::vector<std::shared_ptr<BattleUnit>>& GetAllUnits() const;
 };
