@@ -25,5 +25,6 @@ public:
   [[nodiscard]] BattleUnitCategory GetCategory() const;
   void DestroySegment();
   void FixSegment();
+  void Reset();
   [[nodiscard]] bool IsDestroyed() const;
 };

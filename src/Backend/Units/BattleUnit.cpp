@@ -18,4 +18,6 @@ void BattleUnit::FixSegment() {
   }
 }
 
+void BattleUnit::Reset() { destroyedSegments = 0; }
+
 bool BattleUnit::IsDestroyed() const { return destroyedSegments == segments; }
