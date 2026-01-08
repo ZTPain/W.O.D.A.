@@ -4,14 +4,17 @@
 #include <cstddef>
 #include <random>
 #include <vector>
+
 static std::mt19937& Rng() {
   static std::mt19937 rng{std::random_device{}()};
   return rng;
 }
+
 static Coordinates RandomFrom(const std::vector<Coordinates>& v) {
   std::uniform_int_distribution<size_t> d(0, v.size() - 1);
   return v[d(Rng())];
 }
+
 static std::vector<Coordinates> AllFree(const ISegment& board) {
   std::vector<Coordinates> out;
   const auto& s = board.Segments();
@@ -23,6 +26,7 @@ static std::vector<Coordinates> AllFree(const ISegment& board) {
 
   return out;
 }
+
 static std::vector<Coordinates> ChessboardFree(const ISegment& board) {
   std::vector<Coordinates> out;
   const auto& s = board.Segments();
@@ -34,6 +38,7 @@ static std::vector<Coordinates> ChessboardFree(const ISegment& board) {
 
   return out;
 }
+
 static std::vector<Coordinates> CheatableTargets(const ISegment& board) {
   std::vector<Coordinates> out;
   const auto& s = board.Segments();
@@ -47,6 +52,7 @@ static std::vector<Coordinates> CheatableTargets(const ISegment& board) {
 
   return out;
 }
+
 static bool ShouldCheat() {
   std::uniform_int_distribution<int> d(1, 100);
   return d(Rng()) <= 20;
