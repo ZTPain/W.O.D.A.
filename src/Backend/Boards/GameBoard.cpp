@@ -16,7 +16,10 @@ GameBoard::GameBoard(const GameMode& mode)
       segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
       units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
-GameBoard::GameBoard(const GameBoard& other) : GameBoard(other.mode) {}
+GameBoard::GameBoard(const GameBoard& other)
+    : mode(other.mode), segmentBoard(other.segmentBoard->Clone()),
+      segmentValidator(other.segmentValidator->Clone()), units(other.units),
+      allUnits(other.allUnits) {}
 
 void GameBoard::ParseSegments() {
   allUnits.clear();

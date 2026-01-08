@@ -8,10 +8,17 @@
 #include "Backend/Users/UserProfile.h"
 #include <algorithm>
 #include <chrono>
-#include <cstddef>
 #include <memory>
 #include <utility>
 #include <vector>
+
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wuser-defined-literals" // XDDD bollyn
+#endif
+
+static constexpr std::chrono::seconds operator""s(unsigned long long s) {
+  return std::chrono::seconds(static_cast<std::chrono::seconds::rep>(s));
+}
 
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
     : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(0),
@@ -79,12 +86,13 @@ void GameManager::UpdatePlayerAchievements() {
   // WIN CONDITION ACHIEVEMENTS:
 
   // Win a game in under 5 minutes.
+
   if (playtime < 5s * 60)
     players[winnerId].profile.achievements->Unlock("The Fastest Hand in the West");
 
   bool isPvP = true;
   for (auto& player : players) {
-    if (player.profile.Computer() != nullptr) {
+    if (player.profile.AI() != nullptr) {
       isPvP = false;
       break;
     }

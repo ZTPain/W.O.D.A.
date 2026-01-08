@@ -2,6 +2,7 @@
 #include "ISegment.h"
 #include <algorithm>
 #include <cstddef>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -32,3 +33,7 @@ size_t SegmentBoard::Width() const { return width; }
 size_t SegmentBoard::Height() const { return height; }
 
 const std::vector<std::vector<bool>>& SegmentBoard::Segments() const { return segments; }
+
+std::unique_ptr<ISegment> SegmentBoard::Clone() const {
+  return std::make_unique<SegmentBoard>(*this);
+}
