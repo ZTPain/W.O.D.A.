@@ -31,7 +31,7 @@ class GameManager {
   std::vector<std::unique_ptr<ICommand>> history;
   unsigned int winnerId;
   std::chrono::time_point<std::chrono::steady_clock> gameStartPoint;
-  long long playtime;
+  std::chrono::seconds playtime;
 
 public:
   GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles);
