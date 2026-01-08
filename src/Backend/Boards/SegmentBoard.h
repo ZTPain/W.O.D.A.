@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include "Backend/Games/Coordinates.h"
-#include "Backend/Units/BattleUnitType.h"
 #include "ISegment.h"
 #include <cstddef>
-#include <unordered_map>
 #include <vector>
 
 class SegmentBoard : public ISegment {
@@ -21,7 +18,5 @@ public:
   [[nodiscard]] const std::vector<std::vector<bool>>& Segments() const override;
   bool ToggleSegment(size_t x, size_t y) override;
   void Clear() override;
-  void GetUnits(
-      std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>& outUnits
-  ) const override;
+  [[nodiscard]] const UnitsMap& GetUnits() const override;
 };

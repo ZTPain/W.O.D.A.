@@ -1,10 +1,8 @@
 #include "SegmentBoard.h"
-#include "Backend/Games/Coordinates.h"
-#include "Backend/Units/BattleUnitType.h"
+#include "ISegment.h"
 #include <algorithm>
 #include <cstddef>
 #include <stdexcept>
-#include <unordered_map>
 #include <vector>
 
 SegmentBoard::SegmentBoard(size_t width, size_t height)
@@ -25,9 +23,7 @@ void SegmentBoard::Clear() { // caly segmentBoard na F
   }
 }
 
-void SegmentBoard::GetUnits(
-    std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>&
-) const {
+const UnitsMap& SegmentBoard::GetUnits() const {
   throw std::runtime_error("Not implemented in base SegmentBoard!");
 }
 

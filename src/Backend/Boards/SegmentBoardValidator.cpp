@@ -14,13 +14,14 @@
 #include <utility>
 #include <vector>
 
-static void ConcentrateCoordinates(
+static void GetCoordinatesOfFilledSegments(
     const ISegment& segmentBoard, std::vector<Coordinates>& outCoordinates
 ) {
   outCoordinates.clear();
+  auto segments = segmentBoard.Segments();
   for (size_t y = 0; y < segmentBoard.Height(); ++y) {
     for (size_t x = 0; x < segmentBoard.Width(); ++x) {
-      if (!segmentBoard.Segments()[y][x])
+      if (!segments[y][x])
         continue;
 
       outCoordinates.emplace_back(x, y);
@@ -117,8 +118,29 @@ static void GroupsToUnits(
   }
 }
 
+static bool ValidateMaxTotalSegments(
+    const std::vector<Coordinates>& coordinates, const GameMode& mode
+) {
+  size_t maxSegments = 0;
+  for (const auto& [unitType, count] : mode.unitPool) {
+    maxSegments += BattleUnitHelper::GetSizeForUnitType(unitType) * count;
+  }
+
+  const size_t currentSegments = coordinates.size();
+
+  return currentSegments <= maxSegments;
+}
+
+static bool ValidateMaxGroupSize(const std::vector<std::vector<Coordinates>>& groups) {
+  return std::all_of(groups.begin(), groups.end(), [](const std::vector<Coordinates>& group) {
+    return group.size() <= BattleUnitHelper::BIGGEST_UNIT_SIZE;
+  });
+}
+
 SegmentBoardValidator::SegmentBoardValidator(ISegment& segmentBoard, const GameMode& mode)
-    : segmentBoard(segmentBoard), mode(mode) {}
+    : segmentBoard(segmentBoard), mode(mode) {
+  GroupsToUnits({}, mode, lastUnits);
+}
 
 bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
   if (x >= Width() || y >= Height())
@@ -129,34 +151,35 @@ bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
     return segmentBoard.ToggleSegment(x, y);
   }
 
-  std::vector<Coordinates> concentrated;
-  ConcentrateCoordinates(segmentBoard, concentrated);
-  concentrated.emplace_back(x, y);
-  std::vector<std::vector<Coordinates>> groups;
-  GroupCoordinates(concentrated, groups);
+  static std::vector<Coordinates> coordinates;
+  GetCoordinatesOfFilledSegments(segmentBoard, coordinates);
+  coordinates.emplace_back(x, y);
 
-  for (const auto& group : groups) {
-    if (group.size() > BattleUnitHelper::BIGGEST_UNIT_SIZE) {
-      return false;
-    }
+  if (!ValidateMaxTotalSegments(coordinates, mode)) {
+    return false;
   }
 
-  return segmentBoard.ToggleSegment(x, y);
+  static std::vector<std::vector<Coordinates>> groups;
+  GroupCoordinates(coordinates, groups);
+
+  if (!ValidateMaxGroupSize(groups)) {
+    return false;
+  }
+
+  if (!segmentBoard.ToggleSegment(x, y))
+    return false;
+
+  GroupsToUnits(groups, mode, lastUnits);
+  return true;
 }
 
-void SegmentBoardValidator::Clear() { segmentBoard.Clear(); }
+void SegmentBoardValidator::Clear() {
+  segmentBoard.Clear();
 
-void SegmentBoardValidator::GetUnits(
-    std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>& outUnits
-) const {
-  static std::vector<Coordinates> concentrated;
-  ConcentrateCoordinates(segmentBoard, concentrated);
-
-  static std::vector<std::vector<Coordinates>> outGroups;
-  GroupCoordinates(concentrated, outGroups);
-
-  GroupsToUnits(outGroups, mode, outUnits);
+  GroupsToUnits({}, mode, lastUnits);
 }
+
+const UnitsMap& SegmentBoardValidator::GetUnits() const { return lastUnits; }
 
 size_t SegmentBoardValidator::Width() const { return segmentBoard.Width(); }
 

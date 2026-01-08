@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+using UnitsMap = std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>;
+
 class ISegment {
 public:
   virtual ~ISegment() = default;
@@ -17,7 +19,5 @@ public:
   virtual bool ToggleSegment(size_t x, size_t y) = 0;
   virtual void Clear() = 0;
   // Array[UnitType][UnitNumber] of Coordinates[]
-  virtual void GetUnits(
-      std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>& outUnits
-  ) const = 0;
+  [[nodiscard]] virtual const UnitsMap& GetUnits() const = 0;
 };

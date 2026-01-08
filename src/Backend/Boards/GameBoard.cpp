@@ -4,12 +4,10 @@
 #include "Backend/Games/GameMode.h"
 #include "Backend/Units/BattleUnit.h"
 #include "Backend/Units/BattleUnitHelper.h"
-#include "Backend/Units/BattleUnitType.h"
 #include "ISegment.h"
 #include "SegmentBoardValidator.h"
 #include <cstddef>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 GameBoard::GameBoard(const GameMode& mode)
@@ -18,8 +16,7 @@ GameBoard::GameBoard(const GameMode& mode)
       units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
 void GameBoard::ParseSegments() {
-  std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>> unitsMap;
-  segmentValidator->GetUnits(unitsMap);
+  const UnitsMap& unitsMap = segmentValidator->GetUnits();
   for (const auto& [unitType, groups] : unitsMap) {
     for (const auto& group : groups) {
       const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
