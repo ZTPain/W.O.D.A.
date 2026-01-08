@@ -33,6 +33,9 @@ class GameManager {
   std::chrono::time_point<std::chrono::steady_clock> gameStartPoint;
   std::chrono::seconds playtime;
 
+  void UpdatePlayerStatistics();
+  void UpdatePlayerAchievements();
+
 public:
   GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles);
   [[nodiscard]] GameMode Mode() const;

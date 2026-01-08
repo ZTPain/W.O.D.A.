@@ -41,40 +41,106 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
   return true;
 }
 
+void GameManager::UpdatePlayerStatistics() {
+  // Update the winner first ...
+  players[winnerId].profile.statistics.gamesWon++;
+  players[winnerId].profile.statistics.fastestWonGame =
+      std::max(players[winnerId].profile.statistics.fastestWonGame, playtime);
+
+  // ... then rest of the players
+  for (unsigned int i = 0; i < players.size(); ++i) {
+    auto& stats = players[i].profile.statistics;
+
+    stats.gamesPlayed++;
+
+    if (i != winnerId)
+      stats.gamesLost++;
+
+    stats.totalShotsFired += players[i].shotsFired;
+
+    for (const auto& unit : players[i].board.GetAllUnits()) {
+      players[i].shotsHit += unit->GetDestroyedSegments();
+      players[i].score +=
+          (unit->GetTotalSegments() - unit->GetDestroyedSegments()) * unit->GetTotalSegments() * 5;
+      players[i].unitsDestroyed += unit->IsDestroyed() ? 1 : 0;
+    }
+
+    stats.highestScore = std::max(stats.highestScore, players[i].score);
+
+    stats.totalShotsFired += players[i].shotsFired;
+    stats.totalShotsHit += players[i].shotsHit;
+    stats.totalUnitsDestroyed += players[i].unitsDestroyed;
+
+    stats.totalPlaytime += playtime;
+  }
+}
+
+void GameManager::UpdatePlayerAchievements() {
+  // WIN CONDITION ACHIEVEMENTS:
+
+  // Win a game in under 5 minutes.
+  if (playtime < 5s * 60)
+    players[winnerId].profile.achievements->Unlock("The Fastest Hand in the West");
+
+  bool isPvP = true;
+  for (auto& player : players) {
+    if (player.profile.Computer() != nullptr) {
+      isPvP = false;
+      break;
+    }
+  }
+
+  // Win a PvP game.
+  if (isPvP)
+    players[winnerId].profile.achievements->Unlock("Do You Feel Lucky?");
+
+  // OTHER ACHIEVEMENTS:
+  for (unsigned int i = 0; i < players.size(); ++i) {
+    auto& achievements = players[i].profile.achievements;
+
+    // Land 50 shots.
+    if (players[i].profile.statistics.totalShotsHit >= 50)
+      achievements->Unlock("Texas Sharpshooter");
+
+    // Score over 100 points.
+    if (players[i].score > 100)
+      achievements->Unlock("Per Aspera ad Astra");
+
+    // Lose without landing a shot.
+    if (players[i].shotsHit == 0)
+      achievements->Unlock("Pacifish");
+
+    // Play 3 games.
+    if (players[i].profile.statistics.gamesPlayed >= 3)
+      achievements->Unlock("Oh Man, Look at Those Cavemen Go");
+
+    bool hasDestroyedSegments = false;
+    for (const auto& unit : players[i].board.GetAllUnits()) {
+      if (unit->GetDestroyedSegments() != 0) {
+        hasDestroyedSegments = true;
+        break;
+      }
+    }
+
+    // ONE WIN CONDITION HERE :)
+    // Win without getting hit.
+    if (i == winnerId && !hasDestroyedSegments)
+      achievements->Unlock("Smooth Sailing");
+
+    // Lose a ship.
+    if (hasDestroyedSegments)
+      achievements->Unlock("For the Voyage Is Long and the Winds Don't Blow");
+  }
+}
+
 void GameManager::HandleGameOver() {
   auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
 
-  for (unsigned int i = 0; i < players.size(); ++i) {
-    players[i].profile.statistics.gamesPlayed++;
-
-    if (winnerId == i) {
-      players[i].profile.statistics.gamesWon++;
-
-      players[i].profile.statistics.fastestWonGame =
-          std::max(players[i].profile.statistics.fastestWonGame, playtime);
-    } else
-      players[i].profile.statistics.gamesLost++;
-
-    players[i].profile.statistics.totalShotsFired += players[i].shotsFired;
-
-    for (const auto& unit : players[i].board.GetAllUnits()) {
-      players[i].shotsHit += unit->GetDestroyedSegments();
-      players[i].score += unit->GetDestroyedSegments() * unit->GetTotalSegments();
-      players[i].unitsDestroyed += unit->IsDestroyed() ? 1 : 0;
-    }
-
-    players[i].profile.statistics.highestScore =
-        std::max(players[i].profile.statistics.highestScore, players[i].score);
-
-    players[i].profile.statistics.totalShotsFired += players[i].shotsFired;
-    players[i].profile.statistics.totalShotsHit += players[i].shotsHit;
-    players[i].profile.statistics.totalUnitsDestroyed += players[i].unitsDestroyed;
-
-    players[i].profile.statistics.totalPlaytime += playtime;
-  }
+  UpdatePlayerStatistics();
 
   // TODO: Update player achievements
+  UpdatePlayerAchievements();
 
   state = GameState::Over;
 }
