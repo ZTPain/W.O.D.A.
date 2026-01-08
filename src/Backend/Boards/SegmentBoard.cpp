@@ -1,12 +1,14 @@
 #include "SegmentBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Units/BattleUnitType.h"
+#include <algorithm>
 #include <cstddef>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
-// SegmentBoard::SegmentBoard(size_t width, size_t height) : width(width), height(height) {}
+SegmentBoard::SegmentBoard(size_t width, size_t height)
+    : width(width), height(height), segments(height, std::vector<bool>(width, false)) {}
 
 bool SegmentBoard::ToggleSegment(size_t x, size_t y) { // toggle na T/F
   if (x >= width || y >= height)
@@ -19,13 +21,18 @@ bool SegmentBoard::ToggleSegment(size_t x, size_t y) { // toggle na T/F
 
 void SegmentBoard::Clear() { // caly segmentBoard na F
   for (auto& row : segments) {
-    for (auto col : row) {
-      col = false;
-    }
+    std::fill(row.begin(), row.end(), false);
   }
 }
 
-const std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>& SegmentBoard::
-    GetUnits() const {
+void SegmentBoard::GetUnits(
+    std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>&
+) const {
   throw std::runtime_error("Not implemented in base SegmentBoard!");
 }
+
+size_t SegmentBoard::Width() const { return width; }
+
+size_t SegmentBoard::Height() const { return height; }
+
+const std::vector<std::vector<bool>>& SegmentBoard::Segments() const { return segments; }

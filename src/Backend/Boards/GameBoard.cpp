@@ -1,20 +1,40 @@
 #include "GameBoard.h"
+#include "Backend/Boards/SegmentBoard.h"
+#include "Backend/Games/Coordinates.h"
+#include "Backend/Games/GameMode.h"
+#include "Backend/Units/BattleUnit.h"
+#include "Backend/Units/BattleUnitHelper.h"
+#include "Backend/Units/BattleUnitType.h"
 #include "ISegment.h"
+#include "SegmentBoardValidator.h"
 #include <cstddef>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
-// GameBoard::GameBoard(size_t width, size_t height) : width(width), height(height) {
-//   segmentBoard = std::make_unique(SegmentBoard(width, height));
-// }
+GameBoard::GameBoard(const GameMode& mode)
+    : mode(mode), segmentBoard(std::make_unique<SegmentBoard>(mode.boardWidth, mode.boardHeight)),
+      segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
+      units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
-// pain
 void GameBoard::ParseSegments() {
-  // ...
+  std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>> unitsMap;
+  segmentValidator->GetUnits(unitsMap);
+  for (const auto& [unitType, groups] : unitsMap) {
+    for (const auto& group : groups) {
+      const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
+
+      for (const auto& coord : group) {
+        units[coord.y][coord.x] = battleUnit;
+      }
+    }
+  }
+
+  segmentValidator->Clear();
 }
 
-// sprawdza pozycje i F/T ewemntualnie togglesegment + T
 bool GameBoard::FireAt(size_t x, size_t y) {
-  if (x >= width || y >= height)
+  if (x >= mode.boardWidth || y >= mode.boardHeight)
     return false;
 
   if (segmentBoard->Segments()[y][x])
@@ -30,7 +50,7 @@ bool GameBoard::FireAt(size_t x, size_t y) {
 }
 
 void GameBoard::FixSegment(size_t x, size_t y) {
-  if (x >= width || y >= height)
+  if (x >= mode.boardWidth || y >= mode.boardHeight)
     return;
 
   if (!segmentBoard->Segments()[y][x])
@@ -43,7 +63,6 @@ void GameBoard::FixSegment(size_t x, size_t y) {
   }
 }
 
-// czy unists sa zniszczone
 bool GameBoard::IsGameOver() {
   for (const auto& item : units) {
     for (const auto& item2 : item) {
@@ -57,3 +76,8 @@ bool GameBoard::IsGameOver() {
 
   return true;
 }
+
+size_t GameBoard::Width() const { return mode.boardWidth; }
+size_t GameBoard::Height() const { return mode.boardHeight; }
+
+ISegment& GameBoard::GetSegmentBoard() { return *segmentValidator; }

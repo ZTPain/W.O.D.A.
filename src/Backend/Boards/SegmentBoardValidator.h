@@ -12,15 +12,16 @@
 
 class SegmentBoardValidator : public ISegment {
   ISegment& segmentBoard;
-  GameMode mode;
+  const GameMode& mode;
 
 public:
-  SegmentBoardValidator(size_t width, size_t height);
+  SegmentBoardValidator(ISegment& segmentBoard, const GameMode& mode);
   [[nodiscard]] size_t Width() const override;
   [[nodiscard]] size_t Height() const override;
   [[nodiscard]] const std::vector<std::vector<bool>>& Segments() const override;
   bool ToggleSegment(size_t x, size_t y) override;
   void Clear() override;
-  [[nodiscard]] const std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>&
-  GetUnits() const override;
+  void GetUnits(
+      std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>& outUnits
+  ) const override;
 };
