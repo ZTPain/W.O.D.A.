@@ -19,7 +19,7 @@ GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profil
     players.emplace_back(*profile, mode);
 }
 
-GameMode GameManager::Mode() const { return mode; }
+const GameMode& GameManager::Mode() const { return mode; }
 
 const std::vector<Player>& GameManager::Players() { return players; }
 
