@@ -44,7 +44,7 @@ void GameManager::UpdatePlayerStatistics() {
   // Update the winner first ...
   players[winnerId].profile.statistics.gamesWon++;
   players[winnerId].profile.statistics.fastestWonGame =
-      std::max(players[winnerId].profile.statistics.fastestWonGame, playtime);
+      std::min(players[winnerId].profile.statistics.fastestWonGame, playtime);
 
   // ... then rest of the players
   for (unsigned int i = 0; i < players.size(); ++i) {
