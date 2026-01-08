@@ -1,9 +1,10 @@
 #include "Cruiser.h"
 #include "BattleUnit.h"
+#include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 Cruiser::Cruiser() {
-  segments = 3;
+  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
   category = BattleUnitCategory::Marine;
 }
 

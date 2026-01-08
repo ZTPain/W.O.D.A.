@@ -1,9 +1,10 @@
 #include "Interceptor.h"
 #include "BattleUnit.h"
+#include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 Interceptor::Interceptor() {
-  segments = 2;
+  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
   category = BattleUnitCategory::Marine;
 }
 

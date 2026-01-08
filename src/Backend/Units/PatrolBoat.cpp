@@ -1,9 +1,10 @@
 #include "PatrolBoat.h"
 #include "BattleUnit.h"
+#include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 PatrolBoat::PatrolBoat() {
-  segments = 1;
+  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
   category = BattleUnitCategory::Marine;
 }
 
