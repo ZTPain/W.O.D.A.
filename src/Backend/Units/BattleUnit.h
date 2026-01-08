@@ -21,7 +21,7 @@ protected:
 
 public:
   virtual ~BattleUnit() = default;
-  [[nodiscard]] virtual BattleUnitType GetType() const;
+  [[nodiscard]] BattleUnitType GetType() const;
   [[nodiscard]] BattleUnitCategory GetCategory() const;
   [[nodiscard]] unsigned int GetTotalSegments() const;
   [[nodiscard]] unsigned int GetDestroyedSegments() const;
