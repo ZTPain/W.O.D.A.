@@ -4,6 +4,7 @@
 #include "Helpers/AppHelper.h"
 #include "Windows/WindowManager.h"
 #include <clocale>
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 
@@ -13,6 +14,9 @@ extern "C" void EntryPoint() {
 #ifdef _WIN32
   std::system("chcp 65001");
 #endif
+
+  static char stdCoutBuffer[16384];
+  setvbuf(stdout, static_cast<char*>(stdCoutBuffer), _IOLBF, sizeof(stdCoutBuffer));
 
   IO::Initialize();
 
