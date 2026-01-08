@@ -6,6 +6,7 @@
 #include "Backend/Units/BattleUnitHelper.h"
 #include "ISegment.h"
 #include "SegmentBoardValidator.h"
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -65,17 +66,9 @@ void GameBoard::FixSegment(size_t x, size_t y) {
 }
 
 bool GameBoard::IsGameOver() {
-  for (const auto& item : units) {
-    for (const auto& item2 : item) {
-      if (item2 == nullptr)
-        continue;
-
-      if (!item2->IsDestroyed())
-        return false;
-    }
-  }
-
-  return true;
+  return std::all_of(allUnits.begin(), allUnits.end(), [](const std::shared_ptr<BattleUnit>& item) {
+    return item == nullptr || item->IsDestroyed();
+  });
 }
 
 size_t GameBoard::Width() const { return mode.boardWidth; }
