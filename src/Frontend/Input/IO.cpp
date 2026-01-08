@@ -2,6 +2,7 @@
 
 #include "Frontend/ConsoleManager.h"
 #include <cstdint>
+#include <iostream>
 #include <ostream>
 #include <streambuf>
 
@@ -27,6 +28,7 @@ protected:
 };
 
 void IO::Initialize() {
-  static CustomOstreamBuf customBuf;
-  cout.rdbuf(&customBuf);
+  // static CustomOstreamBuf customBuf;
+  // cout.rdbuf(&customBuf);
+  cout.rdbuf(std::cout.rdbuf());
 }
