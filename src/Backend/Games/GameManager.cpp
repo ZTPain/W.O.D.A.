@@ -135,7 +135,7 @@ void GameManager::UpdatePlayerAchievements() {
 }
 
 void GameManager::HandleGameOver() {
-  auto gameEndPoint = std::chrono::steady_clock::now();
+  const auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
 
   UpdatePlayerStatistics();
