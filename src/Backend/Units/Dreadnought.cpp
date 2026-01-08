@@ -1,11 +1,11 @@
 #include "Dreadnought.h"
+
 #include "BattleUnit.h"
 #include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 Dreadnought::Dreadnought() {
-  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
+  type = BattleUnitType::Dreadnought;
   category = BattleUnitCategory::Marine;
+  segments = BattleUnitHelper::GetSizeForUnitType(type);
 }
-
-BattleUnitType Dreadnought::GetType() const { return BattleUnitType::Dreadnought; }

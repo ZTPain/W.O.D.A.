@@ -1,11 +1,11 @@
 #include "PatrolBoat.h"
+
 #include "BattleUnit.h"
 #include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 PatrolBoat::PatrolBoat() {
-  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
+  type = BattleUnitType::PatrolBoat;
   category = BattleUnitCategory::Marine;
+  segments = BattleUnitHelper::GetSizeForUnitType(type);
 }
-
-BattleUnitType PatrolBoat::GetType() const { return BattleUnitType::PatrolBoat; }

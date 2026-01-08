@@ -16,11 +16,12 @@ class BattleUnit {
 
 protected:
   unsigned int segments = 0;
+  BattleUnitType type = BattleUnitType::None;
   BattleUnitCategory category = BattleUnitCategory::None;
 
 public:
   virtual ~BattleUnit() = default;
-  [[nodiscard]] virtual BattleUnitType GetType() const = 0;
+  [[nodiscard]] virtual BattleUnitType GetType() const;
   [[nodiscard]] BattleUnitCategory GetCategory() const;
   void DestroySegment();
   void FixSegment();

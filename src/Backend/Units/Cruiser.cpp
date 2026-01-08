@@ -1,11 +1,11 @@
 #include "Cruiser.h"
+
 #include "BattleUnit.h"
 #include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 Cruiser::Cruiser() {
-  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
+  type = BattleUnitType::Cruiser;
   category = BattleUnitCategory::Marine;
+  segments = BattleUnitHelper::GetSizeForUnitType(type);
 }
-
-BattleUnitType Cruiser::GetType() const { return BattleUnitType::Cruiser; }

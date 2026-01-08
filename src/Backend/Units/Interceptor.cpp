@@ -1,11 +1,11 @@
 #include "Interceptor.h"
+
 #include "BattleUnit.h"
 #include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 
 Interceptor::Interceptor() {
-  segments = BattleUnitHelper::GetSizeForUnitType(GetType());
+  type = BattleUnitType::Interceptor;
   category = BattleUnitCategory::Marine;
+  segments = BattleUnitHelper::GetSizeForUnitType(type);
 }
-
-BattleUnitType Interceptor::GetType() const { return BattleUnitType::Interceptor; }
