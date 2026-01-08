@@ -15,7 +15,7 @@ GameManager::GameManager(GameMode& mode, std::vector<UserProfile*>& profiles)
     : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(0),
       playtime(0) {
   for (auto* profile : profiles)
-    players.push_back({*profile, GameBoard(this->mode.boardWidth, this->mode.boardHeight)});
+    players.push_back({*profile, GameBoard(mode)});
 }
 
 GameMode GameManager::Mode() const { return mode; }
