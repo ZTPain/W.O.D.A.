@@ -6,9 +6,11 @@
 #include "Backend/Games/Player.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
+#include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <memory>
+#include <utility>
 #include <vector>
 
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
@@ -40,25 +42,39 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
 }
 
 void GameManager::HandleGameOver() {
-  // TODO: Update player statistics, achievements
+  auto gameEndPoint = std::chrono::steady_clock::now();
+  playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
+
   for (unsigned int i = 0; i < players.size(); ++i) {
     players[i].profile.statistics.gamesPlayed++;
 
-    if (winnerId == i)
+    if (winnerId == i) {
       players[i].profile.statistics.gamesWon++;
-    else
+
+      players[i].profile.statistics.fastestWonGame =
+          std::max(players[i].profile.statistics.fastestWonGame, playtime);
+    } else
       players[i].profile.statistics.gamesLost++;
 
     players[i].profile.statistics.totalShotsFired += players[i].shotsFired;
 
-    // unsigned int shotsHit = 0;
-    // unsigned int score = 0;
-    // unsigned int unitsDestroyed = 0;
+    for (const auto& unit : players[i].board.GetAllUnits()) {
+      players[i].shotsHit += unit->GetDestroyedSegments();
+      players[i].score += unit->GetDestroyedSegments() * unit->GetTotalSegments();
+      players[i].unitsDestroyed += unit->IsDestroyed() ? 1 : 0;
+    }
+
+    players[i].profile.statistics.highestScore =
+        std::max(players[i].profile.statistics.highestScore, players[i].score);
+
+    players[i].profile.statistics.totalShotsFired += players[i].shotsFired;
+    players[i].profile.statistics.totalShotsHit += players[i].shotsHit;
+    players[i].profile.statistics.totalUnitsDestroyed += players[i].unitsDestroyed;
+
+    players[i].profile.statistics.totalPlaytime += playtime;
   }
 
-  auto gameEndPoint = std::chrono::steady_clock::now();
-  playtime =
-      std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint).count();
+  // TODO: Update player achievements
 
   state = GameState::Over;
 }
@@ -67,10 +83,9 @@ Replay GameManager::GetReplay() {
   for (auto& p : players) {
     p.board.GetSegmentBoard().Clear();
 
-    for (const auto& row : p.board.Units())
-      for (const auto& unit : row)
-        unit->Reset();
+    for (const auto& unit : p.board.GetAllUnits())
+      unit->Reset();
   }
 
-  return {gameId, players, history, winnerId, playtime, 0};
+  return {gameId, std::move(players), std::move(history), winnerId, playtime, 0};
 }
