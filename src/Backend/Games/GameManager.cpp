@@ -36,7 +36,7 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
     return false;
 
   players[currentTurn].shotsFired++;
-  history.push_back(command);
+  history.push_back(std::move(command));
   currentTurn = (currentTurn + 1) % players.size();
   return true;
 }

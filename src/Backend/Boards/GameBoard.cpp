@@ -16,6 +16,8 @@ GameBoard::GameBoard(const GameMode& mode)
       segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
       units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
+GameBoard::GameBoard(const GameBoard& other) : GameBoard(other.mode) {}
+
 void GameBoard::ParseSegments() {
   allUnits.clear();
 

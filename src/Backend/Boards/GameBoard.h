@@ -19,6 +19,7 @@ class GameBoard {
 
 public:
   GameBoard(const GameMode& mode);
+  GameBoard(const GameBoard& other);
   ~GameBoard();
   [[nodiscard]] size_t Width() const;
   [[nodiscard]] size_t Height() const;
