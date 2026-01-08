@@ -20,4 +20,8 @@ void BattleUnit::FixSegment() {
 
 void BattleUnit::Reset() { destroyedSegments = 0; }
 
+unsigned int BattleUnit::GetTotalSegments() const { return segments; }
+
+unsigned int BattleUnit::GetDestroyedSegments() const { return destroyedSegments; }
+
 bool BattleUnit::IsDestroyed() const { return destroyedSegments == segments; }
