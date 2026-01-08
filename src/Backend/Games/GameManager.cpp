@@ -12,14 +12,6 @@
 #include <utility>
 #include <vector>
 
-#ifdef __clang__
-#pragma clang diagnostic ignored "-Wuser-defined-literals" // XDDD bollyn
-#endif
-
-static constexpr std::chrono::seconds operator""s(unsigned long long s) {
-  return std::chrono::seconds(static_cast<std::chrono::seconds::rep>(s));
-}
-
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
     : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(0),
       playtime(0) {
@@ -86,8 +78,9 @@ void GameManager::UpdatePlayerAchievements() {
   // WIN CONDITION ACHIEVEMENTS:
 
   // Win a game in under 5 minutes.
+  static constexpr auto FIVE_MINUTES = std::chrono::seconds(5) * 60;
 
-  if (playtime < 5s * 60)
+  if (playtime < FIVE_MINUTES)
     players[winnerId].profile.achievements->Unlock("The Fastest Hand in the West");
 
   bool isPvP = true;
