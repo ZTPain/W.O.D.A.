@@ -29,6 +29,12 @@ public:
 
   void OnKeyPressed(ConsoleKeyDetails keyDetails);
 
+  [[nodiscard]] size_t GetWidth() const { return width; }
+  [[nodiscard]] size_t GetHeight() const { return height; }
+
+  [[nodiscard]] size_t GetTotalWidth() const { return width * cellWidthWithBorders; }
+  [[nodiscard]] size_t GetTotalHeight() const { return height * cellHeightWithBorders; }
+
 private:
   size_t xOffset;
   size_t yOffset;
