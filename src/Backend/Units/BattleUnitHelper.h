@@ -50,4 +50,23 @@ public:
         return nullptr;
     }
   }
+
+  static const char* GetNameForUnitType(BattleUnitType type) {
+    switch (type) {
+      case BattleUnitType::PatrolBoat:
+        return "Patrol Boat";
+
+      case BattleUnitType::Interceptor:
+        return "Interceptor";
+
+      case BattleUnitType::Cruiser:
+        return "Cruiser";
+
+      case BattleUnitType::Dreadnought:
+        return "Dreadnought";
+
+      default:
+        return "Unknown";
+    }
+  }
 };
