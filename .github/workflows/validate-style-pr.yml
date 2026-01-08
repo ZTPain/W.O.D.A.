@@ -20,15 +20,10 @@ jobs:
           fi
       - name: Configure CMake
         run: cmake .
-      - name: Get changed files
-        id: changes
-        run: |
-          git fetch origin ${{ github.base_ref }}
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-          echo "changed='$CHANGED_FILES'" >> $GITHUB_OUTPUT
       - name: Validate code style
         run: |
-          tst=`echo ${{ steps.changes.outputs.changed }}`
+          git fetch origin ${{ github.base_ref }}
+          tst=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
 
           echo "UnFiltered source files:"
           echo "$tst"
