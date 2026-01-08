@@ -2,7 +2,11 @@
 
 BattleUnitCategory BattleUnit::GetCategory() const { return category; }
 
-void BattleUnit::DestroySegment() { destroyedSegments++; }
+void BattleUnit::DestroySegment() {
+  if (destroyedSegments < segments) {
+    destroyedSegments++;
+  }
+}
 
 void BattleUnit::FixSegment() {
   if (destroyedSegments != 0) {
