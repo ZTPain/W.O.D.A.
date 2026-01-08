@@ -7,8 +7,8 @@
 
 Coordinates MediumComputerStrategy::CalculateFireCoordinates(ISegment& board) const {
   const auto& s = board.Segments();
-  size_t w = board.Width();
-  size_t h = board.Height();
+  const size_t w = board.Width();
+  const size_t h = board.Height();
 
   std::vector<Coordinates> pool;
 
