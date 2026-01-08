@@ -15,7 +15,7 @@ Coordinates EasyComputerStrategy::CalculateFireCoordinates(ISegment& board) cons
   for (size_t y = 0; y < h; ++y)
     for (size_t x = 0; x < w; ++x)
       if (!s[y][x])
-        pool.push_back({x, y});
+        pool.emplace_back(x, y);
 
   static std::mt19937 rng{std::random_device{}()};
   std::uniform_int_distribution<size_t> dist(0, pool.size() - 1);

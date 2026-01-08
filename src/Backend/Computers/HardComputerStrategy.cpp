@@ -19,7 +19,7 @@ static std::vector<Coordinates> AllFree(const ISegment& board) {
   for (size_t y = 0; y < board.Height(); ++y)
     for (size_t x = 0; x < board.Width(); ++x)
       if (!s[y][x])
-        out.push_back({x, y});
+        out.emplace_back(x, y);
 
   return out;
 }
@@ -30,7 +30,7 @@ static std::vector<Coordinates> ChessboardFree(const ISegment& board) {
   for (size_t y = 0; y < board.Height(); ++y)
     for (size_t x = 0; x < board.Width(); ++x)
       if ((x + y) % 2 == 0 && !s[y][x])
-        out.push_back({x, y});
+        out.emplace_back(x, y);
 
   return out;
 }
