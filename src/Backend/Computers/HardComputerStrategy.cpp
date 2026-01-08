@@ -54,21 +54,21 @@ static std::vector<Coordinates> CheatableTargets(const ISegment& board) {
 }
 
 static bool ShouldCheat() {
-  std::uniform_int_distribution<int> d(1, 100);
+  static std::uniform_int_distribution<int> d(1, 100);
   return d(Rng()) <= 20;
 }
 
 Coordinates HardComputerStrategy::CalculateFireCoordinates(ISegment& board) const {
   if (ShouldCheat()) {
-    auto cheatTargets = CheatableTargets(board);
+    const auto cheatTargets = CheatableTargets(board);
     if (!cheatTargets.empty())
       return RandomFrom(cheatTargets);
   }
 
-  auto chess = ChessboardFree(board);
+  const auto chess = ChessboardFree(board);
   if (!chess.empty())
     return RandomFrom(chess);
 
-  auto all = AllFree(board);
+  const auto all = AllFree(board);
   return RandomFrom(all);
 }
