@@ -1,0 +1,48 @@
+name: validate-style-pr
+on:
+  pull_request:
+jobs:
+  validate-using-pr-clang-tidy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+      - name: Install clang-tidy
+        run: |
+          if ! command -v clang-tidy-20 >/dev/null 2>&1
+          then
+            echo "clang-tidy-20 could not be found, installing..."
+            sudo apt add-repository -y "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main"
+            sudo apt update && sudo apt install clang-tidy-20
+          else
+            echo "clang-tidy-20 is already installed."
+          fi
+      - name: Configure CMake
+        run: cmake .
+      - name: Validate code style
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          tst=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          echo "UnFiltered source files:"
+          echo "$tst"
+          tst=`echo $tst | tr " " "\n" | egrep ".*\.((cpp)|(h))$" || true`
+
+          tst=`echo "$tst" | while IFS= read -r line ; do 
+            if [ -f "$line" ]; then
+              echo $line;
+              echo " ";
+            fi
+          done`
+
+          echo "Files to be checked:"
+          if [ -z "$tst" ]; then
+            echo "No C++ source files to check."
+            exit 0
+          fi
+          echo "$tst"
+
+          echo "Running clang-tidy-20 on selected files..."
+          clang-tidy-20 --warnings-as-errors \* -p . $tst || { echo "Found code style issues"; exit 1; }
+          echo "All files conform to the code style."
