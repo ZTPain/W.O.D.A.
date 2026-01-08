@@ -25,7 +25,7 @@ jobs:
         run: |
           git fetch origin ${{ github.base_ref }}
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-          echo "changed=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "changed='$CHANGED_FILES'" >> $GITHUB_OUTPUT
       - name: Validate code style
         run: |
           tst=`echo ${{ steps.changes.outputs.changed }}`
