@@ -21,7 +21,7 @@ GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profil
 
 const GameMode& GameManager::Mode() const { return mode; }
 
-const std::vector<Player>& GameManager::Players() { return players; }
+const std::vector<Player>& GameManager::Players() const { return players; }
 
 unsigned int GameManager::CurrentTurn() const { return currentTurn; }
 
@@ -99,7 +99,7 @@ void GameManager::UpdatePlayerAchievements() {
     players[winnerId].profile.achievements->Unlock("The Fastest Hand in the West");
 
   bool isPvP = true;
-  for (auto& player : players) {
+  for (const auto& player : players) {
     if (player.profile.AI() != nullptr) {
       isPvP = false;
       break;
