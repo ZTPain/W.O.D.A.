@@ -60,7 +60,7 @@ public:
       unsigned int userId,
       std::string name,
       std::unique_ptr<AchievementPool> achievements,
-      Computer* computer
+      Computer* ai
   );
   ~UserProfile();
   [[nodiscard]] unsigned int UserId() const;
