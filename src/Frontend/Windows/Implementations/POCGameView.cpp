@@ -115,7 +115,7 @@ static void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool 
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
   }
 
-  const char* symbol = "X";
+  const char* symbol = "?";
 
   switch (unitType) {
     case BattleUnitType::PatrolBoat:
@@ -136,10 +136,6 @@ static void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool 
 
     case BattleUnitType::None:
       symbol = "❀";
-      break;
-
-    default:
-      symbol = "?";
       break;
   }
 
