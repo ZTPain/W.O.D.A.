@@ -1,6 +1,7 @@
 // GameManager.cpp
 
 #include "Backend/Games/GameManager.h"
+#include "Backend/Computers/Computer.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
@@ -9,6 +10,7 @@
 #include <algorithm>
 #include <chrono>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -172,4 +174,24 @@ Replay GameManager::GetReplay() {
 
   // Compile a replay from the game info
   return {gameId, std::move(players), std::move(history), winnerId, playtime, 0};
+}
+
+Computer* GameManager::GetComputerByType(ComputerType computerType) {
+  switch (computerType) {
+    case ComputerType::None:
+      return nullptr;
+      break;
+    case ComputerType::Easy:
+      return &easyComputer;
+      break;
+    case ComputerType::Medium:
+      return &mediumComputer;
+      break;
+    case ComputerType::Hard:
+      return &hardComputer;
+      break;
+    default:
+      throw std::invalid_argument("Invalid ComputerType");
+      break;
+  }
 }
