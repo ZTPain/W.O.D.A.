@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-
 enum class ConsoleKey {
   None = 0x0,
   Backspace = 0x8,
