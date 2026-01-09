@@ -36,7 +36,19 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
 
   players[currentTurn].shotsFired++;
   history.push_back(std::move(command));
+
+  // Save turn of the player that executed the command
+  unsigned int commandPlayerTurn = currentTurn;
+
+  // Change turn until another not dead player is found
   currentTurn = (currentTurn + 1) % players.size();
+  while (players[currentTurn].board.IsGameOver())
+    currentTurn = (currentTurn + 1) % players.size();
+
+  // If the turn rolled over to the same player, mark game as over
+  if (commandPlayerTurn == currentTurn)
+    HandleGameOver();
+
   return true;
 }
 
