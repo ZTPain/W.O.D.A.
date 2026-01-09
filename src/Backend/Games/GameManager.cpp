@@ -35,6 +35,7 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
     return false;
 
   players[currentTurn].shotsFired++;
+  // Add command to history
   history.push_back(std::move(command));
 
   // Save turn of the player that executed the command
@@ -64,20 +65,22 @@ void GameManager::UpdatePlayerStatistics() {
 
     stats.gamesPlayed++;
 
+    // For all non-winners
     if (i != winnerId)
       stats.gamesLost++;
 
-    stats.totalShotsFired += players[i].shotsFired;
-
     for (const auto& unit : players[i].board.GetAllUnits()) {
+      // Sum up game performance
       players[i].shotsHit += unit->GetDestroyedSegments();
       players[i].score +=
           (unit->GetTotalSegments() - unit->GetDestroyedSegments()) * unit->GetTotalSegments() * 5;
       players[i].unitsDestroyed += unit->IsDestroyed() ? 1 : 0;
     }
 
+    // New highscore
     stats.highestScore = std::max(stats.highestScore, players[i].score);
 
+    // Update totals
     stats.totalShotsFired += players[i].shotsFired;
     stats.totalShotsHit += players[i].shotsHit;
     stats.totalUnitsDestroyed += players[i].unitsDestroyed;
@@ -147,18 +150,19 @@ void GameManager::UpdatePlayerAchievements() {
 }
 
 void GameManager::HandleGameOver() {
+  // Calculate playtime
   const auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
 
+  // Update player profiles
   UpdatePlayerStatistics();
-
-  // TODO: Update player achievements
   UpdatePlayerAchievements();
 
   state = GameState::Over;
 }
 
 Replay GameManager::GetReplay() {
+  // Reset game boards to their set (game start) state
   for (auto& p : players) {
     p.board.GetSegmentBoard().Clear();
 
@@ -166,5 +170,6 @@ Replay GameManager::GetReplay() {
       unit->Reset();
   }
 
+  // Compile a replay from the game info
   return {gameId, std::move(players), std::move(history), winnerId, playtime, 0};
 }

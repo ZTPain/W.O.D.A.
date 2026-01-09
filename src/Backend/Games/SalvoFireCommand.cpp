@@ -12,6 +12,7 @@ SalvoFireCommand::SalvoFireCommand(GameBoard& board, std::vector<Coordinates> co
 bool SalvoFireCommand::Execute() {
   unsigned short succesfulShotCount = 0;
 
+  // Make all the shots and count them ...
   for (const auto& c : coords) {
     if (board.FireAt(c.x, c.y))
       succesfulShotCount++;
@@ -19,6 +20,7 @@ bool SalvoFireCommand::Execute() {
       break;
   }
 
+  // ... and if some were illegal, undo
   for (auto i = 0; i < succesfulShotCount; ++i)
     board.FixSegment(coords[i].x, coords[i].y);
 
