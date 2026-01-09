@@ -14,13 +14,13 @@ UserProfile::UserProfile(
     unsigned int userId,
     std::string name,
     std::unique_ptr<AchievementPool> achievements,
-    class Computer* computer
+    class Computer* ai
 )
-    : userId(userId), computer(computer), name(std::move(name)),
-      achievements(std::move(achievements)), unlockedContent(0) {}
+    : userId(userId), ai(ai), name(std::move(name)), achievements(std::move(achievements)),
+      unlockedContent(0) {}
 
 UserProfile::~UserProfile() = default;
 
 unsigned int UserProfile::UserId() const { return userId; }
 
-Computer* UserProfile::Computer() const { return computer; }
+Computer* UserProfile::AI() const { return ai; }
