@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <memory>
 #include <stack>
 #include <stdexcept>
 #include <unordered_map>
@@ -139,7 +140,14 @@ static bool ValidateMaxGroupSize(const std::vector<std::vector<Coordinates>>& gr
 
 SegmentBoardValidator::SegmentBoardValidator(ISegment& segmentBoard, const GameMode& mode)
     : segmentBoard(segmentBoard), mode(mode) {
-  GroupsToUnits({}, mode, lastUnits);
+
+  static std::vector<Coordinates> coordinates;
+  GetCoordinatesOfFilledSegments(segmentBoard, coordinates);
+
+  static std::vector<std::vector<Coordinates>> groups;
+  GroupCoordinates(coordinates, groups);
+
+  GroupsToUnits(groups, mode, lastUnits);
 }
 
 bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
@@ -187,4 +195,8 @@ size_t SegmentBoardValidator::Height() const { return segmentBoard.Height(); }
 
 const std::vector<std::vector<bool>>& SegmentBoardValidator::Segments() const {
   return segmentBoard.Segments();
+}
+
+std::unique_ptr<ISegment> SegmentBoardValidator::Clone() const {
+  return std::make_unique<SegmentBoardValidator>(segmentBoard, mode);
 }
