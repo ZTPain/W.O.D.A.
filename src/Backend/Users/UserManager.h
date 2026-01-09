@@ -21,8 +21,8 @@ public:
   static UserManager& GetInstance();
   ~UserManager();
   const std::vector<UserProfile>& Users() const;
-  void CreateUser(std::string name);
+  void CreateUser(const std::string& name);
   UserProfile& GetCurrentUser();
   bool ChangeCurrentUser(unsigned int userId);
-  UserProfile CreateComputer(std::string name, ComputerType computerType);
+  UserProfile& CreateComputer(const std::string& name, ComputerType computerType);
 };
