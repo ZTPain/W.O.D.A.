@@ -39,7 +39,7 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
   history.push_back(std::move(command));
 
   // Save turn of the player that executed the command
-  unsigned int commandPlayerTurn = currentTurn;
+  const unsigned int commandPlayerTurn = currentTurn;
 
   // Change turn until another not dead player is found
   currentTurn = (currentTurn + 1) % players.size();
