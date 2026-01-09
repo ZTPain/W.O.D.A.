@@ -45,4 +45,5 @@ public:
   bool ExecuteCommand(std::unique_ptr<ICommand> command);
   void HandleGameOver();
   Replay GetReplay();
+  static Computer* GetComputerByType(ComputerType computerType);
 };

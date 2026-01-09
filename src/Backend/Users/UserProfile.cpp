@@ -5,6 +5,9 @@
 #include <string>
 #include <utility>
 
+UserProfile::UserProfile(const UserProfile& other)
+    : UserProfile(other.userId, other.name, other.achievements->Clone()) {}
+
 UserProfile::UserProfile(
     unsigned int userId, std::string name, std::unique_ptr<AchievementPool> achievements
 )
