@@ -6,6 +6,7 @@
 #include "Backend/Units/BattleUnitHelper.h"
 #include "ISegment.h"
 #include "SegmentBoardValidator.h"
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -15,11 +16,20 @@ GameBoard::GameBoard(const GameMode& mode)
       segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
       units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
+GameBoard::GameBoard(const GameBoard& other)
+    : mode(other.mode), segmentBoard(other.segmentBoard->Clone()),
+      segmentValidator(other.segmentValidator->Clone()), units(other.units),
+      allUnits(other.allUnits) {}
+
 void GameBoard::ParseSegments() {
+  allUnits.clear();
+
   const UnitsMap& unitsMap = segmentValidator->GetUnits();
   for (const auto& [unitType, groups] : unitsMap) {
     for (const auto& group : groups) {
       const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
+
+      allUnits.push_back(battleUnit);
 
       for (const auto& coord : group) {
         units[coord.y][coord.x] = battleUnit;
@@ -61,20 +71,14 @@ void GameBoard::FixSegment(size_t x, size_t y) {
 }
 
 bool GameBoard::IsGameOver() {
-  for (const auto& item : units) {
-    for (const auto& item2 : item) {
-      if (item2 == nullptr)
-        continue;
-
-      if (!item2->IsDestroyed())
-        return false;
-    }
-  }
-
-  return true;
+  return std::all_of(allUnits.begin(), allUnits.end(), [](const std::shared_ptr<BattleUnit>& item) {
+    return item == nullptr || item->IsDestroyed();
+  });
 }
 
 size_t GameBoard::Width() const { return mode.boardWidth; }
 size_t GameBoard::Height() const { return mode.boardHeight; }
 
 ISegment& GameBoard::GetSegmentBoard() { return *segmentValidator; }
+
+const std::vector<std::shared_ptr<BattleUnit>>& GameBoard::GetAllUnits() const { return allUnits; }

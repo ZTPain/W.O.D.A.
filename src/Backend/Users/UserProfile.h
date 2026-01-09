@@ -46,7 +46,7 @@ struct UserSettings {
 
 class UserProfile {
   unsigned int userId;
-  Computer* computer;
+  Computer* ai;
 
 public:
   std::string name;
@@ -64,5 +64,5 @@ public:
   );
   ~UserProfile();
   unsigned int UserId();
-  Computer* Computer();
+  Computer* AI();
 };

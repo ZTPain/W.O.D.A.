@@ -14,7 +14,7 @@ enum class ComputerType {
 };
 
 class Computer {
-  IComputerStrategy& computerStrategy;
+  IComputerStrategy* computerStrategy;
 
 public:
   Computer(ComputerType type);
