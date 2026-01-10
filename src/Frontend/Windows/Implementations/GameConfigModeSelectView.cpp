@@ -1,0 +1,163 @@
+#include "GameConfigModeSelectView.h"
+
+#include "Backend/Users/AchievementPool.h"
+#include "Backend/Users/UserManager.h"
+#include "Backend/Users/UserProfile.h"
+#include "Frontend/Helpers/AnsiHelper.h"
+#include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Input/ConsoleKey.h"
+#include "Frontend/Input/IO.h"
+#include "Frontend/Input/InputManager.h"
+#include "Frontend/Windows/Api/Window.h"
+#include "Frontend/Windows/WindowManager.h"
+#include <cstddef>
+#include <string>
+
+static size_t selectedIndex = 0;
+
+void GameConfigModeSelectView::OnEnter() { ForceRender(); }
+
+void GameConfigModeSelectView::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset(); }
+
+static bool IsContentUnlocked(const size_t index) {
+  const auto currentUser = UserManager::GetInstance().GetCurrentUser();
+
+  switch (index) {
+    case 1:
+      return currentUser.unlockedContent & UnlockableContent::SalvoMode;
+    case 2:
+      return currentUser.unlockedContent & UnlockableContent::ExtendedMode;
+    default:
+      return true;
+  }
+}
+
+bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
+  if (keyDetails.key == ConsoleKey::Escape) {
+    WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
+    return true;
+  }
+
+  switch (keyDetails.key) {
+    case ConsoleKey::W:
+    case ConsoleKey::UpArrow:
+      if (selectedIndex > 0) {
+        const auto prevIndex = selectedIndex;
+        --selectedIndex;
+        while (!IsContentUnlocked(selectedIndex) && selectedIndex > 0)
+          --selectedIndex;
+
+        DrawOption(prevIndex);
+        DrawOption(selectedIndex);
+      }
+      return true;
+
+    case ConsoleKey::S:
+    case ConsoleKey::DownArrow:
+      if (selectedIndex + 1 < 4) {
+        const auto prevIndex = selectedIndex;
+        ++selectedIndex;
+        while (!IsContentUnlocked(selectedIndex) && selectedIndex + 1 < 4)
+          ++selectedIndex;
+
+        DrawOption(prevIndex);
+        DrawOption(selectedIndex);
+      }
+      return true;
+
+    case ConsoleKey::Spacebar:
+    case ConsoleKey::Enter: {
+      const auto currentUser = UserManager::GetInstance().GetCurrentUser();
+
+      switch (selectedIndex) {
+        case 0:
+          // Standard Mode
+          WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+          break;
+        case 1:
+          // Salvo Mode
+          if (currentUser.unlockedContent & UnlockableContent::SalvoMode) {
+            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+          }
+          break;
+        case 2:
+          // Extended Mode
+          if (currentUser.unlockedContent & UnlockableContent::ExtendedMode) {
+            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+          }
+          break;
+        case 3:
+          // Cancel
+          WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
+          break;
+        default:
+          break;
+      }
+      return true;
+    }
+
+    default:
+      break;
+  }
+
+  return false;
+}
+
+void GameConfigModeSelectView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
+
+bool GameConfigModeSelectView::IsCorrectSize(int /*width*/, int /*height*/) const { return true; }
+
+void GameConfigModeSelectView::ForceRender() {
+  IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
+
+  int width = 0;
+  int height = 0;
+  InputManager::GetTerminalSize(width, height);
+
+  BoxDrawing::DrawBox(1, 1, width, height, BoxStyle::Single, true, "Game Mode Selection");
+
+  DrawOptions();
+
+  IO::cout.flush();
+}
+
+void GameConfigModeSelectView::DrawOptions() {
+  for (size_t i = 0; i < 4; ++i) {
+    DrawOption(i);
+  }
+}
+
+void GameConfigModeSelectView::DrawOption(size_t index) {
+  const auto currentUser = UserManager::GetInstance().GetCurrentUser();
+
+  std::string text;
+  switch (index) {
+    case 0:
+      text = "Standard Mode";
+      break;
+    case 1:
+      text = "Salvo Mode";
+      break;
+    case 2:
+      text = "Extended Mode";
+      break;
+
+    case 3:
+      text = "Cancel";
+      break;
+
+    default:
+      break;
+  }
+
+  if (!IsContentUnlocked(index)) {
+    text = "[ ⨂ ] " + text;
+  } else if (selectedIndex == index) {
+    text = "[ X ] " + text;
+  } else {
+    text = "[   ] " + text;
+  }
+
+  IO::cout << AnsiHelper::MoveCursor(5, static_cast<int>(4 + index)) << text << '\n';
+  IO::cout.flush();
+}
