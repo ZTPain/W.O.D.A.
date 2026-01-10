@@ -73,7 +73,7 @@ void MainMenuWindow::DrawOption(size_t index, const char* text, bool selected) {
 void MainMenuWindow::HandleSelection() const {
   switch (selectedIndex) {
     case 0:
-      WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
+      WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigModeSelect);
       break;
     case 1:
       IO::cout << AnsiHelper::MoveCursor(0, 11) << "Opening settings..." << '\n';

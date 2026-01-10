@@ -9,8 +9,14 @@ enum class WindowType : uint8_t {
   UserSelect,
   MainMenu,
   Settings,
+
+  GameConfigModeSelect,
+  GameConfigPlayersSelect,
+
   GameSetup,
+
   InGame,
+
   PostGameSummary,
 };
 
