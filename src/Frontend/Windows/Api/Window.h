@@ -5,7 +5,8 @@
 
 enum class WindowType : uint8_t {
   None,
-  LoginScreen,
+
+  UserSelect,
   MainMenu,
   Settings,
   GameSetup,

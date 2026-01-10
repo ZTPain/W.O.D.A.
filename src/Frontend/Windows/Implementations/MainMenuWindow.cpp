@@ -11,21 +11,9 @@
 #include <cstdio>
 #include <iostream>
 
-void MainMenuWindow::OnEnter() {
-  static bool firstEnter = true;
-  if (firstEnter) {
-    Draw();
-    firstEnter = false;
-  } else {
-    IO::cout << AnsiHelper::RestoreScreen();
-    IO::cout.flush();
-  }
-}
+void MainMenuWindow::OnEnter() { Draw(); }
 
-void MainMenuWindow::OnExit() {
-  IO::cout << AnsiHelper::SaveScreen();
-  printf("Exited Main Menu Window\n");
-}
+void MainMenuWindow::OnExit() { printf("Exited Main Menu Window\n"); }
 
 bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   switch (keyDetails.key) {
@@ -91,6 +79,9 @@ void MainMenuWindow::HandleSelection() const {
       IO::cout << AnsiHelper::MoveCursor(0, 11) << "Opening settings..." << '\n';
       break;
     case 2:
+      WindowManager::GetInstance().SwitchToWindow(WindowType::UserSelect);
+      break;
+    case 3:
       IO::cout << AnsiHelper::MoveCursor(0, 11) << "Quitting..." << '\n';
       AppHelper::Exit();
       break;
