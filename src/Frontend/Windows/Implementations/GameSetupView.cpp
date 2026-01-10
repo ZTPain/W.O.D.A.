@@ -1,4 +1,5 @@
-#include "POCGameView.h"
+#include "GameSetupView.h"
+
 #include "Backend/Boards/SegmentBoard.h"
 #include "Backend/Boards/SegmentBoardValidator.h"
 #include "Backend/Games/Coordinates.h"
@@ -19,9 +20,9 @@
 #include <unordered_map>
 #include <vector>
 
-POCGameView::POCGameView() : Window(WindowType::InGame) {}
+GameSetupView::GameSetupView() : Window(WindowType::GameSetup) {}
 
-POCGameView::~POCGameView() = default;
+GameSetupView::~GameSetupView() = default;
 
 static int redX = -1;
 static int redY = -1;
@@ -200,16 +201,16 @@ static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
   }
 }
 
-void POCGameView::OnEnter() {
+void GameSetupView::OnEnter() {
   // Initialize game grid
   segmentBoardValidator.Clear();
 
   ForceRender();
 }
 
-void POCGameView::OnExit() {}
+void GameSetupView::OnExit() {}
 
-bool POCGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
+bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   redX = -1;
   redY = -1;
   grid.OnKeyPressed(keyDetails);
@@ -220,9 +221,9 @@ bool POCGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   return false;
 }
 
-void POCGameView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
+void GameSetupView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
-void POCGameView::ForceRender() {
+void GameSetupView::ForceRender() {
 
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
   BoxDrawing::DrawBox(
@@ -238,7 +239,7 @@ void POCGameView::ForceRender() {
   RenderUnitsLeft(demoMode.unitPool);
 }
 
-bool POCGameView::IsCorrectSize(int width, int height) const {
+bool GameSetupView::IsCorrectSize(int width, int height) const {
   const int requiredWidth = ((GRID_WIDTH + 1) * 5) + 4;
   const int requiredHeight = ((GRID_HEIGHT + 1) * 2) + 4;
   return width >= requiredWidth && height >= requiredHeight;

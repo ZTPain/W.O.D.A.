@@ -3,10 +3,10 @@
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
 
-class POCGameView : public Window {
+class GameSetupView : public Window {
 public:
-  POCGameView();
-  ~POCGameView() override;
+  GameSetupView();
+  ~GameSetupView() override;
 
   void OnEnter() override;
   void OnExit() override;

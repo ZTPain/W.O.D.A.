@@ -8,13 +8,13 @@
 #include <iostream>
 #include <memory>
 
+#include "Implementations/GameSetupView.h"
 #include "Implementations/MainMenuWindow.h"
-#include "Implementations/POCGameView.h"
 #include "Implementations/UserSelectWindow.h"
 
 void WindowManager::Initialize() {
   windows[WindowType::MainMenu] = std::make_unique<MainMenuWindow>();
-  windows[WindowType::InGame] = std::make_unique<POCGameView>();
+  windows[WindowType::InGame] = std::make_unique<GameSetupView>();
   windows[WindowType::UserSelect] = std::make_unique<UserSelectWindow>();
 
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
