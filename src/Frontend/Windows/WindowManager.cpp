@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "Implementations/GameConfigModeSelectView.h"
+#include "Implementations/GameConfigPlayerSelectView.h"
 #include "Implementations/GameSetupView.h"
 #include "Implementations/MainMenuWindow.h"
 #include "Implementations/UserSelectWindow.h"
@@ -18,6 +19,7 @@ void WindowManager::Initialize() {
   windows[WindowType::GameSetup] = std::make_unique<GameSetupView>();
   windows[WindowType::UserSelect] = std::make_unique<UserSelectWindow>();
   windows[WindowType::GameConfigModeSelect] = std::make_unique<GameConfigModeSelectView>();
+  windows[WindowType::GameConfigPlayersSelect] = std::make_unique<GameConfigPlayerSelectView>();
 
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
     OnKeyPressed(keyDetails);
