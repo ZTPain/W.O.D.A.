@@ -18,6 +18,12 @@ public:
   );
   ~Grid();
 
+  Grid(const Grid&) = delete;
+  Grid()
+      : xOffset(0), yOffset(0), width(0), height(0), cellWidth(0), cellHeight(0),
+        cellWidthWithBorders(0), cellHeightWithBorders(0), renderCellCallback(nullptr),
+        onToggleCellCallback(nullptr), cursorX(0), cursorY(0) {}
+
   void Render();
 
   void MoveCursorUp();
