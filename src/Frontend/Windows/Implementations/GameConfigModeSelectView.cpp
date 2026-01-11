@@ -1,10 +1,12 @@
 #include "GameConfigModeSelectView.h"
 
+#include "Backend/Games/GameMode.h"
 #include "Backend/Main/Battleships.h"
 #include "Backend/Users/AchievementPool.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers/AnsiHelper.h"
+#include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
 #include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
@@ -74,24 +76,21 @@ bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       switch (selectedIndex) {
         case 0:
           // Standard Mode
-          WindowManager::GetInstance().SwitchToWindow(
-              WindowType::GameConfigPlayersSelect, &Battleships::STANDARD_GAME_MODE
-          );
+          AppState::SetCurrentGameMode(Battleships::STANDARD_GAME_MODE);
+          WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
           break;
         case 1:
           // Salvo Mode
           if (currentUser.unlockedContent & UnlockableContent::SalvoMode) {
-            WindowManager::GetInstance().SwitchToWindow(
-                WindowType::GameConfigPlayersSelect, &Battleships::SALVO_GAME_MODE
-            );
+            AppState::SetCurrentGameMode(Battleships::SALVO_GAME_MODE);
+            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
           }
           break;
         case 2:
           // Extended Mode
           if (currentUser.unlockedContent & UnlockableContent::ExtendedMode) {
-            WindowManager::GetInstance().SwitchToWindow(
-                WindowType::GameConfigPlayersSelect, &Battleships::EXTENDED_GAME_MODE
-            );
+            AppState::SetCurrentGameMode(Battleships::EXTENDED_GAME_MODE);
+            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
           }
           break;
         case 3:

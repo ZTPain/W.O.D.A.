@@ -1,12 +1,12 @@
 #include "GameSetupView.h"
 
-#include "Backend/Boards/SegmentBoard.h"
-#include "Backend/Boards/SegmentBoardValidator.h"
 #include "Backend/Games/Coordinates.h"
+#include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Units/BattleUnitHelper.h"
 #include "Backend/Units/BattleUnitType.h"
 #include "Frontend/Helpers/AnsiHelper.h"
+#include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
 #include "Frontend/Helpers/InteractiveGrid.h"
 #include "Frontend/Input/ConsoleKey.h"
@@ -26,25 +26,6 @@ GameSetupView::~GameSetupView() = default;
 
 static int redX = -1;
 static int redY = -1;
-
-static constexpr int GRID_WIDTH = 10;
-static constexpr int GRID_HEIGHT = 10;
-static SegmentBoard segmentBoard = SegmentBoard(GRID_WIDTH, GRID_HEIGHT);
-static GameMode demoMode = GameMode{
-    "Demo Mode",
-    "A simple demo mode for testing.",
-    static_cast<size_t>(GRID_WIDTH),
-    static_cast<size_t>(GRID_HEIGHT),
-    false,
-    FireCommandType::FireCommand,
-    {
-                   {BattleUnitType::PatrolBoat, 4},
-                   {BattleUnitType::Interceptor, 3},
-                   {BattleUnitType::Cruiser, 2},
-                   {BattleUnitType::Dreadnought, 1},
-                   }
-};
-static SegmentBoardValidator segmentBoardValidator = SegmentBoardValidator(segmentBoard, demoMode);
 
 static void RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
   IO::cout << AnsiHelper::MoveCursor(posX, posY);
@@ -86,7 +67,11 @@ static AnsiColor GetColorForUnitType(BattleUnitType type) {
 }
 
 static BattleUnitType GetUnitTypeOfCoordinate(const Coordinates& coord) {
-  const auto& units = segmentBoardValidator.GetUnits();
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& board = currentPlayer.board;
+  const auto& segmentBoard = board.GetSegmentBoard();
+  const auto& units = segmentBoard.GetUnits();
 
   const auto predicate = [&](const Coordinates& c) { return c == coord; };
 
@@ -151,7 +136,12 @@ static void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool 
 }
 
 static void RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
-  if (segmentBoardValidator.Segments()[y][x]) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& board = currentPlayer.board;
+  const auto& segmentBoard = board.GetSegmentBoard();
+
+  if (segmentBoard.Segments()[y][x]) {
     RenderFilledCell(x, y, posX, posY, isCursor);
   } else {
     RenderEmptyCell(x, y, posX, posY, isCursor);
@@ -159,17 +149,23 @@ static void RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCurs
 }
 
 static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/);
-static Grid grid(2, 5, GRID_WIDTH, GRID_HEIGHT, 3, 1, RenderCell, OnToggleCell);
+static Grid grid;
 
 static void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& unitPool) {
   IO::cout << AnsiHelper::MoveCursor(grid.GetTotalWidth() + 8, 5) << "Units left: ";
   auto i = 1;
+
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& board = currentPlayer.board;
+  const auto& segmentBoard = board.GetSegmentBoard();
+
   for (const auto& [unitType, count] : unitPool) {
 
     const auto color = GetColorForUnitType(unitType);
     const auto* const name = BattleUnitHelper::GetNameForUnitType(unitType);
 
-    const auto unitsPlaced = segmentBoardValidator.GetUnits().at(unitType);
+    const auto unitsPlaced = segmentBoard.GetUnits().at(unitType);
 
     const auto unitsLeft =
         count - std::count_if(
@@ -187,11 +183,17 @@ static void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& un
 }
 
 static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
-  if (segmentBoardValidator.ToggleSegment(x, y)) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& board = currentPlayer.board;
+  auto& segmentBoard = board.GetSegmentBoard();
+
+  if (segmentBoard.ToggleSegment(x, y)) {
     grid.Render();
 
     IO::cout << AnsiHelper::MoveCursor(1, 3) << ANSI_CLEAR_LINE;
-    RenderUnitsLeft(demoMode.unitPool);
+    RenderUnitsLeft(mode.unitPool);
   } else {
     // Invalid toggle
     IO::cout << AnsiHelper::MoveCursor(1, 3) << AnsiHelper::SetTextColor(AnsiColor::Red)
@@ -201,12 +203,16 @@ static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
   }
 }
 
-void GameSetupView::OnEnter() { ForceRender(); }
+void GameSetupView::OnEnter() {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+
+  grid = Grid(2, 5, mode.boardWidth, mode.boardHeight, 3, 1, RenderCell, OnToggleCell);
 
   ForceRender();
 }
 
-void GameSetupView::OnExit() {}
+void GameSetupView::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset(); }
 
 bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   redX = -1;
@@ -222,23 +228,27 @@ bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 void GameSetupView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
 void GameSetupView::ForceRender() {
-
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
   BoxDrawing::DrawBox(
       1,
       4,
-      ((GRID_WIDTH + 1) * 5) - 1,
-      ((GRID_HEIGHT + 1) * 2) + 1,
+      ((mode.boardWidth + 1) * 5) - 1,
+      ((mode.boardHeight + 1) * 2) + 1,
       BoxStyle::Single,
       true,
       "Game View"
   );
   grid.Render();
-  RenderUnitsLeft(demoMode.unitPool);
+  RenderUnitsLeft(mode.unitPool);
 }
 
 bool GameSetupView::IsCorrectSize(int width, int height) const {
-  const int requiredWidth = ((GRID_WIDTH + 1) * 5) + 4;
-  const int requiredHeight = ((GRID_HEIGHT + 1) * 2) + 4;
-  return width >= requiredWidth && height >= requiredHeight;
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto requiredWidth = ((mode.boardWidth + 1) * 5) + 4;
+  const auto requiredHeight = ((mode.boardHeight + 1) * 2) + 4;
+  return static_cast<size_t>(width) >= requiredWidth &&
+         static_cast<size_t>(height) >= requiredHeight;
 }
