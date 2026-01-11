@@ -19,4 +19,5 @@ private:
   void ForceRender() override;
   static void DrawOptions();
   static void DrawOption(size_t index);
+  static void DrawDescription(size_t index);
 };

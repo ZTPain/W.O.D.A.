@@ -1,10 +1,12 @@
 #include "GameConfigModeSelectView.h"
 
+#include "Backend/Main/Battleships.h"
 #include "Backend/Users/AchievementPool.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -72,18 +74,24 @@ bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       switch (selectedIndex) {
         case 0:
           // Standard Mode
-          WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+          WindowManager::GetInstance().SwitchToWindow(
+              WindowType::GameConfigPlayersSelect, &Battleships::STANDARD_GAME_MODE
+          );
           break;
         case 1:
           // Salvo Mode
           if (currentUser.unlockedContent & UnlockableContent::SalvoMode) {
-            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+            WindowManager::GetInstance().SwitchToWindow(
+                WindowType::GameConfigPlayersSelect, &Battleships::SALVO_GAME_MODE
+            );
           }
           break;
         case 2:
           // Extended Mode
           if (currentUser.unlockedContent & UnlockableContent::ExtendedMode) {
-            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+            WindowManager::GetInstance().SwitchToWindow(
+                WindowType::GameConfigPlayersSelect, &Battleships::EXTENDED_GAME_MODE
+            );
           }
           break;
         case 3:
@@ -133,13 +141,13 @@ void GameConfigModeSelectView::DrawOption(size_t index) {
   std::string text;
   switch (index) {
     case 0:
-      text = "Standard Mode";
+      text = Battleships::STANDARD_GAME_MODE.name;
       break;
     case 1:
-      text = "Salvo Mode";
+      text = Battleships::SALVO_GAME_MODE.name;
       break;
     case 2:
-      text = "Extended Mode";
+      text = Battleships::EXTENDED_GAME_MODE.name;
       break;
 
     case 3:
@@ -159,5 +167,46 @@ void GameConfigModeSelectView::DrawOption(size_t index) {
   }
 
   IO::cout << AnsiHelper::MoveCursor(5, static_cast<int>(4 + index)) << text << '\n';
+  IO::cout.flush();
+
+  if (selectedIndex == index) {
+    DrawDescription(index);
+  }
+}
+
+void GameConfigModeSelectView::DrawDescription(size_t index) {
+  std::string description;
+  switch (index) {
+    case 0:
+      description = Battleships::STANDARD_GAME_MODE.description;
+      break;
+    case 1:
+      description = Battleships::SALVO_GAME_MODE.description;
+      break;
+    case 2:
+      description = Battleships::EXTENDED_GAME_MODE.description;
+      break;
+    case 3:
+      description = "Return to the main menu.";
+      break;
+
+    default:
+      break;
+  }
+
+  const auto startX = 40;
+  const auto borderOffset = 2;
+
+  int width = 0;
+  int height = 0;
+  InputManager::GetTerminalSize(width, height);
+  for (auto i = 4; i < height - borderOffset; i++) {
+    IO::cout << AnsiHelper::MoveCursor(startX, i);
+    for (auto j = 0; j < width - startX - borderOffset; j++) {
+      IO::cout << ' ';
+    }
+  }
+
+  TextHelper::DrawWrappedText(startX, 4, width - startX - borderOffset, description.c_str());
   IO::cout.flush();
 }
