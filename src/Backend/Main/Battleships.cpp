@@ -6,6 +6,7 @@
 #include "Backend/Units/BattleUnitType.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
+#include <memory>
 #include <vector>
 
 Battleships Battleships::instance;
@@ -61,8 +62,10 @@ Battleships::Battleships()
 
 Battleships::~Battleships() { WriteToSave(); }
 
-GameManager Battleships::NewGame(const GameMode& mode, std::vector<UserProfile*>& profiles) {
-  return {mode, profiles};
+std::unique_ptr<GameManager> Battleships::NewGame(
+    const GameMode& mode, std::vector<UserProfile*>& profiles
+) {
+  return std::make_unique<GameManager>(mode, profiles);
 }
 
 void Battleships::ReadSave() {
