@@ -15,7 +15,7 @@
 
 void WindowManager::Initialize() {
   windows[WindowType::MainMenu] = std::make_unique<MainMenuWindow>();
-  windows[WindowType::InGame] = std::make_unique<GameSetupView>();
+  windows[WindowType::GameSetup] = std::make_unique<GameSetupView>();
   windows[WindowType::UserSelect] = std::make_unique<UserSelectWindow>();
   windows[WindowType::GameConfigModeSelect] = std::make_unique<GameConfigModeSelectView>();
 
