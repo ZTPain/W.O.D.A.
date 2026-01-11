@@ -18,8 +18,8 @@ GameBoard::GameBoard(const GameMode& mode)
 
 GameBoard::GameBoard(const GameBoard& other)
     : mode(other.mode), segmentBoard(other.segmentBoard->Clone()),
-      segmentValidator(other.segmentValidator->Clone()), units(other.units),
-      allUnits(other.allUnits) {}
+      segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
+      units(other.units), allUnits(other.allUnits) {}
 
 void GameBoard::ParseSegments() {
   allUnits.clear();
@@ -70,7 +70,7 @@ void GameBoard::FixSegment(size_t x, size_t y) {
   }
 }
 
-bool GameBoard::IsGameOver() {
+bool GameBoard::IsGameOver() const {
   return std::all_of(allUnits.begin(), allUnits.end(), [](const std::shared_ptr<BattleUnit>& item) {
     return item == nullptr || item->IsDestroyed();
   });
@@ -79,6 +79,13 @@ bool GameBoard::IsGameOver() {
 size_t GameBoard::Width() const { return mode.boardWidth; }
 size_t GameBoard::Height() const { return mode.boardHeight; }
 
-ISegment& GameBoard::GetSegmentBoard() { return *segmentValidator; }
+ISegment& GameBoard::GetSegmentBoard() const {
+  // If no units have been placed yet, this means we are still in the setup phase
+  if (allUnits.empty()) {
+    return *segmentValidator;
+  }
+
+  return *segmentBoard;
+}
 
 const std::vector<std::shared_ptr<BattleUnit>>& GameBoard::GetAllUnits() const { return allUnits; }

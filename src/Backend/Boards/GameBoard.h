@@ -21,11 +21,11 @@ public:
   GameBoard(const GameBoard& other);
   [[nodiscard]] size_t Width() const;
   [[nodiscard]] size_t Height() const;
-  ISegment& GetSegmentBoard();
+  [[nodiscard]] ISegment& GetSegmentBoard() const;
   [[nodiscard]] const std::vector<std::vector<std::shared_ptr<BattleUnit>>>& Units() const;
   void ParseSegments();
   bool FireAt(size_t x, size_t y);
   void FixSegment(size_t x, size_t y);
-  bool IsGameOver();
+  [[nodiscard]] bool IsGameOver() const;
   [[nodiscard]] const std::vector<std::shared_ptr<BattleUnit>>& GetAllUnits() const;
 };
