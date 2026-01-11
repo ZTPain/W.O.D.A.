@@ -202,8 +202,6 @@ static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
 }
 
 void GameSetupView::OnEnter() {
-  // Initialize game grid
-  segmentBoardValidator.Clear();
 
   ForceRender();
 }

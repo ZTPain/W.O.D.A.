@@ -13,7 +13,6 @@
 #include "Implementations/MainMenuWindow.h"
 #include "Implementations/UserSelectWindow.h"
 
-
 void WindowManager::Initialize() {
   windows[WindowType::MainMenu] = std::make_unique<MainMenuWindow>();
   windows[WindowType::InGame] = std::make_unique<GameSetupView>();
