@@ -23,9 +23,11 @@ GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profil
 
 const GameMode& GameManager::Mode() const { return mode; }
 
-const std::vector<Player>& GameManager::Players() const { return players; }
+const std::vector<Player>& GameManager::Players() { return players; }
 
 unsigned int GameManager::CurrentTurn() const { return currentTurn; }
+
+Player& GameManager::GetCurrentPlayer() { return players[currentTurn]; }
 
 void GameManager::StartGame() {
   gameStartPoint = std::chrono::steady_clock::now();

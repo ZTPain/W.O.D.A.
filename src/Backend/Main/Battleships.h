@@ -7,6 +7,7 @@
 #include "Backend/Replays/ReplayManager.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
+#include <memory>
 #include <vector>
 
 class Battleships {
@@ -27,6 +28,8 @@ private:
 public:
   static Battleships& GetInstance();
   ~Battleships();
-  static GameManager NewGame(const GameMode& mode, std::vector<UserProfile*>& profiles);
+  static std::unique_ptr<GameManager> NewGame(
+      const GameMode& mode, std::vector<UserProfile*>& profiles
+  );
   void WriteToSave() const;
 };
