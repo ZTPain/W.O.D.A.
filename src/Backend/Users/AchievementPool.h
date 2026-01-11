@@ -23,6 +23,14 @@ enum class UnlockableContent : uint64_t {
   BlueBorderColor = 0x1 << 9,
 };
 
+static inline uint64_t operator|(uint64_t a, UnlockableContent b) {
+  return (a | static_cast<uint64_t>(b));
+}
+
+inline static bool operator&(uint64_t a, UnlockableContent b) {
+  return (a & static_cast<uint64_t>(b)) != 0;
+}
+
 struct Achievement {
   std::string name;
   std::string description;
