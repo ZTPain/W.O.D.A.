@@ -39,8 +39,9 @@ class GameManager {
 public:
   GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles);
   [[nodiscard]] const GameMode& Mode() const;
-  [[nodiscard]] const std::vector<Player>& Players() const;
+  [[nodiscard]] const std::vector<Player>& Players();
   [[nodiscard]] unsigned int CurrentTurn() const;
+  [[nodiscard]] Player& GetCurrentPlayer();
   void StartGame();
   bool ExecuteCommand(std::unique_ptr<ICommand> command);
   void HandleGameOver();
