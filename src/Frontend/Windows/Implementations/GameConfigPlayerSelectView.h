@@ -1,7 +1,11 @@
 #pragma once
 
+#include "Backend/Computers/Computer.h"
+#include "Backend/Users/UserProfile.h"
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
+#include <cstddef>
+#include <vector>
 
 class GameConfigPlayerSelectView : public Window {
 public:
@@ -16,4 +20,20 @@ public:
 
 private:
   void ForceRender() override;
+
+  void RenderPlayerOptions() const;
+
+  void RenderSelectedPlayerOption(size_t index, const UserProfile& player) const;
+  void RenderUnselectedPlayerOption(size_t index, const UserProfile& player) const;
+
+  void RenderAIAddOption(size_t index) const;
+  void RenderAIAddOption(size_t index, ComputerType type) const;
+
+  bool HandleInputMovement(ConsoleKeyDetails keyDetails);
+  bool HandleInputSelection(ConsoleKeyDetails keyDetails);
+  void HandleInputSelectionLeft();
+  void HandleInputSelectionRight();
+
+  size_t highlightedOptionIndex = 0;
+  std::vector<size_t> selectedPlayerOptions;
 };
