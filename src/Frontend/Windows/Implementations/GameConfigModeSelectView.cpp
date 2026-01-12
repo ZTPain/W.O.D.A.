@@ -135,8 +135,6 @@ void GameConfigModeSelectView::DrawOptions() {
 }
 
 void GameConfigModeSelectView::DrawOption(size_t index) {
-  const auto currentUser = UserManager::GetInstance().GetCurrentUser();
-
   std::string text;
   switch (index) {
     case 0:
