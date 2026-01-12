@@ -8,11 +8,11 @@
 #include <iostream>
 #include <memory>
 
-#include "Implementations/GameConfigModeSelectView.h"
-#include "Implementations/GameConfigPlayerSelectView.h"
-#include "Implementations/GameSetupView.h"
-#include "Implementations/MainMenuWindow.h"
-#include "Implementations/UserSelectWindow.h"
+#include "Implementations/Game/GameConfigModeSelectView.h"
+#include "Implementations/Game/GameConfigPlayerSelectView.h"
+#include "Implementations/Game/GameSetupView.h"
+#include "Implementations/Menu/MainMenuWindow.h"
+#include "Implementations/Menu/UserSelectWindow.h"
 
 void WindowManager::Initialize() {
   windows[WindowType::MainMenu] = std::make_unique<MainMenuWindow>();
