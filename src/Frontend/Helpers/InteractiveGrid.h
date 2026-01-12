@@ -38,6 +38,12 @@ public:
   [[nodiscard]] size_t GetWidth() const { return width; }
   [[nodiscard]] size_t GetHeight() const { return height; }
 
+  [[nodiscard]] size_t GetXOffset() const { return xOffset; }
+  [[nodiscard]] size_t GetYOffset() const { return yOffset; }
+
+  [[nodiscard]] size_t GetCellWidth() const { return cellWidth; }
+  [[nodiscard]] size_t GetCellHeight() const { return cellHeight; }
+
   [[nodiscard]] size_t GetTotalWidth() const { return width * cellWidthWithBorders; }
   [[nodiscard]] size_t GetTotalHeight() const { return height * cellHeightWithBorders; }
 
