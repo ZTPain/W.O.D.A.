@@ -143,7 +143,7 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
 
     if (selectIndex == 0) {
       selectedPlayerOptions.emplace_back(profile.UserId());
-      highlightedOptionIndex = std::min(highlightedOptionIndex - 1, 0ULL);
+      highlightedOptionIndex = std::min(highlightedOptionIndex - 1, static_cast<size_t>(0));
       ForceRender();
       return;
     }
