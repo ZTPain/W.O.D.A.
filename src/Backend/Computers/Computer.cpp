@@ -11,7 +11,7 @@ static EasyComputerStrategy easyStrategy;
 static MediumComputerStrategy mediumStrategy;
 static HardComputerStrategy hardStrategy;
 
-Computer::Computer(ComputerType type) {
+Computer::Computer(ComputerType type) : computerType(type) {
   switch (type) {
     case ComputerType::Easy:
       computerStrategy = &easyStrategy;
@@ -30,3 +30,5 @@ Computer::Computer(ComputerType type) {
 Coordinates Computer::GetFireCoordinates(ISegment& segmentBoard) const {
   return computerStrategy->CalculateFireCoordinates(segmentBoard);
 }
+
+ComputerType Computer::GetComputerType() const { return computerType; }
