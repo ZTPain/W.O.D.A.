@@ -24,5 +24,6 @@ public:
   void CreateUser(const std::string& name);
   [[nodiscard]] UserProfile& GetCurrentUser();
   bool ChangeCurrentUser(unsigned int userId);
+  [[nodiscard]] UserProfile& GetUserById(unsigned int userId);
   [[nodiscard]] UserProfile& CreateComputer(const std::string& name, ComputerType computerType);
 };
