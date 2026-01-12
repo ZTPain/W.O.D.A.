@@ -4,6 +4,7 @@
 #include "Backend/Games/GameMode.h"
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <utility>
 
 class AppState {
@@ -19,6 +20,9 @@ public:
   static void ClearCurrentGameMode() { currentGameMode = nullptr; }
 
   static std::unique_ptr<GameManager>& GetCurrentGameManager() {
+    if (!currentGameManager.has_value())
+      throw std::runtime_error("Current GameManager is not set");
+
     return currentGameManager.value();
   }
   static void SetCurrentGameManager(std::unique_ptr<GameManager> manager) {
