@@ -35,6 +35,7 @@ Checks: >
   -performance-enum-size,
 
   -cppcoreguidelines-avoid-const-or-ref-data-members,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
 
 # Turn all the warnings from the checks above into errors.
 WarningsAsErrors: >
