@@ -44,6 +44,9 @@ public:
   [[nodiscard]] size_t GetCellWidth() const { return cellWidth; }
   [[nodiscard]] size_t GetCellHeight() const { return cellHeight; }
 
+  [[nodiscard]] size_t GetCellWidthWithBorders() const { return cellWidthWithBorders; }
+  [[nodiscard]] size_t GetCellHeightWithBorders() const { return cellHeightWithBorders; }
+
   [[nodiscard]] size_t GetTotalWidth() const { return width * cellWidthWithBorders; }
   [[nodiscard]] size_t GetTotalHeight() const { return height * cellHeightWithBorders; }
 
