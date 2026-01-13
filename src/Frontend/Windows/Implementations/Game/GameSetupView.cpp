@@ -1,5 +1,7 @@
 #include "GameSetupView.h"
 
+#include "Backend/Boards/ISegment.h"
+#include "Backend/Computers/Computer.h"
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
@@ -15,19 +17,21 @@
 #include "Frontend/Windows/Api/Window.h"
 #include "Frontend/Windows/WindowManager.h"
 #include <algorithm>
+#include <array>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
-GameSetupView::GameSetupView() : Window(WindowType::GameSetup) {}
-
-GameSetupView::~GameSetupView() = default;
+GameSetupView::GameSetupView() : Window(WindowType::GameSetup), currentPlayerIndex(0) {}
 
 static int redX = -1;
 static int redY = -1;
 
-static void RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
+void GameSetupView::RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
   IO::cout << AnsiHelper::MoveCursor(posX, posY);
 
   if (redX == static_cast<int>(x) && redY == static_cast<int>(y)) {
@@ -44,7 +48,7 @@ static void RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool i
   IO::cout.flush();
 }
 
-static AnsiColor GetColorForUnitType(BattleUnitType type) {
+AnsiColor GameSetupView::GetColorForUnitType(BattleUnitType type) {
   switch (type) {
     case BattleUnitType::PatrolBoat:
       return AnsiColor::Cyan;
@@ -66,9 +70,9 @@ static AnsiColor GetColorForUnitType(BattleUnitType type) {
   }
 }
 
-static BattleUnitType GetUnitTypeOfCoordinate(const Coordinates& coord) {
+BattleUnitType GameSetupView::GetUnitTypeOfCoordinate(const Coordinates& coord) const {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
   const auto& units = segmentBoard.GetUnits();
@@ -87,7 +91,9 @@ static BattleUnitType GetUnitTypeOfCoordinate(const Coordinates& coord) {
   return BattleUnitType::None;
 }
 
-static void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
+void GameSetupView::RenderFilledCell(
+    size_t x, size_t y, size_t posX, size_t posY, bool isCursor
+) const {
   IO::cout << AnsiHelper::MoveCursor(posX, posY);
 
   const auto currentCoord = Coordinates(x, y);
@@ -135,9 +141,9 @@ static void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool 
   IO::cout.flush();
 }
 
-static void RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
+void GameSetupView::RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
 
@@ -148,20 +154,16 @@ static void RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCurs
   }
 }
 
-static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/);
-static Grid grid;
-
-static void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& unitPool) {
+void GameSetupView::RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& unitPool) {
   IO::cout << AnsiHelper::MoveCursor(grid.GetTotalWidth() + 8, 5) << "Units left: ";
   auto i = 1;
 
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
 
   for (const auto& [unitType, count] : unitPool) {
-
     const auto color = GetColorForUnitType(unitType);
     const auto* const name = BattleUnitHelper::GetNameForUnitType(unitType);
 
@@ -182,22 +184,22 @@ static void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& un
   IO::cout.flush();
 }
 
-static void OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
+void GameSetupView::OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   auto& segmentBoard = board.GetSegmentBoard();
 
   if (segmentBoard.ToggleSegment(x, y)) {
     grid.Render();
 
-    IO::cout << AnsiHelper::MoveCursor(1, 3) << ANSI_CLEAR_LINE;
+    ShowErrorMessage("");
+
     RenderUnitsLeft(mode.unitPool);
   } else {
     // Invalid toggle
-    IO::cout << AnsiHelper::MoveCursor(1, 3) << AnsiHelper::SetTextColor(AnsiColor::Red)
-             << "Invalid segment toggle!" << AnsiHelper::Reset();
+    ShowErrorMessage("Invalid segment toggle!");
     redX = static_cast<int>(x);
     redY = static_cast<int>(y);
   }
@@ -207,7 +209,23 @@ void GameSetupView::OnEnter() {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
 
-  grid = Grid(2, 5, mode.boardWidth, mode.boardHeight, 3, 1, RenderCell, OnToggleCell);
+  redX = -1;
+  redY = -1;
+
+  currentPlayerIndex = 0;
+
+  grid = Grid(
+      2 + 2,
+      5,
+      mode.boardWidth,
+      mode.boardHeight,
+      3,
+      1,
+      [this](size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
+        RenderCell(x, y, posX, posY, isCursor);
+      },
+      [this](size_t x, size_t y, size_t posX, size_t posY) { OnToggleCell(x, y, posX, posY); }
+  );
 
   ForceRender();
 }
@@ -215,13 +233,21 @@ void GameSetupView::OnEnter() {
 void GameSetupView::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset(); }
 
 bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
-  redX = -1;
-  redY = -1;
-  grid.OnKeyPressed(keyDetails);
   if (keyDetails.key == ConsoleKey::Escape) {
     WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
     return true;
   }
+
+  redX = -1;
+  redY = -1;
+
+  if (keyDetails.key == ConsoleKey::H) {
+    ConfirmGridSetup();
+    return true;
+  }
+
+  grid.OnKeyPressed(keyDetails);
+
   return false;
 }
 
@@ -230,16 +256,34 @@ void GameSetupView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 void GameSetupView::ForceRender() {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
-  BoxDrawing::DrawBox(
-      1,
-      4,
-      ((mode.boardWidth + 1) * 5) - 1,
-      ((mode.boardHeight + 1) * 2) + 1,
-      BoxStyle::Single,
-      true,
-      "Game View"
+
+  std::array<char, 100> titleBuffer{};
+  std::snprintf(
+      titleBuffer.data(),
+      titleBuffer.size(),
+      "Game Setup - Player %zu: %s (placing units, total players: %zu)",
+      currentPlayerIndex + 1,
+      currentPlayer.profile.name.c_str(),
+      gameManager->Players().size()
   );
+
+  int width = 0;
+  int height = 0;
+  InputManager::GetTerminalSize(width, height);
+
+  BoxDrawing::DrawBox(1, 1, width, height, BoxStyle::Double, true, titleBuffer.data());
+
+  BoxDrawing::DrawBox(
+      1 + 2,
+      4,
+      ((mode.boardWidth + 1) * grid.GetCellWidthWithBorders()) - 1,
+      ((mode.boardHeight + 1) * grid.GetCellHeightWithBorders()) + 1,
+      BoxStyle::Single,
+      true
+  );
+
   grid.Render();
   RenderUnitsLeft(mode.unitPool);
 }
@@ -247,8 +291,160 @@ void GameSetupView::ForceRender() {
 bool GameSetupView::IsCorrectSize(int width, int height) const {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto requiredWidth = ((mode.boardWidth + 1) * 5) + 4;
-  const auto requiredHeight = ((mode.boardHeight + 1) * 2) + 4;
+  const auto requiredWidth = ((mode.boardWidth + 1) * 5) + 5;
+  const auto requiredHeight = ((mode.boardHeight + 1) * 2) + 5;
   return static_cast<size_t>(width) >= requiredWidth &&
          static_cast<size_t>(height) >= requiredHeight;
+}
+
+void GameSetupView::GenerateRandomSetup(ISegment* segmentBoard, ComputerType /*computerType*/) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+
+  // Clear current setup
+  const auto& segments = segmentBoard->Segments();
+  segmentBoard->Clear();
+
+  // Randomly place units
+  for (const auto& [unitType, count] : mode.unitPool) {
+    const auto unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
+
+    for (size_t i = 0; i < count; ++i) {
+      bool placed = false;
+
+      while (!placed) {
+        const auto orientation = rand() % 2;
+        const auto startX = rand() % mode.boardWidth;
+        const auto startY = rand() % mode.boardHeight;
+
+        // Check if unit can be placed
+        bool canPlace = true;
+        for (size_t j = 0; j < unitSize; ++j) {
+          size_t x = startX;
+          size_t y = startY;
+
+          if (orientation == 0) {
+            x += j;
+          } else {
+            y += j;
+          }
+
+          if (x >= mode.boardWidth || y >= mode.boardHeight || segments[y][x]) {
+            canPlace = false;
+            break;
+          }
+
+          // Check adjacent cells
+          for (int adjY = -1; adjY <= 1; ++adjY) {
+            for (int adjX = -1; adjX <= 1; ++adjX) {
+              if (adjX == 0 && adjY == 0)
+                continue;
+
+              size_t const checkX = x + adjX;
+              size_t const checkY = y + adjY;
+
+              if (checkX < mode.boardWidth && checkY < mode.boardHeight) {
+                if (segments[checkY][checkX]) {
+                  canPlace = false;
+                  break;
+                }
+              }
+            }
+            if (!canPlace)
+              break;
+          }
+        }
+
+        if (canPlace) {
+          // Place unit
+          for (size_t j = 0; j < unitSize; ++j) {
+            size_t x = startX;
+            size_t y = startY;
+
+            if (orientation == 0) {
+              x += j;
+            } else {
+              y += j;
+            }
+
+            segmentBoard->ToggleSegment(x, y);
+          }
+
+          placed = true;
+        }
+      }
+    }
+  }
+}
+
+void GameSetupView::ConfirmGridSetup() {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+
+  if (!AllUnitsPlaced()) {
+    ShowErrorMessage("Not all units have been placed!");
+    return;
+  }
+
+  // Show confirmation prompt
+  // TODO: Implement confirmation prompt
+
+  const auto& players = gameManager->Players();
+
+  // Move to next player or finish setup
+  if (currentPlayerIndex + 1 < players.size()) {
+    currentPlayerIndex++;
+
+    if (players.at(currentPlayerIndex).profile.AI() != nullptr) {
+      GenerateRandomSetup(
+          &players.at(currentPlayerIndex).board.GetSegmentBoard(),
+          players.at(currentPlayerIndex).profile.AI()->GetComputerType()
+      );
+    }
+
+    ForceRender();
+  } else {
+    // All players have set up their boards
+    WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
+  }
+}
+
+void GameSetupView::ShowErrorMessage(const std::string& message) {
+  static size_t lastMessageLength = 0;
+  // Clear previous message
+  IO::cout << AnsiHelper::MoveCursor(1, 3);
+  IO::cout << std::string(lastMessageLength, ' ');
+
+  if (message.empty())
+    return;
+
+  lastMessageLength = message.length();
+  IO::cout << AnsiHelper::MoveCursor(1, 3) << AnsiHelper::SetTextColor(AnsiColor::Red) << message
+           << AnsiHelper::Reset();
+  IO::cout.flush();
+}
+
+bool GameSetupView::AllUnitsPlaced() const {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& board = currentPlayer.board;
+  const auto& segmentBoard = board.GetSegmentBoard();
+
+  const auto& units = segmentBoard.GetUnits();
+
+  if (!units.at(BattleUnitType::None).at(0).empty()) {
+    return false;
+  }
+
+  for (const auto& [unitType, units] : units) {
+    if (unitType == BattleUnitType::None)
+      continue;
+
+    for (const auto& group : units) {
+      if (group.empty()) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }

@@ -1,12 +1,21 @@
 #pragma once
 
+#include "Backend/Boards/ISegment.h"
+#include "Backend/Computers/Computer.h"
+#include "Backend/Games/Coordinates.h"
+#include "Backend/Units/BattleUnitType.h"
+#include "Frontend/Helpers/AnsiHelper.h"
+#include "Frontend/Helpers/InteractiveGrid.h"
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
+#include <cstddef>
+#include <string>
+#include <unordered_map>
 
 class GameSetupView : public Window {
 public:
   GameSetupView();
-  ~GameSetupView() override;
+  ~GameSetupView() override = default;
 
   void OnEnter() override;
   void OnExit() override;
@@ -16,4 +25,22 @@ public:
 
 private:
   void ForceRender() override;
+
+  static void ShowErrorMessage(const std::string& message);
+
+  [[nodiscard]] bool AllUnitsPlaced() const;
+  void ConfirmGridSetup();
+  static void GenerateRandomSetup(ISegment* segmentBoard, ComputerType computerType);
+
+  void OnToggleCell(size_t x, size_t y, size_t posX, size_t posY);
+  void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& unitPool);
+  void RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const;
+  static void RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor);
+  void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const;
+
+  [[nodiscard]] BattleUnitType GetUnitTypeOfCoordinate(const Coordinates& coord) const;
+  [[nodiscard]] static AnsiColor GetColorForUnitType(BattleUnitType type);
+
+  size_t currentPlayerIndex;
+  Grid grid;
 };
