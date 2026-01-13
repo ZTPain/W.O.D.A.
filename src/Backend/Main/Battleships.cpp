@@ -101,13 +101,6 @@ void Battleships::ReadSave() {
 
     userManager.AddUserProfile(profile);
   }
-
-  file >> tag;
-  if (tag == "CURRENT") {
-    unsigned int currentId = 0;
-    file >> currentId;
-    userManager.ChangeCurrentUser(currentId);
-  }
 }
 
 void Battleships::WriteToSave() const {
@@ -127,10 +120,6 @@ void Battleships::WriteToSave() const {
   SerializationHelper::SerializeInt32(buffer.data(), offset, BUFFER_SIZE, users.size());
   for (const auto* user : users) {
     offset = user->Serialize(buffer.data(), offset, BUFFER_SIZE);
-  }
-
-  if (!users.empty()) {
-    file << "CURRENT " << userManager.GetCurrentUser().UserId() << "\n";
   }
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
