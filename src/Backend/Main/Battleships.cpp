@@ -6,6 +6,7 @@
 #include "Backend/Units/BattleUnitType.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -70,6 +71,10 @@ std::unique_ptr<GameManager> Battleships::NewGame(
 
 void Battleships::ReadSave() {
   // Read user data
+  userManager.CreateUser("Debug User");
+  auto& debugUser = userManager.GetUserById(0);
+  debugUser.unlockedContent = UINT64_MAX;
+
   userManager.CreateUser("Test User 1");
   userManager.CreateUser("Test User 2");
 }
