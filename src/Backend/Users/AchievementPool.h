@@ -3,6 +3,7 @@
 #pragma once
 
 #include "IClone.h"
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -58,4 +59,19 @@ public:
   [[nodiscard]] const std::unordered_map<std::string, Achievement>& NameToAchievementMap() const;
   void Unlock(const std::string& name);
   std::unique_ptr<AchievementPool> Clone() override;
+
+  size_t Serialize(uint8_t* buffer, size_t offset, size_t bufferSize) const;
+
+  static std::unique_ptr<AchievementPool> Deserialize(
+      const uint8_t* buffer, size_t& offset, size_t bufferSize
+  );
+
+private:
+  static void SerializeAchievement(
+      const Achievement& achievement, uint8_t* buffer, size_t& offset, size_t bufferSize
+  );
+
+  static void DeserializeAchievement(
+      Achievement& achievement, const uint8_t* buffer, size_t& offset, size_t bufferSize
+  );
 };
