@@ -26,10 +26,19 @@ struct Statistics {
 
 enum class Color {
   Default,
+
+  Red,
+  Black,
+  Green,
+  Gold,
 };
 
 enum class BorderPattern {
   Default,
+
+  Double,
+  Bold,
+  Rounded,
 };
 
 enum class UnitPattern {
