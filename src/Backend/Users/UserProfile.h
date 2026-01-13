@@ -5,6 +5,7 @@
 #include "AchievementPool.h"
 #include "Backend/Computers/Computer.h"
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -44,9 +45,21 @@ struct UserSettings {
   bool autoMarkEmptyFields = false;
 };
 
+using PlayerId = uint32_t;
+
 class UserProfile {
-  unsigned int userId;
+  PlayerId userId;
   Computer* ai;
+
+  UserProfile(
+      PlayerId userId,
+      std::string name,
+      Statistics statistics,
+      std::unique_ptr<AchievementPool> achievements,
+      uint64_t unlockedContent,
+      UserSettings settings,
+      Computer* ai
+  );
 
 public:
   std::string name;
@@ -55,14 +68,31 @@ public:
   uint64_t unlockedContent;
   UserSettings settings;
   UserProfile(const UserProfile& other);
-  UserProfile(unsigned int userId, std::string name, std::unique_ptr<AchievementPool> achievements);
   UserProfile(
-      unsigned int userId,
-      std::string name,
+      PlayerId userId, const std::string& name, std::unique_ptr<AchievementPool> achievements
+  );
+  UserProfile(
+      PlayerId userId,
+      const std::string& name,
       std::unique_ptr<AchievementPool> achievements,
       Computer* ai
   );
   ~UserProfile();
-  [[nodiscard]] unsigned int UserId() const;
+  [[nodiscard]] PlayerId UserId() const;
   [[nodiscard]] Computer* AI() const;
+
+  size_t Serialize(uint8_t* buffer, size_t offset, size_t bufferSize) const;
+  static UserProfile Deserialize(
+      const uint8_t* buffer, size_t offset, size_t bufferSize, size_t& bytesRead
+  );
+
+private:
+  void SerializeStatistics(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
+  void SerializeSettings(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
+  static void DeserializeStatistics(
+      const uint8_t* buffer, size_t& offset, size_t bufferSize, Statistics& statistics
+  );
+  static void DeserializeSettings(
+      const uint8_t* buffer, size_t& offset, size_t bufferSize, UserSettings& settings
+  );
 };

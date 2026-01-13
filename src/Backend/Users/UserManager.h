@@ -20,10 +20,13 @@ class UserManager {
 public:
   [[nodiscard]] static UserManager& GetInstance();
   ~UserManager();
-  [[nodiscard]] const std::vector<UserProfile>& Users() const;
+  [[nodiscard]] std::vector<const UserProfile*> Users() const;
+  [[nodiscard]] const std::vector<UserProfile>& UsersAndComputers() const;
   void CreateUser(const std::string& name);
   [[nodiscard]] UserProfile& GetCurrentUser();
   bool ChangeCurrentUser(unsigned int userId);
   [[nodiscard]] UserProfile& GetUserById(unsigned int userId);
   [[nodiscard]] UserProfile& CreateComputer(const std::string& name, ComputerType computerType);
+
+  void AddUserProfile(const UserProfile& userProfile);
 };
