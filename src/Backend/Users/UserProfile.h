@@ -30,6 +30,7 @@ enum class Color {
   Red,
   Black,
   Green,
+  Blue,
   Gold,
 };
 
@@ -43,6 +44,11 @@ enum class BorderPattern {
 
 enum class UnitPattern {
   Default,
+
+  FlowerShipIcon,
+  CrosshairShipIcon,
+  StarShipIcon,
+  StoneShipIcon,
 };
 
 struct UserSettings {
