@@ -30,7 +30,18 @@ private:
 
   [[nodiscard]] bool AllUnitsPlaced() const;
   void ConfirmGridSetup();
+
   static void GenerateRandomSetup(ISegment* segmentBoard, ComputerType computerType);
+  static void GenerateUnitPlacement(ISegment* segmentBoard, BattleUnitType unitType, size_t count);
+  static void PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType unitType);
+  static bool CanPlaceUnitAt(
+      ISegment* segmentBoard,
+      BattleUnitType unitType,
+      size_t startX,
+      size_t startY,
+      size_t orientation
+  );
+  static bool CheckAdjacentCells(ISegment* segmentBoard, size_t x, size_t y);
 
   void OnToggleCell(size_t x, size_t y, size_t posX, size_t posY);
   void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& unitPool);

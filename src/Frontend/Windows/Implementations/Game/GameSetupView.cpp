@@ -246,6 +246,20 @@ bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     return true;
   }
 
+  if (keyDetails.key == ConsoleKey::R) {
+    const auto& gameManager = AppState::GetCurrentGameManager();
+    const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+
+    GenerateRandomSetup(
+        &currentPlayer.board.GetSegmentBoard(),
+        currentPlayer.profile.AI() != nullptr ? currentPlayer.profile.AI()->GetComputerType()
+                                              : ComputerType::Easy
+    );
+
+    ForceRender();
+    return true;
+  }
+
   grid.OnKeyPressed(keyDetails);
 
   return false;
@@ -302,79 +316,130 @@ void GameSetupView::GenerateRandomSetup(ISegment* segmentBoard, ComputerType /*c
   const auto& mode = gameManager->Mode();
 
   // Clear current setup
-  const auto& segments = segmentBoard->Segments();
   segmentBoard->Clear();
 
   // Randomly place units
   for (const auto& [unitType, count] : mode.unitPool) {
-    const auto unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
+    GenerateUnitPlacement(segmentBoard, unitType, count);
+  }
+}
 
-    for (size_t i = 0; i < count; ++i) {
-      bool placed = false;
+void GameSetupView::GenerateUnitPlacement(
+    ISegment* segmentBoard, BattleUnitType unitType, size_t count
+) {
+  for (size_t i = 0; i < count; ++i) {
+    PlaceUnitAtRandom(segmentBoard, unitType);
+  }
+}
 
-      while (!placed) {
-        const auto orientation = rand() % 2;
-        const auto startX = rand() % mode.boardWidth;
-        const auto startY = rand() % mode.boardHeight;
+void GameSetupView::PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType unitType) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
 
-        // Check if unit can be placed
-        bool canPlace = true;
-        for (size_t j = 0; j < unitSize; ++j) {
-          size_t x = startX;
-          size_t y = startY;
+  bool placed = false;
 
-          if (orientation == 0) {
-            x += j;
-          } else {
-            y += j;
-          }
+  size_t attempts = 0;
+  const size_t maxAttempts = 1000;
 
-          if (x >= mode.boardWidth || y >= mode.boardHeight || segments[y][x]) {
-            canPlace = false;
-            break;
-          }
+  while (!placed) {
+    // Prevent infinite loop
+    if (attempts++ >= maxAttempts) {
+      ShowErrorMessage("Failed to place unit after multiple attempts.");
+      InputManager::WaitUntillKeyPressed(true);
+      WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
+      break;
+    }
 
-          // Check adjacent cells
-          for (int adjY = -1; adjY <= 1; ++adjY) {
-            for (int adjX = -1; adjX <= 1; ++adjX) {
-              if (adjX == 0 && adjY == 0)
-                continue;
+    const auto orientation = rand() % 2;
+    const auto startX = rand() % mode.boardWidth;
+    const auto startY = rand() % mode.boardHeight;
 
-              size_t const checkX = x + adjX;
-              size_t const checkY = y + adjY;
+    // Check if unit can be placed
+    bool const canPlace = CanPlaceUnitAt(segmentBoard, unitType, startX, startY, orientation);
 
-              if (checkX < mode.boardWidth && checkY < mode.boardHeight) {
-                if (segments[checkY][checkX]) {
-                  canPlace = false;
-                  break;
-                }
-              }
-            }
-            if (!canPlace)
-              break;
-          }
-        }
+    if (!canPlace) {
+      continue;
+    }
 
-        if (canPlace) {
-          // Place unit
-          for (size_t j = 0; j < unitSize; ++j) {
-            size_t x = startX;
-            size_t y = startY;
+    // Place unit
+    for (size_t j = 0; j < unitSize; ++j) {
+      size_t x = startX;
+      size_t y = startY;
 
-            if (orientation == 0) {
-              x += j;
-            } else {
-              y += j;
-            }
-
-            segmentBoard->ToggleSegment(x, y);
-          }
-
-          placed = true;
-        }
+      if (orientation == 0) {
+        x += j;
+      } else {
+        y += j;
       }
+
+      segmentBoard->ToggleSegment(x, y);
+    }
+
+    placed = true;
+  }
+}
+
+bool GameSetupView::CanPlaceUnitAt(
+    ISegment* segmentBoard,
+    BattleUnitType unitType,
+    size_t startX,
+    size_t startY,
+    size_t orientation
+) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& segments = segmentBoard->Segments();
+  const auto& unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
+
+  for (size_t j = 0; j < unitSize; ++j) {
+    size_t x = startX;
+    size_t y = startY;
+
+    if (orientation == 0) {
+      x += j;
+    } else {
+      y += j;
+    }
+
+    if (x >= mode.boardWidth || y >= mode.boardHeight || segments[y][x]) {
+      return false;
+    }
+
+    // Check adjacent cells
+    if (!CheckAdjacentCells(segmentBoard, x, y)) {
+      return false;
     }
   }
+
+  return true;
+}
+
+bool GameSetupView::CheckAdjacentCells(ISegment* segmentBoard, size_t x, size_t y) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& segments = segmentBoard->Segments();
+
+  for (int adjY = -1; adjY <= 1; ++adjY) {
+    for (int adjX = -1; adjX <= 1; ++adjX) {
+      if (adjX == 0 && adjY == 0)
+        continue;
+
+      if (adjY != 0 && adjX != 0)
+        continue; // Skip diagonals
+
+      size_t const neighborX = x + adjX;
+      size_t const neighborY = y + adjY;
+
+      if (neighborX >= mode.boardWidth || neighborY >= mode.boardHeight)
+        continue;
+
+      if (segments[neighborY][neighborX])
+        return false;
+    }
+  }
+
+  return true;
 }
 
 void GameSetupView::ConfirmGridSetup() {
