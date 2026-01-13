@@ -23,6 +23,8 @@ class BoxDrawing {
 public:
   static std::unordered_map<BoxStyle, BoxStyleDefinition> boxStyles;
 
+  static void DrawWindowFrame(bool filled, const char* title = nullptr, bool flush = true);
+
   static void DrawBox(
       size_t x,
       size_t y,
