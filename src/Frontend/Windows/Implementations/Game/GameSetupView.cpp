@@ -10,7 +10,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
-#include "Frontend/Helpers/InteractiveGrid.h"
+#include "Frontend/Helpers/Grid.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"

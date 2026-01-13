@@ -5,7 +5,7 @@
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Units/BattleUnitType.h"
 #include "Frontend/Helpers/AnsiHelper.h"
-#include "Frontend/Helpers/InteractiveGrid.h"
+#include "Frontend/Helpers/Grid.h"
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
 #include <cstddef>

@@ -1,4 +1,4 @@
-#include "InteractiveGrid.h"
+#include "Grid.h"
 #include "AnsiHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
