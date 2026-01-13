@@ -44,8 +44,10 @@ struct UserSettings {
   bool autoMarkEmptyFields = false;
 };
 
+using PlayerId = uint32_t;
+
 class UserProfile {
-  unsigned int userId;
+  PlayerId userId;
   Computer* ai;
 
 public:
@@ -55,14 +57,11 @@ public:
   uint64_t unlockedContent;
   UserSettings settings;
   UserProfile(const UserProfile& other);
-  UserProfile(unsigned int userId, std::string name, std::unique_ptr<AchievementPool> achievements);
+  UserProfile(PlayerId userId, std::string name, std::unique_ptr<AchievementPool> achievements);
   UserProfile(
-      unsigned int userId,
-      std::string name,
-      std::unique_ptr<AchievementPool> achievements,
-      Computer* ai
+      PlayerId userId, std::string name, std::unique_ptr<AchievementPool> achievements, Computer* ai
   );
   ~UserProfile();
-  [[nodiscard]] unsigned int UserId() const;
+  [[nodiscard]] PlayerId UserId() const;
   [[nodiscard]] Computer* AI() const;
 };

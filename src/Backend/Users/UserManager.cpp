@@ -21,7 +21,7 @@ void UserManager::CreateUser(const std::string& name) {
 
 UserProfile& UserManager::GetCurrentUser() { return users[currentUserId]; }
 
-bool UserManager::ChangeCurrentUser(unsigned int userId) {
+bool UserManager::ChangeCurrentUser(PlayerId userId) {
   auto iter = std::find_if(users.begin(), users.end(), [userId](const UserProfile& uprof) {
     return uprof.UserId() == userId;
   });
@@ -33,7 +33,7 @@ bool UserManager::ChangeCurrentUser(unsigned int userId) {
   return true;
 }
 
-UserProfile& UserManager::GetUserById(unsigned int userId) {
+UserProfile& UserManager::GetUserById(PlayerId userId) {
   auto iter = std::find_if(users.begin(), users.end(), [userId](const UserProfile& uprof) {
     return uprof.UserId() == userId;
   });

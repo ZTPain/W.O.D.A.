@@ -35,5 +35,5 @@ private:
   void HandleInputSelectionRight();
 
   size_t highlightedOptionIndex = 0;
-  std::vector<size_t> selectedPlayerOptions;
+  std::vector<PlayerId> selectedPlayerOptions;
 };

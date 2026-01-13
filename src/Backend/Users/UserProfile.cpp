@@ -9,12 +9,12 @@ UserProfile::UserProfile(const UserProfile& other)
     : UserProfile(other.userId, other.name, other.achievements->Clone(), other.ai) {}
 
 UserProfile::UserProfile(
-    unsigned int userId, std::string name, std::unique_ptr<AchievementPool> achievements
+    PlayerId userId, std::string name, std::unique_ptr<AchievementPool> achievements
 )
     : UserProfile(userId, std::move(name), std::move(achievements), nullptr) {}
 
 UserProfile::UserProfile(
-    unsigned int userId,
+    PlayerId userId,
     std::string name,
     std::unique_ptr<AchievementPool> achievements,
     class Computer* ai

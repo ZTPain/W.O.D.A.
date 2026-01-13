@@ -12,7 +12,7 @@ class UserManager {
   static UserManager instance;
   static unsigned int nextUserId;
   std::vector<UserProfile> users;
-  unsigned int currentUserId;
+  PlayerId currentUserId;
   AchievementPool initialAchievementPool;
 
   UserManager();
@@ -23,7 +23,7 @@ public:
   [[nodiscard]] const std::vector<UserProfile>& Users() const;
   void CreateUser(const std::string& name);
   [[nodiscard]] UserProfile& GetCurrentUser();
-  bool ChangeCurrentUser(unsigned int userId);
-  [[nodiscard]] UserProfile& GetUserById(unsigned int userId);
+  bool ChangeCurrentUser(PlayerId userId);
+  [[nodiscard]] UserProfile& GetUserById(PlayerId userId);
   [[nodiscard]] UserProfile& CreateComputer(const std::string& name, ComputerType computerType);
 };
