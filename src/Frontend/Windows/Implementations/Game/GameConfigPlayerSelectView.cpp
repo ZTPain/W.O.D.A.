@@ -49,14 +49,13 @@ bool GameConfigPlayerSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (HandleInputSelection(keyDetails))
     return true;
 
-  if (keyDetails.key == ConsoleKey::Enter || keyDetails.key == ConsoleKey::Spacebar) {
-    // Proceed to player configuration (not implemented)
-
-    std::vector<UserProfile*> profiles;
-    profiles.push_back(&UserManager::GetInstance().GetCurrentUser());
-    profiles.push_back(
-        &UserManager::GetInstance().CreateComputer("Computer 1", ComputerType::Easy)
-    );
+  // Key is temporiary untill a "Continue" button is added
+  if (keyDetails.key == ConsoleKey::H) {
+    std::vector<UserProfile*> profiles{};
+    profiles.reserve(selectedPlayerOptions.size());
+    for (const auto& playerId : selectedPlayerOptions) {
+      profiles.emplace_back(&UserManager::GetInstance().GetUserById(playerId));
+    }
 
     auto gameManager = Battleships::NewGame(AppState::GetCurrentGameMode(), profiles);
     AppState::SetCurrentGameManager(std::move(gameManager));
