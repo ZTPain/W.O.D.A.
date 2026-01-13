@@ -4,7 +4,10 @@
 #include "Backend/Main/Battleships.h"
 #include "Backend/Users/UserProfile.h"
 #include <map>
+#include <stdexcept>
 #include <string>
+
+static UserProfile defaultUserProfile(0, "Default", nullptr);
 
 UserManager UserManager::instance;
 
@@ -30,7 +33,16 @@ void UserManager::CreateUser(const std::string& name) {
   Battleships::GetInstance().WriteToSave();
 }
 
-UserProfile& UserManager::GetCurrentUser() { return users[currentUserId]; }
+UserProfile& UserManager::GetCurrentUser() {
+  if (currentUserId >= 1000)
+    throw std::runtime_error("Current user is a computer, how?");
+
+  if (currentUserId == 0) {
+    return defaultUserProfile;
+  }
+
+  return users[currentUserId];
+}
 
 bool UserManager::ChangeCurrentUser(PlayerId userId) {
   auto user = users.find(userId);
@@ -61,7 +73,7 @@ UserProfile& UserManager::CreateComputer(const std::string& name, ComputerType c
   return computers.at(computerUserId);
 }
 
-UserManager::UserManager() : nextUserId(1), nextComputerUserId(1001), currentUserId(0) {}
+UserManager::UserManager() : nextUserId(1), nextComputerUserId(1001), currentUserId(1) {}
 
 UserManager::~UserManager() = default;
 
