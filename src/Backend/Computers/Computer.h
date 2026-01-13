@@ -15,8 +15,10 @@ enum class ComputerType {
 
 class Computer {
   IComputerStrategy* computerStrategy;
+  ComputerType computerType;
 
 public:
   Computer(ComputerType type);
   [[nodiscard]] Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
+  [[nodiscard]] ComputerType GetComputerType() const;
 };

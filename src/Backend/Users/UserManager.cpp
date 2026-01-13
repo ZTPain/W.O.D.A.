@@ -3,6 +3,7 @@
 #include "Backend/Games/GameManager.h"
 #include "Backend/Users/UserProfile.h"
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -30,6 +31,17 @@ bool UserManager::ChangeCurrentUser(unsigned int userId) {
 
   currentUserId = userId;
   return true;
+}
+
+UserProfile& UserManager::GetUserById(unsigned int userId) {
+  auto iter = std::find_if(users.begin(), users.end(), [userId](const UserProfile& uprof) {
+    return uprof.UserId() == userId;
+  });
+
+  if (iter == users.end())
+    throw std::out_of_range("User ID not found");
+
+  return *iter;
 }
 
 UserProfile& UserManager::CreateComputer(const std::string& name, ComputerType computerType) {
