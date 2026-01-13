@@ -2,15 +2,18 @@
 
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Main/SerializationHelper.h"
 #include "Backend/Replays/ReplayManager.h"
 #include "Backend/Units/BattleUnitType.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
-
+#include <array>
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
+#include <ios>
+#include <iterator>
 #include <memory>
-#include <string>
 #include <vector>
 
 Battleships Battleships::instance;
@@ -76,29 +79,27 @@ std::unique_ptr<GameManager> Battleships::NewGame(
 }
 
 void Battleships::ReadSave() {
-  std::ifstream file("save.dat");
+  std::ifstream file("save.dat", std::ios::binary);
 
-  if (!file) {
-    userManager.CreateUser("Player1");
-    userManager.CreateUser("Player2");
+  if (!file)
     return;
-  }
 
-  std::string tag;
-  size_t userCount = 0;
-  file >> tag >> userCount;
+  std::vector<char> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-  if (tag != "USERS") {
-    userManager.CreateUser("Player1");
-    userManager.CreateUser("Player2");
-    return;
-  }
+  file.close();
 
-  for (size_t i = 0; i < userCount; ++i) {
-    unsigned int id = 0;
-    std::string name;
-    file >> id >> name;
-    userManager.CreateUser(name);
+  const auto bufferSize = bytes.size();
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  const auto* buffer = reinterpret_cast<const uint8_t*>(bytes.data());
+  size_t offset = 0;
+
+  const auto playerCount = SerializationHelper::DeserializeInt32(buffer, offset, bufferSize);
+
+  for (uint32_t i = 0; i < playerCount; ++i) {
+    size_t bytesRead = 0;
+    const auto profile = UserProfile::Deserialize(buffer, offset, bufferSize, bytesRead);
+
+    userManager.AddUserProfile(profile);
   }
 
   file >> tag;
@@ -110,19 +111,29 @@ void Battleships::ReadSave() {
 }
 
 void Battleships::WriteToSave() const {
-  std::ofstream file("save.dat");
+  std::ofstream file("save.dat", std::ios::binary);
+
   if (!file)
     return;
 
   const auto& users = userManager.Users();
 
-  file << "USERS " << users.size() << "\n";
+  // 10 MB should be enough
+  constexpr auto BUFFER_SIZE = static_cast<const size_t>(10 * 1024 * 1024);
 
-  for (const auto& user : users) {
-    file << user.UserId() << " " << user.name << "\n";
+  std::array<uint8_t, BUFFER_SIZE> buffer{};
+  size_t offset = 0;
+
+  SerializationHelper::SerializeInt32(buffer.data(), offset, BUFFER_SIZE, users.size());
+  for (const auto* user : users) {
+    offset = user->Serialize(buffer.data(), offset, BUFFER_SIZE);
   }
 
   if (!users.empty()) {
     file << "CURRENT " << userManager.GetCurrentUser().UserId() << "\n";
   }
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<uint32_t>(offset));
+  file.close();
 }
