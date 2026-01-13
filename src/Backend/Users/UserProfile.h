@@ -50,6 +50,14 @@ class UserProfile {
   PlayerId userId;
   Computer* ai;
 
+  UserProfile(
+      PlayerId userId,
+      std::string name,
+      std::unique_ptr<AchievementPool> achievements,
+      Computer* ai,
+      uint64_t unlockedContent
+  );
+
 public:
   std::string name;
   Statistics statistics;
