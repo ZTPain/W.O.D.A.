@@ -68,7 +68,7 @@ size_t UserProfile::Serialize(uint8_t* buffer, size_t offset, size_t bufferSize)
   SerializeStatistics(buffer, offset, bufferSize);
 
   // Serialize achievements
-  size_t achievementsBytes = achievements->Serialize(buffer, offset, bufferSize);
+  const size_t achievementsBytes = achievements->Serialize(buffer, offset, bufferSize);
   offset += achievementsBytes;
 
   return offset;
@@ -80,13 +80,14 @@ UserProfile UserProfile::Deserialize(
   const size_t startOffset = offset;
 
   // Deserialize userId
-  unsigned int userId = SerializationHelper::DeserializeInt32(buffer, offset, bufferSize);
+  const unsigned int userId = SerializationHelper::DeserializeInt32(buffer, offset, bufferSize);
 
   // Deserialize name
   std::string name = SerializationHelper::DeserializeString(buffer, offset, bufferSize);
 
   // Deserialize unlockedContent
-  uint64_t unlockedContent = SerializationHelper::DeserializeInt64(buffer, offset, bufferSize);
+  const uint64_t unlockedContent =
+      SerializationHelper::DeserializeInt64(buffer, offset, bufferSize);
 
   // Deserialize settings
   UserSettings settings;
@@ -100,7 +101,7 @@ UserProfile UserProfile::Deserialize(
   std::unique_ptr<AchievementPool> achievements =
       AchievementPool::Deserialize(buffer, offset, bufferSize);
 
-  UserProfile userProfile(
+  const UserProfile userProfile(
       userId,
       std::move(name),
       statistics,

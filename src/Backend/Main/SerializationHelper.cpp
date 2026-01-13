@@ -86,7 +86,7 @@ void SerializationHelper::SerializeString(
   if (offset + length > bufferSize)
     throw std::out_of_range("Buffer overflow in SerializeString");
 
-  for (char c : value) {
+  for (const char c : value) {
     buffer[offset++] = static_cast<uint8_t>(c);
   }
 }
