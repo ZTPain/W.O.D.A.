@@ -1,6 +1,7 @@
 #include "UserManager.h"
 #include "Backend/Computers/Computer.h"
 #include "Backend/Games/GameManager.h"
+#include "Backend/Main/Battleships.h"
 #include "Backend/Users/UserProfile.h"
 #include <algorithm>
 #include <stdexcept>
@@ -29,6 +30,8 @@ const std::vector<UserProfile>& UserManager::UsersAndComputers() const { return 
 void UserManager::CreateUser(const std::string& name) {
   currentUserId = nextUserId++;
   users.emplace_back(currentUserId, name, initialAchievementPool.Clone());
+
+  Battleships::GetInstance().WriteToSave();
 }
 
 UserProfile& UserManager::GetCurrentUser() { return users[currentUserId]; }
