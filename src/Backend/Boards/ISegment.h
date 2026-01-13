@@ -5,12 +5,14 @@
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Units/BattleUnitType.h"
 #include <cstddef>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
+using UnitsMap = std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>;
+
 class ISegment {
 public:
-  ISegment(size_t width, size_t height);
   virtual ~ISegment() = default;
   [[nodiscard]] virtual size_t Width() const = 0;
   [[nodiscard]] virtual size_t Height() const = 0;
@@ -18,7 +20,6 @@ public:
   virtual bool ToggleSegment(size_t x, size_t y) = 0;
   virtual void Clear() = 0;
   // Array[UnitType][UnitNumber] of Coordinates[]
-  [[nodiscard]] virtual const std::
-      unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>&
-      GetUnits() const = 0;
+  [[nodiscard]] virtual const UnitsMap& GetUnits() const = 0;
+  [[nodiscard]] virtual std::unique_ptr<ISegment> Clone() const = 0;
 };

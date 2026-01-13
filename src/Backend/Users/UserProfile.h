@@ -46,7 +46,7 @@ struct UserSettings {
 
 class UserProfile {
   unsigned int userId;
-  Computer* computer;
+  Computer* ai;
 
 public:
   std::string name;
@@ -54,15 +54,15 @@ public:
   std::unique_ptr<AchievementPool> achievements;
   uint64_t unlockedContent;
   UserSettings settings;
-
+  UserProfile(const UserProfile& other);
   UserProfile(unsigned int userId, std::string name, std::unique_ptr<AchievementPool> achievements);
   UserProfile(
       unsigned int userId,
       std::string name,
       std::unique_ptr<AchievementPool> achievements,
-      Computer& computer
+      Computer* ai
   );
   ~UserProfile();
-  unsigned int UserId();
-  Computer* Computer();
+  [[nodiscard]] unsigned int UserId() const;
+  [[nodiscard]] Computer* AI() const;
 };

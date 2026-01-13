@@ -7,17 +7,19 @@
 #include "Backend/Replays/ReplayManager.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
+#include <memory>
 #include <vector>
 
 class Battleships {
   static Battleships instance;
-  static GameMode standardGameMode;
-  static GameMode salvoGameMode;
-  static GameMode extendedGameMode;
 
 public:
-  UserManager userManager;
-  ReplayManager replayManager;
+  UserManager& userManager;
+  ReplayManager& replayManager;
+
+  static const GameMode STANDARD_GAME_MODE;
+  static const GameMode SALVO_GAME_MODE;
+  static const GameMode EXTENDED_GAME_MODE;
 
 private:
   void ReadSave();
@@ -26,6 +28,8 @@ private:
 public:
   static Battleships& GetInstance();
   ~Battleships();
-  GameManager NewGame(GameMode mode, std::vector<UserProfile&> profiles);
-  void WriteToSave();
+  static std::unique_ptr<GameManager> NewGame(
+      const GameMode& mode, std::vector<UserProfile*>& profiles
+  );
+  void WriteToSave() const;
 };
