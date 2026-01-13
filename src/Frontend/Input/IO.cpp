@@ -1,7 +1,9 @@
 #include "IO.h"
 
 #include "Frontend/ConsoleManager.h"
+#include <array>
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <ostream>
 #include <streambuf>
@@ -28,6 +30,9 @@ protected:
 };
 
 void IO::Initialize() {
+  static std::array<char, 16384> stdCoutBuffer{};
+  setvbuf(stdout, stdCoutBuffer.data(), _IOLBF, stdCoutBuffer.size());
+
   // static CustomOstreamBuf customBuf;
   // cout.rdbuf(&customBuf);
   cout.rdbuf(std::cout.rdbuf());

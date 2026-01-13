@@ -4,23 +4,20 @@
 #include "Helpers/AppHelper.h"
 #include "Windows/WindowManager.h"
 #include <clocale>
-#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 
 extern "C" void EntryPoint() {
+  IO::Initialize();
+  IO::cout << AnsiHelper::EnableAltScreenBuffer();
+  IO::cout << AnsiHelper::HideCursor();
+
   // Set locale to support UTF-8 box drawing characters
   std::setlocale(LC_ALL, "en_US.UTF-8");
 #ifdef _WIN32
   std::system("chcp 65001");
 #endif
 
-  static char stdCoutBuffer[16384];
-  setvbuf(stdout, static_cast<char*>(stdCoutBuffer), _IOLBF, sizeof(stdCoutBuffer));
-
-  IO::Initialize();
-
-  IO::cout << AnsiHelper::HideCursor();
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
   IO::cout.flush();
 

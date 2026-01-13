@@ -41,6 +41,8 @@ public:
   constexpr static const char* ShowCursor();
   constexpr static const char* SaveScreen();
   constexpr static const char* RestoreScreen();
+  constexpr static const char* EnableAltScreenBuffer();
+  constexpr static const char* DisableAltScreenBuffer();
 };
 
 #ifdef USE_ANSI_CODES
@@ -62,6 +64,9 @@ public:
 
 #define ANSI_SAVE_SCREEN ANSI_ESCAPE_CODE "?47h"
 #define ANSI_RESTORE_SCREEN ANSI_ESCAPE_CODE "?47l"
+
+#define ANSI_ENABLE_ALT_SCREEN_BUFFER ANSI_ESCAPE_CODE "?1049h"
+#define ANSI_DISABLE_ALT_SCREEN_BUFFER ANSI_ESCAPE_CODE "?1049l"
 
 inline std::string AnsiHelper::MoveCursor(size_t x, size_t y) {
   return ANSI_ESCAPE_CODE + std::to_string(y) + ";" + std::to_string(x) + "H";
@@ -108,6 +113,12 @@ constexpr const char* AnsiHelper::ShowCursor() { return ANSI_SHOW_CURSOR; }
 constexpr const char* AnsiHelper::SaveScreen() { return ANSI_SAVE_SCREEN; }
 
 constexpr const char* AnsiHelper::RestoreScreen() { return ANSI_RESTORE_SCREEN; }
+
+constexpr const char* AnsiHelper::EnableAltScreenBuffer() { return ANSI_ENABLE_ALT_SCREEN_BUFFER; }
+
+constexpr const char* AnsiHelper::DisableAltScreenBuffer() {
+  return ANSI_DISABLE_ALT_SCREEN_BUFFER;
+}
 
 #elif defined(USE_WODA_CODES)
 
