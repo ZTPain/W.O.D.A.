@@ -43,7 +43,7 @@ bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 }
 
 void MainMenuWindow::Draw() const {
-  BoxDrawing::DrawBox(10, 1, 50, 10, BoxStyle::Rounded, true, "Main Menu");
+  BoxDrawing::DrawWindowFrame(true, "Main Menu");
 
   DrawOptions();
 }

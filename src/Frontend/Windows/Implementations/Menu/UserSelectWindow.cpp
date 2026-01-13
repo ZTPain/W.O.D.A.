@@ -57,7 +57,7 @@ bool UserSelectWindow::IsCorrectSize(int /*width*/, int /*height*/) const { retu
 void UserSelectWindow::ForceRender() {
   IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset();
 
-  BoxDrawing::DrawBox(1, 1, AppHelper::GetWidth(), AppHelper::GetHeight(), BoxStyle::Single, true);
+  BoxDrawing::DrawWindowFrame(true, "Select User");
 
   const auto users = UserManager::GetInstance().Users();
   IO::cout << AnsiHelper::MoveCursor(3, 2) << "Select User:\n";

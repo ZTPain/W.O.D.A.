@@ -204,7 +204,7 @@ void GameConfigPlayerSelectView::ForceRender() {
 
   compactModeEnabled = height < 20;
 
-  BoxDrawing::DrawBox(1, 1, width, height, BoxStyle::Single, true, "Player Configuration");
+  BoxDrawing::DrawWindowFrame(true, "Player Configuration");
 
   IO::cout << AnsiHelper::MoveCursor(3, 3) << "Game Mode: " << AppState::GetCurrentGameMode().name
            << '\n';

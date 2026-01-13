@@ -287,7 +287,7 @@ void GameSetupView::ForceRender() {
   int height = 0;
   InputManager::GetTerminalSize(width, height);
 
-  BoxDrawing::DrawBox(1, 1, width, height, BoxStyle::Double, true, titleBuffer.data());
+  BoxDrawing::DrawWindowFrame(true, titleBuffer.data());
 
   BoxDrawing::DrawBox(
       1 + 2,

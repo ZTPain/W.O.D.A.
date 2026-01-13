@@ -121,7 +121,7 @@ void GameConfigModeSelectView::ForceRender() {
   int height = 0;
   InputManager::GetTerminalSize(width, height);
 
-  BoxDrawing::DrawBox(1, 1, width, height, BoxStyle::Single, true, "Game Mode Selection");
+  BoxDrawing::DrawWindowFrame(true, "Game Mode Selection");
 
   DrawOptions();
 
