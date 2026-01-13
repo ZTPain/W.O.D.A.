@@ -135,13 +135,13 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
   const auto& allProfiles = UserManager::GetInstance().Users();
   size_t selectIndex = highlightedOptionIndex;
   for (const auto& profile : allProfiles) {
-    if (std::find(selectedPlayerOptions.begin(), selectedPlayerOptions.end(), profile.UserId()) !=
+    if (std::find(selectedPlayerOptions.begin(), selectedPlayerOptions.end(), profile->UserId()) !=
         selectedPlayerOptions.end()) {
       continue;
     }
 
     if (selectIndex == 0) {
-      selectedPlayerOptions.emplace_back(profile.UserId());
+      selectedPlayerOptions.emplace_back(profile->UserId());
       highlightedOptionIndex = std::min(highlightedOptionIndex - 1, static_cast<size_t>(0));
       ForceRender();
       return;
@@ -224,7 +224,7 @@ void GameConfigPlayerSelectView::ForceRender() {
 }
 
 void GameConfigPlayerSelectView::RenderPlayerOptions() const {
-  const auto& allProfiles = UserManager::GetInstance().Users();
+  const auto& allProfiles = UserManager::GetInstance().UsersAndComputers();
 
   size_t selectedIndex = 0;
   size_t unselectedIndex = 0;
@@ -235,7 +235,7 @@ void GameConfigPlayerSelectView::RenderPlayerOptions() const {
 
     if (isSelected) {
       RenderSelectedPlayerOption(selectedIndex++, profile);
-    } else {
+    } else if (profile.AI() == nullptr) {
       RenderUnselectedPlayerOption(unselectedIndex++, profile);
     }
   }
