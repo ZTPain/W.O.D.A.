@@ -118,8 +118,8 @@ void Battleships::WriteToSave() const {
   size_t offset = 0;
 
   SerializationHelper::SerializeInt32(buffer.data(), offset, BUFFER_SIZE, users.size());
-  for (const auto* user : users) {
-    offset = user->Serialize(buffer.data(), offset, BUFFER_SIZE);
+  for (const auto& [userId, user] : users) {
+    offset = user.Serialize(buffer.data(), offset, BUFFER_SIZE);
   }
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)

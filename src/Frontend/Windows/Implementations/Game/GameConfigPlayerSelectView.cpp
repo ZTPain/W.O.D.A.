@@ -80,7 +80,7 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
     case ConsoleKey::S:
     case ConsoleKey::DownArrow:
       if ((highlightedOptionIndex < 100 &&
-           highlightedOptionIndex + 1 < UserManager::GetInstance().Users().size() +
+           highlightedOptionIndex + 1 < UserManager::GetInstance().UsersAndComputers().size() +
                                             3 /* AI add options */ -
                                             selectedPlayerOptions.size()) ||
           (highlightedOptionIndex >= 100 &&
@@ -94,9 +94,9 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
       if (highlightedOptionIndex >= 100) {
         highlightedOptionIndex -= 100;
         if (highlightedOptionIndex >=
-            UserManager::GetInstance().Users().size() - selectedPlayerOptions.size()) {
-          highlightedOptionIndex =
-              UserManager::GetInstance().Users().size() - 1 - selectedPlayerOptions.size();
+            UserManager::GetInstance().UsersAndComputers().size() - selectedPlayerOptions.size()) {
+          highlightedOptionIndex = UserManager::GetInstance().UsersAndComputers().size() - 1 -
+                                   selectedPlayerOptions.size();
         }
       }
       ForceRender();
@@ -132,9 +132,12 @@ bool GameConfigPlayerSelectView::HandleInputSelection(ConsoleKeyDetails keyDetai
 
 void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
   // Select unselected player or add AI
-  const auto& allProfiles = UserManager::GetInstance().Users();
+  const auto& allProfiles = UserManager::GetInstance().UsersAndComputers();
   size_t selectIndex = highlightedOptionIndex;
-  for (const auto& profile : allProfiles) {
+  for (const auto& [userId, profile] : allProfiles) {
+    if (profile->AI() != nullptr)
+      continue;
+
     if (std::find(selectedPlayerOptions.begin(), selectedPlayerOptions.end(), profile->UserId()) !=
         selectedPlayerOptions.end()) {
       continue;
@@ -228,14 +231,14 @@ void GameConfigPlayerSelectView::RenderPlayerOptions() const {
 
   size_t selectedIndex = 0;
   size_t unselectedIndex = 0;
-  for (const auto& profile : allProfiles) {
+  for (const auto& [userId, profile] : allProfiles) {
     bool const isSelected =
-        std::find(selectedPlayerOptions.begin(), selectedPlayerOptions.end(), profile.UserId()) !=
+        std::find(selectedPlayerOptions.begin(), selectedPlayerOptions.end(), profile->UserId()) !=
         selectedPlayerOptions.end();
 
     if (isSelected) {
       RenderSelectedPlayerOption(selectedIndex++, profile);
-    } else if (profile.AI() == nullptr) {
+    } else if (profile->AI() == nullptr) {
       RenderUnselectedPlayerOption(unselectedIndex++, profile);
     }
   }
@@ -245,21 +248,21 @@ void GameConfigPlayerSelectView::RenderPlayerOptions() const {
 }
 
 void GameConfigPlayerSelectView::RenderSelectedPlayerOption(
-    size_t index, const UserProfile& playerProfile
+    size_t index, const UserProfile* playerProfile
 ) const {
   const size_t x = 40;
   const size_t y = (compactModeEnabled ? 4 : 7) + (index * (compactModeEnabled ? 1 : 2));
 
-  const char* name = playerProfile.name.c_str();
+  const char* name = playerProfile->name.c_str();
 
-  if (playerProfile.AI() != nullptr) {
+  if (playerProfile->AI() != nullptr) {
     std::array<char, 100> buffer{};
     snprintf(
         buffer.data(),
         100,
         "%s (AI - %s)",
-        playerProfile.name.c_str(),
-        ComputerHelper::GetComputerTypeString(playerProfile.AI()->GetComputerType())
+        playerProfile->name.c_str(),
+        ComputerHelper::GetComputerTypeString(playerProfile->AI()->GetComputerType())
     );
     name = buffer.data();
   }
@@ -274,18 +277,18 @@ void GameConfigPlayerSelectView::RenderSelectedPlayerOption(
 }
 
 void GameConfigPlayerSelectView::RenderUnselectedPlayerOption(
-    size_t index, const UserProfile& playerProfile
+    size_t index, const UserProfile* playerProfile
 ) const {
   const size_t x = 5;
   const size_t y = (compactModeEnabled ? 4 : 7) + (index * (compactModeEnabled ? 1 : 2));
 
   if (highlightedOptionIndex == index) {
     IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::Reversed() << "[X] "
-             << playerProfile.name << AnsiHelper::Reset();
+             << playerProfile->name << AnsiHelper::Reset();
     return;
   }
 
-  IO::cout << AnsiHelper::MoveCursor(x, y) << "[ ] " << playerProfile.name;
+  IO::cout << AnsiHelper::MoveCursor(x, y) << "[ ] " << playerProfile->name;
 }
 
 void GameConfigPlayerSelectView::RenderAIAddOption(size_t index) const {

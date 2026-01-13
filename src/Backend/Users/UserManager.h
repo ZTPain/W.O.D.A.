@@ -5,13 +5,15 @@
 #include "AchievementPool.h"
 #include "Backend/Computers/Computer.h"
 #include "UserProfile.h"
+#include <map>
 #include <string>
-#include <vector>
 
 class UserManager {
   static UserManager instance;
-  static unsigned int nextUserId;
-  std::vector<UserProfile> users;
+  unsigned int nextUserId;
+  unsigned int nextComputerUserId;
+  std::map<PlayerId, UserProfile> users;
+  std::map<PlayerId, UserProfile> computers;
   PlayerId currentUserId;
   AchievementPool initialAchievementPool;
 
@@ -20,8 +22,8 @@ class UserManager {
 public:
   [[nodiscard]] static UserManager& GetInstance();
   ~UserManager();
-  [[nodiscard]] std::vector<const UserProfile*> Users() const;
-  [[nodiscard]] const std::vector<UserProfile>& UsersAndComputers() const;
+  [[nodiscard]] const std::map<PlayerId, UserProfile>& Users() const;
+  [[nodiscard]] std::map<PlayerId, const UserProfile*> UsersAndComputers() const;
   void CreateUser(const std::string& name);
   [[nodiscard]] UserProfile& GetCurrentUser();
   bool ChangeCurrentUser(PlayerId userId);

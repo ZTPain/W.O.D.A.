@@ -37,7 +37,12 @@ bool UserSelectWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
     if (selection - 1 < users.size()) {
       // Select existing user
-      UserManager::GetInstance().ChangeCurrentUser(users[selection - 1]->UserId());
+      auto it = users.begin();
+      for (size_t i = 0; i < selection - 1; ++i) {
+        it++;
+      }
+
+      UserManager::GetInstance().ChangeCurrentUser(it->second.UserId());
       WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
       return true;
     }
@@ -57,9 +62,11 @@ void UserSelectWindow::ForceRender() {
   const auto users = UserManager::GetInstance().Users();
   IO::cout << AnsiHelper::MoveCursor(3, 2) << "Select User:\n";
   IO::cout << AnsiHelper::MoveCursor(5, (4 + (-1))) << "0. Create New User";
-  for (size_t i = 0; i < users.size(); ++i) {
-    IO::cout << AnsiHelper::MoveCursor(5, static_cast<int>(4 + i)) << (i + 1) << ". "
-             << users[i]->name;
+
+  auto i = 0;
+  for (const auto& [userId, user] : users) {
+    IO::cout << AnsiHelper::MoveCursor(5, (4 + i)) << (i + 1) << ". " << user.name;
+    i++;
   }
 
   IO::cout.flush();

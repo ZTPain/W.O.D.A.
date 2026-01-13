@@ -23,8 +23,8 @@ private:
 
   void RenderPlayerOptions() const;
 
-  void RenderSelectedPlayerOption(size_t index, const UserProfile& player) const;
-  void RenderUnselectedPlayerOption(size_t index, const UserProfile& player) const;
+  void RenderSelectedPlayerOption(size_t index, const UserProfile* player) const;
+  void RenderUnselectedPlayerOption(size_t index, const UserProfile* player) const;
 
   void RenderAIAddOption(size_t index) const;
   void RenderAIAddOption(size_t index, ComputerType type) const;
