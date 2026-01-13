@@ -15,7 +15,7 @@ class Battleships {
 
 public:
   UserManager& userManager;
-  ReplayManager& replayManager;
+  // ReplayManager& replayManager;
 
   static const GameMode STANDARD_GAME_MODE;
   static const GameMode SALVO_GAME_MODE;
