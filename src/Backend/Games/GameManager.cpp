@@ -29,6 +29,12 @@ unsigned int GameManager::CurrentTurn() const { return currentTurn; }
 
 Player& GameManager::GetCurrentPlayer() { return players[currentTurn]; }
 
+GameState GameManager::State() const { return state; }
+
+unsigned int GameManager::WinnerId() const { return winnerId; }
+
+std::chrono::seconds GameManager::Playtime() const { return playtime; }
+
 void GameManager::StartGame() {
   gameStartPoint = std::chrono::steady_clock::now();
   state = GameState::Playing;
