@@ -227,6 +227,8 @@ void GameSetupView::OnEnter() {
       [this](size_t x, size_t y, size_t posX, size_t posY) { OnToggleCell(x, y, posX, posY); }
   );
 
+  HandleAI();
+
   ForceRender();
 }
 
@@ -309,6 +311,25 @@ bool GameSetupView::IsCorrectSize(int width, int height) const {
   const auto requiredHeight = ((mode.boardHeight + 1) * 2) + 5;
   return static_cast<size_t>(width) >= requiredWidth &&
          static_cast<size_t>(height) >= requiredHeight;
+}
+
+// Justification: This is recursive only if the next player is AI
+// In theory this could lead to stack overflow if there are only AI players
+// Will probably need to be reworked in the future to avoid that case
+// NOLINTNEXTLINE(misc-no-recursion)
+void GameSetupView::HandleAI() {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+
+  if (currentPlayer.profile.AI() == nullptr)
+    return;
+
+  // Initial will always be invalid, so we loop until a valid setup is generated
+  while (!ConfirmGridSetup()) {
+    GenerateRandomSetup(
+        &currentPlayer.board.GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
+    );
+  }
 }
 
 void GameSetupView::GenerateRandomSetup(ISegment* segmentBoard, ComputerType /*computerType*/) {
@@ -442,12 +463,16 @@ bool GameSetupView::CheckAdjacentCells(ISegment* segmentBoard, size_t x, size_t 
   return true;
 }
 
-void GameSetupView::ConfirmGridSetup() {
+// Justification: This is recursive only if the next player is AI
+// In theory this could lead to stack overflow if there are only AI players
+// Will probably need to be reworked in the future to avoid that case
+// NOLINTNEXTLINE(misc-no-recursion)
+bool GameSetupView::ConfirmGridSetup() {
   const auto& gameManager = AppState::GetCurrentGameManager();
 
   if (!AllUnitsPlaced()) {
     ShowErrorMessage("Not all units have been placed!");
-    return;
+    return false;
   }
 
   // Show confirmation prompt
@@ -459,19 +484,16 @@ void GameSetupView::ConfirmGridSetup() {
   if (currentPlayerIndex + 1 < players.size()) {
     currentPlayerIndex++;
 
-    if (players.at(currentPlayerIndex).profile.AI() != nullptr) {
-      GenerateRandomSetup(
-          &players.at(currentPlayerIndex).board.GetSegmentBoard(),
-          players.at(currentPlayerIndex).profile.AI()->GetComputerType()
-      );
-    }
-
     ForceRender();
+
+    HandleAI();
   } else {
     // All players have set up their boards
     gameManager->StartGame();
     WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
   }
+
+  return true;
 }
 
 void GameSetupView::ShowErrorMessage(const std::string& message) {

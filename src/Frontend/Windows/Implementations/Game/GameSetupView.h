@@ -29,8 +29,9 @@ private:
   static void ShowErrorMessage(const std::string& message);
 
   [[nodiscard]] bool AllUnitsPlaced() const;
-  void ConfirmGridSetup();
+  bool ConfirmGridSetup();
 
+  void HandleAI();
   static void GenerateRandomSetup(ISegment* segmentBoard, ComputerType computerType);
   static void GenerateUnitPlacement(ISegment* segmentBoard, BattleUnitType unitType, size_t count);
   static void PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType unitType);
