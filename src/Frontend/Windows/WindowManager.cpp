@@ -6,6 +6,7 @@
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
+#include <cassert>
 #include <iostream>
 #include <memory>
 
@@ -48,17 +49,40 @@ void WindowManager::Initialize() {
 }
 
 void WindowManager::SwitchToWindow(WindowType type) {
+  InputManager::DiscardPendingKeyPresses();
+
   if (currentWindowType != WindowType::None) {
     windows[currentWindowType]->Exit();
+    currentWindowType = WindowType::None;
   }
 
-  currentWindowType = type;
-  windows[currentWindowType]->Enter();
+  pendingWindowType = type;
+}
+
+void WindowManager::UpdatePendingWindow() {
+  if (pendingWindowType != WindowType::None) {
+    EnterPendingWindow();
+  }
+}
+
+void WindowManager::EnterPendingWindow() {
+  assert(pendingWindowType != WindowType::None);
+  assert(currentWindowType == WindowType::None);
+
+  const auto type = currentWindowType = pendingWindowType;
+  pendingWindowType = WindowType::None;
+
+  windows[type]->Enter();
+
+  if (currentWindowType != type) {
+    // Window switch occurred during OnEnter
+    return;
+  }
 
   int width = 0;
   int height = 0;
   InputManager::GetTerminalSize(width, height);
-  if (!windows[currentWindowType]->IsCorrectSize(width, height)) {
+  if (!windows[type]->IsCorrectSize(width, height)) {
     minSizeShown = true;
     ShowMinimumSizeMessage();
   } else {

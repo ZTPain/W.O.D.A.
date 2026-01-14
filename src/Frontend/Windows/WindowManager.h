@@ -18,6 +18,8 @@ public:
   WindowManager(const WindowManager&) = delete;
   const WindowManager& operator=(const WindowManager&) = delete;
 
+  void UpdatePendingWindow();
+
   Window* GetCurrentWindow() {
     if (currentWindowType == WindowType::None)
       return nullptr;
@@ -61,6 +63,8 @@ private:
   std::unordered_map<WindowType, std::unique_ptr<Window>> windows;
   WindowManager() = default;
   WindowType currentWindowType{};
+  WindowType pendingWindowType{};
   bool minSizeShown = false;
   static void ShowMinimumSizeMessage();
+  void EnterPendingWindow();
 };

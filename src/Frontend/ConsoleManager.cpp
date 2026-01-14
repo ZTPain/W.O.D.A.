@@ -1,6 +1,7 @@
 #include "ConsoleManager.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
+#include "Frontend/Windows/WindowManager.h"
 #include <cstdint>
 #include <iostream>
 
@@ -51,4 +52,7 @@ extern "C" void SetConsoleFlushCallback(void (*callback)()) { consoleFlushCallba
 
 void ConsoleManager::FlushConsole() { consoleFlushCallback(); }
 
-extern "C" void OnUpdate() { InputManager::OnUpdate(); }
+extern "C" void OnUpdate() {
+  WindowManager::GetInstance().UpdatePendingWindow();
+  InputManager::OnUpdate();
+}
