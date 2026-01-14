@@ -5,13 +5,16 @@
 #include "Backend/Boards/GameBoard.h"
 #include "Coordinates.h"
 #include "ICommand.h"
+#include <memory>
 
-class FireCommand : ICommand {
+class FireCommand : public ICommand {
   GameBoard& board;
   Coordinates coords;
 
 public:
   FireCommand(GameBoard& board, Coordinates coords);
+  [[nodiscard]] std::unique_ptr<ICommand> Clone() const override;
+
   bool Execute() override;
   void Undo() override;
 };

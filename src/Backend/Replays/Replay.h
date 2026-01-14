@@ -16,4 +16,14 @@ struct Replay {
   unsigned int winnerId{};
   std::chrono::seconds playtime{};
   time_t timestamp{};
+
+  Replay(const Replay& other);
+
+  Replay(
+      unsigned int replayId,
+      std::vector<Player> players,
+      unsigned int winnerId,
+      std::chrono::seconds playtime,
+      time_t timestamp
+  );
 };
