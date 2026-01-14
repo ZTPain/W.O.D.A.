@@ -35,6 +35,13 @@ public:
 
   void OnKeyPressed(ConsoleKeyDetails keyDetails);
 
+  void SetOffset(size_t xOffset, size_t yOffset) {
+    this->xOffset = xOffset;
+    this->yOffset = yOffset;
+  }
+
+  void SetCursorPosition(size_t x, size_t y) { MoveCursorTo(x, y); }
+
   [[nodiscard]] size_t GetWidth() const { return width; }
   [[nodiscard]] size_t GetHeight() const { return height; }
 

@@ -21,7 +21,8 @@ Grid::Grid(
     : xOffset(xOffset), yOffset(yOffset), width(width), height(height), cellWidth(cellWidth),
       cellHeight(cellHeight), cellWidthWithBorders(cellWidth + 2),
       cellHeightWithBorders(cellHeight + 1), renderCellCallback(std::move(renderCellCallback)),
-      onToggleCellCallback(std::move(onToggleCellCallback)), cursorX(0), cursorY(0) {}
+      onToggleCellCallback(std::move(onToggleCellCallback)),
+      cursorX(onToggleCellCallback == nullptr ? 999999 : 0), cursorY(0) {}
 
 Grid::~Grid() = default;
 
@@ -55,6 +56,9 @@ void Grid::MoveCursorRight() {
 }
 
 void Grid::ToggleCellAtCursor() {
+  if (onToggleCellCallback == nullptr)
+    return;
+
   onToggleCellCallback(
       cursorX, cursorY, cursorX * cellWidthWithBorders, cursorY * cellHeightWithBorders
   );
