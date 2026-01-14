@@ -93,3 +93,7 @@ ISegment& GameBoard::GetSegmentBoard() const {
 }
 
 const std::vector<std::shared_ptr<BattleUnit>>& GameBoard::GetAllUnits() const { return allUnits; }
+
+const std::vector<std::vector<std::shared_ptr<BattleUnit>>>& GameBoard::Units() const {
+  return units;
+}
