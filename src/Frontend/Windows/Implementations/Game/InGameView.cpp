@@ -13,6 +13,7 @@
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
 #include "Frontend/Helpers/Grid.h"
+#include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -58,6 +59,7 @@ void InGameView::OnEnter() {
 
   currentPlayerIndex = 0;
   enemyPlayerIndex = 1;
+  fastForwardEnabled = false;
 
   currentGrid = Grid(
       2 + 2,
@@ -126,6 +128,12 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     return true;
   }
 
+  if (keyDetails.key == ConsoleKey::OemPeriod) {
+    fastForwardEnabled = !fastForwardEnabled;
+    ForceRender();
+    return true;
+  }
+
   enemyGrid.OnKeyPressed(keyDetails);
 
   return false;
@@ -139,6 +147,12 @@ void InGameView::ForceRender() {
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
 
   BoxDrawing::DrawWindowFrame(true, "In-Game View");
+
+  if (fastForwardEnabled) {
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow);
+    TextHelper::DrawCenteredText(3, "Fast Forward Enabled (Press '.' to toggle)");
+    IO::cout << AnsiHelper::Reset();
+  }
 
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
@@ -508,12 +522,23 @@ void InGameView::ShowPlayerFireAnimation(const Coordinates& coord) {
   const auto stepDelay = std::max(5, static_cast<int>(1500 / distance));
 
   while ((invertGridPositions ? bulletX > targetX : bulletX < targetX)) {
+
+    ConsoleKeyDetails keyDetails{};
+    if (InputManager::TryGetKeyPress(keyDetails)) {
+      if (keyDetails.key == ConsoleKey::OemPeriod) {
+        fastForwardEnabled = !fastForwardEnabled;
+        ForceRender();
+      }
+    }
+
     IO::cout << AnsiHelper::MoveCursor(bulletX, bulletY);
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow) << (invertGridPositions ? "←" : "→")
              << AnsiHelper::Reset();
     IO::cout.flush();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(stepDelay));
+    if (!fastForwardEnabled)
+      std::this_thread::sleep_for(std::chrono::milliseconds(stepDelay));
+
     if (invertGridPositions)
       bulletX -= 2; // Move left by 2 to account for character width
     else
@@ -537,8 +562,8 @@ void InGameView::ShowPlayerFireAnimation(const Coordinates& coord) {
 
   inAnimation = false;
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
+  if (!fastForwardEnabled)
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   InputManager::DiscardPendingKeyPresses();
 
   ForceRender();

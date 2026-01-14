@@ -31,6 +31,7 @@ private:
 
   std::vector<std::tuple<size_t, size_t, Coordinates, uint8_t>> actionHistory;
 
+  bool fastForwardEnabled = false;
   bool inAnimation = false;
   bool invertGridPositions = false;
   void SetGridOffsets();
@@ -58,5 +59,5 @@ private:
       size_t playerIndex, size_t* outMax = nullptr
   );
 
-  void HandleGameOver();
+  static void HandleGameOver();
 };
