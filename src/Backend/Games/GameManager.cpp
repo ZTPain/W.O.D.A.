@@ -5,6 +5,7 @@
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
+#include "Backend/Main/Battleships.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
 #include <algorithm>
@@ -175,6 +176,8 @@ void GameManager::HandleGameOver() {
   UpdatePlayerAchievements();
 
   state = GameState::Over;
+
+  Battleships::GetInstance().WriteToSave();
 }
 
 Replay GameManager::GetReplay() {
