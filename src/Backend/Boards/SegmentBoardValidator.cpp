@@ -84,7 +84,7 @@ static void GroupsToUnits(
 ) {
   outUnits.clear();
 
-  outUnits[BattleUnitType::None] = {};
+  outUnits[BattleUnitType::None] = {{}};
   for (const auto& [unitType, _] : mode.unitPool) {
     outUnits[unitType] = {};
   }
