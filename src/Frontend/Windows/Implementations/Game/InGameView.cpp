@@ -6,6 +6,8 @@
 #include "Backend/Games/FireCommand.h"
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Units/BattleUnitHelper.h"
+#include "Backend/Units/BattleUnitType.h"
 #include "Frontend/Helpers//PromptHelper.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
@@ -23,7 +25,9 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
+#include <map>
 #include <memory>
+#include <numeric>
 #include <stdexcept>
 #include <thread>
 #include <utility>
@@ -35,11 +39,11 @@ void InGameView::SetGridOffsets() {
   InputManager::GetTerminalSize(width, height);
 
   if (invertGridPositions) {
-    enemyGrid.SetOffset(2 + 2, 5);
-    currentGrid.SetOffset(width - enemyGrid.GetTotalWidth() - enemyGrid.GetXOffset(), 5);
+    enemyGrid.SetOffset(2 + 2, 8);
+    currentGrid.SetOffset(width - enemyGrid.GetTotalWidth() - enemyGrid.GetXOffset(), 8);
   } else {
-    currentGrid.SetOffset(2 + 2, 5);
-    enemyGrid.SetOffset(width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset(), 5);
+    currentGrid.SetOffset(2 + 2, 8);
+    enemyGrid.SetOffset(width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset(), 8);
   }
 }
 
@@ -56,7 +60,7 @@ void InGameView::OnEnter() {
 
   currentGrid = Grid(
       2 + 2,
-      5,
+      8,
       mode.boardWidth,
       mode.boardHeight,
       3,
@@ -69,7 +73,7 @@ void InGameView::OnEnter() {
 
   enemyGrid = Grid(
       width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset(),
-      5,
+      8,
       mode.boardWidth,
       mode.boardHeight,
       3,
@@ -187,6 +191,8 @@ void InGameView::ForceRender() {
 
   enemyGrid.Render();
 
+  RenderUnitsLeft();
+
   IO::cout.flush();
 }
 
@@ -278,6 +284,71 @@ void InGameView::OnToggleEnemyCell(size_t x, size_t y, size_t /*posX*/, size_t /
   HandleFireAtCoordinate(coord);
 }
 
+void InGameView::RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& player = gameManager->Players().at(playerIndex);
+  const auto& units = player.board.GetAllUnits();
+
+  IO::cout << AnsiHelper::MoveCursor(startX, startY);
+  IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+
+  IO::cout << "Units Left: ";
+  std::map<BattleUnitType, int> unitCount{};
+  for (const auto& [unitType, _] : mode.unitPool) {
+    unitCount[unitType] = 0;
+  }
+  for (const auto& unit : units) {
+    if (unit->IsDestroyed())
+      continue;
+
+    unitCount[unit->GetType()]++;
+  }
+
+  const auto halfCount = (mode.unitPool.size() + 1) / 2;
+  const auto maxCount =
+      std::accumulate(mode.unitPool.begin(), mode.unitPool.end(), 0, [](int sum, const auto& pair) {
+        return sum + (BattleUnitHelper::GetSizeForUnitType(pair.first) * pair.second);
+      });
+  const auto totalSegmentsLeft =
+      maxCount - std::accumulate(units.begin(), units.end(), 0, [](int sum, const auto& pair) {
+        return sum + pair->GetDestroyedSegments();
+      });
+
+  size_t i = 0;
+  size_t j = 0;
+  IO::cout << AnsiHelper::MoveCursor(startX + 20, startY);
+  IO::cout << "Total segments: " << totalSegmentsLeft << "/" << maxCount << " ";
+  for (const auto& [unitType, count] : unitCount) {
+    const auto maxCount = mode.unitPool.at(unitType);
+    IO::cout << AnsiHelper::MoveCursor(startX + (j * 20), startY + i + 1);
+    if (count == 0) {
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::BrightBlack);
+    } else {
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+    }
+    IO::cout << BattleUnitHelper::GetNameForUnitType(unitType) << ": " << count << "/" << maxCount
+             << " ";
+
+    i++;
+    if (i >= halfCount) {
+      i = 0;
+      j++;
+    }
+  }
+
+  IO::cout << AnsiHelper::Reset();
+}
+
+void InGameView::RenderUnitsLeft() const {
+  int width = 0;
+  int height = 0;
+  InputManager::GetTerminalSize(width, height);
+
+  RenderUnitsLeftForPlayer(currentPlayerIndex, currentGrid.GetXOffset(), 2);
+  RenderUnitsLeftForPlayer(enemyPlayerIndex, enemyGrid.GetXOffset(), 2);
+}
+
 // Justification: This is recursive only if the next player is AI
 // In theory this could lead to stack overflow if there are only AI players
 // Will probably need to be reworked in the future to avoid that case
@@ -348,15 +419,15 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
     }
   }
 
+  enemyGrid.SetCursorPosition(coord.x, coord.y);
+
+  ShowPlayerFireAnimation(coord);
+
   if (gameManager->State() == GameState::Over) {
     // Show game over prompt
     HandleGameOver();
     return true;
   }
-
-  enemyGrid.SetCursorPosition(coord.x, coord.y);
-
-  ShowPlayerFireAnimation(coord);
 
   OnChangeTurn();
   return true;

@@ -38,10 +38,11 @@ private:
 
   void OnToggleEnemyCell(size_t x, size_t y, size_t posX, size_t posY);
 
+  void RenderUnitsLeft() const;
+  static void RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY);
+
   void HandleAITurn();
-
   bool HandleFireAtCoordinate(const Coordinates& coord);
-
   void ShowPlayerFireAnimation(const Coordinates& coord);
 
   void HandleGameOver();
