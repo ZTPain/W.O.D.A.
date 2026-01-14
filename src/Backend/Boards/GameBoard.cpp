@@ -4,6 +4,7 @@
 #include "Backend/Games/GameMode.h"
 #include "Backend/Units/BattleUnit.h"
 #include "Backend/Units/BattleUnitHelper.h"
+#include "Backend/Units/BattleUnitType.h"
 #include "ISegment.h"
 #include "SegmentBoardValidator.h"
 #include <algorithm>
@@ -27,6 +28,9 @@ void GameBoard::ParseSegments() {
   const UnitsMap& unitsMap = segmentValidator->GetUnits();
   for (const auto& [unitType, groups] : unitsMap) {
     for (const auto& group : groups) {
+      if (unitType == BattleUnitType::None)
+        continue;
+
       const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
 
       allUnits.push_back(battleUnit);
