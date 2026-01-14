@@ -175,7 +175,7 @@ Replay GameManager::GetReplay() {
   }
 
   // Compile a replay from the game info
-  return {gameId, std::move(players), winnerId, playtime, 0 };
+  return {gameId, std::move(players), winnerId, playtime, 0};
 }
 
 Computer* GameManager::GetComputerByType(ComputerType computerType) {
