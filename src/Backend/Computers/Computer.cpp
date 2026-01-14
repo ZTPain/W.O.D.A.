@@ -1,5 +1,5 @@
 #include "Computer.h"
-#include "Backend/Boards/ISegment.h"
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include "EasyComputerStrategy.h"
 #include "HardComputerStrategy.h"
@@ -27,8 +27,8 @@ Computer::Computer(ComputerType type) : computerType(type) {
   }
 }
 
-Coordinates Computer::GetFireCoordinates(ISegment& segmentBoard) const {
-  return computerStrategy->CalculateFireCoordinates(segmentBoard);
+Coordinates Computer::GetFireCoordinates(const GameBoard& board) const {
+  return computerStrategy->CalculateFireCoordinates(board);
 }
 
 ComputerType Computer::GetComputerType() const { return computerType; }
