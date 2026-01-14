@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Backend/Boards/ISegment.h"
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include "IComputerStrategy.h"
 
@@ -19,6 +19,6 @@ class Computer {
 
 public:
   Computer(ComputerType type);
-  [[nodiscard]] Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
+  [[nodiscard]] Coordinates GetFireCoordinates(const GameBoard& board) const;
   [[nodiscard]] ComputerType GetComputerType() const;
 };
