@@ -67,6 +67,7 @@ public:
   std::unique_ptr<AchievementPool> achievements;
   uint64_t unlockedContent;
   UserSettings settings;
+  UserProfile();
   UserProfile(const UserProfile& other);
   UserProfile(
       PlayerId userId, const std::string& name, std::unique_ptr<AchievementPool> achievements
@@ -80,6 +81,19 @@ public:
   ~UserProfile();
   [[nodiscard]] PlayerId UserId() const;
   [[nodiscard]] Computer* AI() const;
+
+  UserProfile& operator=(const UserProfile& other) {
+    if (this != &other) {
+      userId = other.userId;
+      ai = other.ai;
+      name = other.name;
+      statistics = other.statistics;
+      achievements = other.achievements->Clone();
+      unlockedContent = other.unlockedContent;
+      settings = other.settings;
+    }
+    return *this;
+  }
 
   size_t Serialize(uint8_t* buffer, size_t offset, size_t bufferSize) const;
   static UserProfile Deserialize(
