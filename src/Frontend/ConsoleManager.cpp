@@ -50,3 +50,5 @@ static void (*consoleFlushCallback)() = nullptr;
 extern "C" void SetConsoleFlushCallback(void (*callback)()) { consoleFlushCallback = callback; }
 
 void ConsoleManager::FlushConsole() { consoleFlushCallback(); }
+
+extern "C" void OnUpdate() { InputManager::OnUpdate(); }

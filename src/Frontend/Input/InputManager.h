@@ -31,6 +31,8 @@ public:
       std::string& outText, const TextInputValidator& validator = nullptr
   );
 
+  static void DiscardPendingKeyPresses();
+
   static void WaitUntillKeyPressed(bool flushQueue = false);
   static void GetCursorPosition(int& x, int& y);
   static void GetNextKeyPress(ConsoleKeyDetails& keyDetails);
@@ -38,6 +40,7 @@ public:
 
   static void OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode);
   static void OnTerminalResize(int width, int height);
+  static void OnUpdate();
 
   static SubscriptionProvider<OnKeyPressedCallback> onKeyPressedProvider;
   static SubscriptionProvider<OnTerminalResizeCallback> onTerminalResizeProvider;

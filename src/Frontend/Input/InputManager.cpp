@@ -32,16 +32,29 @@ void InputManager::OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) 
     lastKeyDetails.key = static_cast<ConsoleKey>(lastKeyDetails.keyCode);
   }
 
-  waitForKeyCv.notify_all();
+  keyPressQueue.push(lastKeyDetails);
+}
 
-  auto keyDetails = lastKeyDetails;
-  if (onKeyPressedProvider.Call([keyDetails](const OnKeyPressedCallback& callback) {
-        return callback(keyDetails);
-      })) {
-    return; // Suppress further processing
+void InputManager::OnUpdate() {
+  while (!keyPressQueue.empty()) {
+    const auto keyDetails = keyPressQueue.front();
+    keyPressQueue.pop();
+
+    waitForKeyCv.notify_all();
+
+    if (onKeyPressedProvider.Call([keyDetails](const OnKeyPressedCallback& callback) {
+          return callback(keyDetails);
+        })) {
+      continue; // Suppress further processing
+    }
   }
+}
 
-  keyPressQueue.push(keyDetails);
+void InputManager::DiscardPendingKeyPresses() {
+  std::scoped_lock const lk(waitForKeyCvM);
+  while (!keyPressQueue.empty()) {
+    keyPressQueue.pop();
+  }
 }
 
 void InputManager::WaitUntillKeyPressed(bool flushQueue) {
