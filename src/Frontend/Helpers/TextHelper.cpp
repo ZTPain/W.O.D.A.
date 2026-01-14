@@ -3,6 +3,8 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
+#include <chrono>
+#include <cstdio>
 #include <cstring>
 
 void TextHelper::DrawCenteredText(int y, const char* text) {
@@ -57,4 +59,18 @@ void TextHelper::DrawWrappedText(int x, int y, int maxWidth, const char* text) {
     IO::cout << AnsiHelper::MoveCursor(currentX, currentY);
     IO::cout.write(wordStart, wordLength);
   }
+}
+
+void TextHelper::FormatDuration(char* buffer, size_t bufferSize, std::chrono::seconds duration) {
+  const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
+  duration -= minutes;
+  const auto seconds = duration;
+
+  std::snprintf(
+      buffer,
+      bufferSize,
+      "%02lld:%02lld",
+      static_cast<long long>(minutes.count()),
+      static_cast<long long>(seconds.count())
+  );
 }
