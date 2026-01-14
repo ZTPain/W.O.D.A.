@@ -274,6 +274,20 @@ void GameSetupView::ForceRender() {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
   const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+
+  if (gameManager->State() != GameState::Setting) {
+    return;
+  }
+
+  const auto aiVsAi = std::all_of(
+      gameManager->Players().begin(), gameManager->Players().end(), [](const auto& player) {
+        return player.profile.AI() != nullptr;
+      }
+  );
+
+  if (aiVsAi)
+    return;
+
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
 
   std::array<char, 100> titleBuffer{};
@@ -325,7 +339,10 @@ void GameSetupView::HandleAI() {
   if (currentPlayer.profile.AI() == nullptr)
     return;
 
-  // Initial will always be invalid, so we loop until a valid setup is generated
+  GenerateRandomSetup(
+      &currentPlayer.board.GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
+  );
+
   while (!ConfirmGridSetup()) {
     GenerateRandomSetup(
         &currentPlayer.board.GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
