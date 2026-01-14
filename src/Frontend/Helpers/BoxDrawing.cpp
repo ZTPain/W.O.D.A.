@@ -43,6 +43,10 @@ void BoxDrawing::DrawWindowFrame(bool filled, const char* title, bool flush) {
       IO::cout << AnsiHelper::SetTextColor(AnsiColor::Green);
       break;
 
+    case Color::Blue:
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue);
+      break;
+
     case Color::Gold:
       IO::cout << AnsiHelper::SetTextColor(255, 215, 0);
       break;
