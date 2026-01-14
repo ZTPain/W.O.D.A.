@@ -3,6 +3,7 @@
 #include "Backend/Games/GameManager.h"
 #include "Backend/Main/Battleships.h"
 #include "Backend/Users/UserProfile.h"
+#include <cassert>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -83,4 +84,9 @@ void UserManager::AddUserProfile(const UserProfile& userProfile) {
   }
 
   users[userProfile.UserId()] = userProfile;
+}
+
+void UserManager::DestroyComputer(PlayerId computerId) {
+  assert(computerId >= 1000);
+  computers.erase(computerId);
 }

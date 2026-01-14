@@ -31,4 +31,5 @@ public:
   [[nodiscard]] UserProfile& CreateComputer(const std::string& name, ComputerType computerType);
 
   void AddUserProfile(const UserProfile& userProfile);
+  void DestroyComputer(PlayerId computerId);
 };
