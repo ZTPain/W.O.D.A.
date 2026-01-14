@@ -25,10 +25,14 @@
 static bool playerRemoveSelfWarningVisible = false;
 static bool compactModeEnabled = false;
 
+// #define AUTO_LOAD_CURRENT_USER
+
 void GameConfigPlayerSelectView::OnEnter() {
-  const auto& currentUser = UserManager::GetInstance().GetCurrentUser();
   selectedPlayerOptions.clear();
+#ifdef AUTO_LOAD_CURRENT_USER
+  const auto& currentUser = UserManager::GetInstance().GetCurrentUser();
   selectedPlayerOptions.emplace_back(currentUser.UserId());
+#endif
   highlightedOptionIndex = 0;
   ForceRender();
 }
@@ -93,10 +97,10 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
     case ConsoleKey::LeftArrow:
       if (highlightedOptionIndex >= 100) {
         highlightedOptionIndex -= 100;
-        if (highlightedOptionIndex >=
-            UserManager::GetInstance().UsersAndComputers().size() - selectedPlayerOptions.size()) {
+        if (highlightedOptionIndex >= UserManager::GetInstance().UsersAndComputers().size() -
+                                          selectedPlayerOptions.size() + 3) {
           highlightedOptionIndex = UserManager::GetInstance().UsersAndComputers().size() - 1 -
-                                   selectedPlayerOptions.size();
+                                   selectedPlayerOptions.size() + 3;
         }
       }
       ForceRender();
@@ -104,6 +108,10 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
 
     case ConsoleKey::D:
     case ConsoleKey::RightArrow:
+      if (selectedPlayerOptions.empty()) {
+        return true;
+      }
+
       if (highlightedOptionIndex < 100) {
         highlightedOptionIndex += 100;
         if (highlightedOptionIndex >= selectedPlayerOptions.size() + 100) {
@@ -170,7 +178,11 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
       return;
   }
 
-  const auto& aiProfile = UserManager::GetInstance().CreateComputer("Computer TMP", aiType);
+  static size_t aiCounter = 0;
+  aiCounter++;
+  std::array<char, 100> aiNameBuffer{};
+  std::snprintf(aiNameBuffer.data(), aiNameBuffer.size(), "Computer %zu", aiCounter);
+  const auto& aiProfile = UserManager::GetInstance().CreateComputer(aiNameBuffer.data(), aiType);
   selectedPlayerOptions.emplace_back(aiProfile.UserId());
   ForceRender();
 }
@@ -178,16 +190,33 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
 void GameConfigPlayerSelectView::HandleInputSelectionRight() {
   // Deselect selected player
   size_t const deselectIndex = highlightedOptionIndex - 100;
+#ifdef AUTO_LOAD_CURRENT_USER
   if (deselectIndex == 0) {
     // Prevent deselecting the current user
     playerRemoveSelfWarningVisible = true;
     ForceRender();
     return;
   }
+#endif // AUTO_LOAD_CURRENT_USER
+
+  const auto deselectedUserId = selectedPlayerOptions[deselectIndex];
+  if (deselectedUserId >= 1000) {
+    // AI player, destroy it
+    UserManager::GetInstance().DestroyComputer(deselectedUserId);
+  }
+
   auto it = selectedPlayerOptions.begin();
   std::advance(it, deselectIndex);
   selectedPlayerOptions.erase(it);
-  highlightedOptionIndex--;
+  if (highlightedOptionIndex == 100) {
+    if (!selectedPlayerOptions.empty()) {
+      highlightedOptionIndex = 100;
+    } else {
+      highlightedOptionIndex = 0;
+    }
+  } else {
+    highlightedOptionIndex--;
+  }
   ForceRender();
 }
 
