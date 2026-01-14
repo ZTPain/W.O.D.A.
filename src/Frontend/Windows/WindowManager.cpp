@@ -2,6 +2,7 @@
 
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
@@ -22,6 +23,14 @@ void WindowManager::Initialize() {
   windows[WindowType::GameConfigPlayersSelect] = std::make_unique<GameConfigPlayerSelectView>();
 
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
+    if (keyDetails.key == ConsoleKey::R && keyDetails.modifiers == ConsoleModifiers::Control) {
+      // Ctrl+R pressed - force redraw current window
+      if (currentWindowType != WindowType::None) {
+        windows[currentWindowType]->ForceRender();
+      }
+      return true;
+    }
+
     OnKeyPressed(keyDetails);
     return false;
   });
