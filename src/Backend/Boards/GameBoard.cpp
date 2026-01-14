@@ -31,6 +31,9 @@ void GameBoard::ParseSegments() {
       continue;
 
     for (const auto& group : groups) {
+      if (unitType == BattleUnitType::None)
+        continue;
+
       const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
 
       allUnits.push_back(battleUnit);

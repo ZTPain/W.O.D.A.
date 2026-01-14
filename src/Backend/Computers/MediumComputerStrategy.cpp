@@ -1,6 +1,5 @@
 #include "MediumComputerStrategy.h"
 #include "Backend/Boards/GameBoard.h"
-#include "Backend/Boards/ISegment.h"
 #include "Backend/Games/Coordinates.h"
 #include <cstddef>
 #include <random>

@@ -111,7 +111,7 @@ void Battleships::WriteToSave() const {
 
   const auto& users = userManager.Users();
 
-  // 10 MB should be enough
+  // 1 MB should be enough
   constexpr auto BUFFER_SIZE = static_cast<const size_t>(1 * 1024 * 1024);
 
   static std::array<uint8_t, BUFFER_SIZE> buffer{};
