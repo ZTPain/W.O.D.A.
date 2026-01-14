@@ -59,7 +59,7 @@ void UserSelectWindow::ForceRender() {
 
   BoxDrawing::DrawWindowFrame(true, "Select User");
 
-  const auto users = UserManager::GetInstance().Users();
+  const auto& users = UserManager::GetInstance().Users();
   IO::cout << AnsiHelper::MoveCursor(3, 2) << "Select User:\n";
   IO::cout << AnsiHelper::MoveCursor(5, (4 + (-1))) << "0. Create New User";
 
