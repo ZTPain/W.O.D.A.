@@ -7,7 +7,7 @@
 #include "ICommand.h"
 #include <vector>
 
-class SalvoFireCommand : ICommand {
+class SalvoFireCommand : public ICommand {
   GameBoard& board;
   std::vector<Coordinates> coords;
 
