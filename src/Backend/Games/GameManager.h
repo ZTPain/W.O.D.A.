@@ -43,6 +43,10 @@ public:
   [[nodiscard]] unsigned int CurrentTurn() const;
   [[nodiscard]] Player& GetCurrentPlayer();
   [[nodiscard]] GameState State() const;
+
+  [[nodiscard]] unsigned int WinnerId() const;
+  [[nodiscard]] std::chrono::seconds Playtime() const;
+
   void StartGame();
   bool ExecuteCommand(std::unique_ptr<ICommand> command);
   void HandleGameOver();
