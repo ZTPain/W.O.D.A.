@@ -38,6 +38,10 @@ std::chrono::seconds GameManager::Playtime() const { return playtime; }
 void GameManager::StartGame() {
   gameStartPoint = std::chrono::steady_clock::now();
   state = GameState::Playing;
+
+  for (auto& player : players) {
+    player.board.ParseSegments();
+  }
 }
 
 bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
