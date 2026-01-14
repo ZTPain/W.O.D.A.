@@ -22,7 +22,7 @@ Grid::Grid(
       cellHeight(cellHeight), cellWidthWithBorders(cellWidth + 2),
       cellHeightWithBorders(cellHeight + 1), renderCellCallback(std::move(renderCellCallback)),
       onToggleCellCallback(std::move(onToggleCellCallback)),
-      cursorX(onToggleCellCallback == nullptr ? 999999 : 0), cursorY(0) {}
+      cursorX(this->onToggleCellCallback == nullptr ? 999999 : 0), cursorY(0) {}
 
 Grid::~Grid() = default;
 
