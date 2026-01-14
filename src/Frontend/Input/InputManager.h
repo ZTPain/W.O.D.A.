@@ -37,6 +37,7 @@ public:
   static void GetCursorPosition(int& x, int& y);
   static void GetNextKeyPress(ConsoleKeyDetails& keyDetails);
   static void GetTerminalSize(int& width, int& height);
+  static bool TryGetKeyPress(ConsoleKeyDetails& keyDetails);
 
   static void OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode);
   static void OnTerminalResize(int width, int height);

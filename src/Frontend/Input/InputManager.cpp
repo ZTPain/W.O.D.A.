@@ -91,3 +91,13 @@ void InputManager::OnTerminalResize(int width, int height) {
     return false;
   });
 }
+
+bool InputManager::TryGetKeyPress(ConsoleKeyDetails& keyDetails) {
+  if (keyPressQueue.empty()) {
+    return false;
+  }
+
+  keyDetails = keyPressQueue.front();
+  keyPressQueue.pop();
+  return true;
+}
