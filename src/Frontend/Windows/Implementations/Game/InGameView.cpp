@@ -24,6 +24,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <map>
 #include <memory>
@@ -84,7 +85,10 @@ void InGameView::OnEnter() {
       [this](size_t x, size_t y, size_t posX, size_t posY) { OnToggleEnemyCell(x, y, posX, posY); }
   );
 
-  ForceRender();
+  actionHistory.clear();
+  invertGridPositions = false;
+
+  OnChangeTurn();
 }
 
 void InGameView::OnExit() { IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset(); }
@@ -141,11 +145,23 @@ void InGameView::ForceRender() {
   const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
   const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
 
-  if (!invertGridPositions && currentPlayer.profile.AI() != nullptr &&
-      enemyPlayer.profile.AI() == nullptr) {
+  const auto alivePlayersCount = std::count_if(
+      gameManager->Players().begin(), gameManager->Players().end(), [](const auto& player) {
+        return !player.board.IsGameOver();
+      }
+  );
+
+  bool shouldInvert = false;
+  if (alivePlayersCount == 2) {
+    shouldInvert = currentPlayerIndex != 0;
+  } else if (alivePlayersCount > 2) {
+    shouldInvert = currentPlayer.profile.AI() != nullptr && enemyPlayer.profile.AI() == nullptr;
+  }
+
+  if (!invertGridPositions && shouldInvert) {
     invertGridPositions = true;
     SetGridOffsets();
-  } else if (invertGridPositions) {
+  } else if (invertGridPositions && !shouldInvert) {
     invertGridPositions = false;
     SetGridOffsets();
   }
@@ -192,6 +208,9 @@ void InGameView::ForceRender() {
   enemyGrid.Render();
 
   RenderUnitsLeft();
+  RenderTurnQueue();
+  RenderLeaderboard();
+  RenderHistory();
 
   IO::cout.flush();
 }
@@ -253,7 +272,11 @@ void InGameView::RenderCell(
   }
 
   if (isHit && hasUnit) {
-    symbol[1] = 'X';
+    if (unitsPlacement[y][x]->IsDestroyed()) {
+      symbol[1] = 'D';
+    } else {
+      symbol[1] = 'X';
+    }
   } else if (isHit && !hasUnit) {
     symbol[1] = 'o';
   }
@@ -284,6 +307,28 @@ void InGameView::OnToggleEnemyCell(size_t x, size_t y, size_t /*posX*/, size_t /
   HandleFireAtCoordinate(coord);
 }
 
+size_t InGameView::CalculateSegmentsLeftForPlayer(size_t playerIndex, size_t* outMax) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& player = gameManager->Players().at(playerIndex);
+  const auto& units = player.board.GetAllUnits();
+
+  const auto maxCount =
+      std::accumulate(mode.unitPool.begin(), mode.unitPool.end(), 0, [](int sum, const auto& pair) {
+        return sum + (BattleUnitHelper::GetSizeForUnitType(pair.first) * pair.second);
+      });
+  const auto totalSegmentsLeft =
+      maxCount - std::accumulate(units.begin(), units.end(), 0, [](int sum, const auto& pair) {
+        return sum + pair->GetDestroyedSegments();
+      });
+
+  if (outMax != nullptr) {
+    *outMax = maxCount;
+  }
+
+  return totalSegmentsLeft;
+}
+
 void InGameView::RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
@@ -306,19 +351,14 @@ void InGameView::RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, siz
   }
 
   const auto halfCount = (mode.unitPool.size() + 1) / 2;
-  const auto maxCount =
-      std::accumulate(mode.unitPool.begin(), mode.unitPool.end(), 0, [](int sum, const auto& pair) {
-        return sum + (BattleUnitHelper::GetSizeForUnitType(pair.first) * pair.second);
-      });
-  const auto totalSegmentsLeft =
-      maxCount - std::accumulate(units.begin(), units.end(), 0, [](int sum, const auto& pair) {
-        return sum + pair->GetDestroyedSegments();
-      });
+
+  size_t maxCount = 0;
+  const auto segmentsLeft = CalculateSegmentsLeftForPlayer(playerIndex, &maxCount);
 
   size_t i = 0;
   size_t j = 0;
   IO::cout << AnsiHelper::MoveCursor(startX + 20, startY);
-  IO::cout << "Total segments: " << totalSegmentsLeft << "/" << maxCount << " ";
+  IO::cout << "Total segments: " << segmentsLeft << "/" << maxCount << " ";
   for (const auto& [unitType, count] : unitCount) {
     const auto maxCount = mode.unitPool.at(unitType);
     IO::cout << AnsiHelper::MoveCursor(startX + (j * 20), startY + i + 1);
@@ -419,6 +459,18 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
     }
   }
 
+  uint8_t result = 0;
+  if (enemyBoard.Units()[coord.y][coord.x] != nullptr) {
+    if (enemyBoard.Units()[coord.y][coord.x]->IsDestroyed()) {
+      result = 2; // Destroyed
+    } else {
+      result = 1; // Hit
+    }
+  } else {
+    result = 0; // Miss
+  }
+  actionHistory.emplace_back(currentPlayerIndex, enemyPlayerIndex, coord, result);
+
   enemyGrid.SetCursorPosition(coord.x, coord.y);
 
   ShowPlayerFireAnimation(coord);
@@ -486,7 +538,142 @@ void InGameView::ShowPlayerFireAnimation(const Coordinates& coord) {
 
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
+  InputManager::DiscardPendingKeyPresses();
+
   ForceRender();
+}
+
+void InGameView::RenderTurnQueue() const {
+  const size_t startX = 4;
+  const size_t startY = currentGrid.GetYOffset() + currentGrid.GetTotalHeight() + 2;
+
+  IO::cout << AnsiHelper::MoveCursor(startX, startY) << "Turn Queue: ";
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  size_t queueIndex = currentPlayerIndex;
+
+  IO::cout << AnsiHelper::MoveCursor(startX, startY + 1);
+  IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+  IO::cout << " -  " << gameManager->Players().at(queueIndex).profile.name << " ";
+  IO::cout << AnsiHelper::Reset();
+  queueIndex = (queueIndex + 1) % gameManager->Players().size();
+
+  constexpr size_t LIMIT = 6;
+
+  size_t i = 1;
+  while (queueIndex != currentPlayerIndex) {
+    const auto& player = gameManager->Players().at(queueIndex);
+    if (player.board.IsGameOver()) {
+      queueIndex = (queueIndex + 1) % gameManager->Players().size();
+      continue;
+    }
+
+    IO::cout << AnsiHelper::MoveCursor(startX, startY + 1 + i);
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+    IO::cout << "[" << i << "] " << player.profile.name << " ";
+    IO::cout << AnsiHelper::Reset();
+    queueIndex = (queueIndex + 1) % gameManager->Players().size();
+    ++i;
+
+    if (LIMIT == i) {
+      IO::cout << AnsiHelper::MoveCursor(startX, startY + 1 + i);
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+      IO::cout << "...";
+      IO::cout << AnsiHelper::Reset();
+      break;
+    }
+  }
+}
+
+void InGameView::RenderLeaderboard() const {
+  const size_t startX = 4 + enemyGrid.GetTotalWidth() + 4;
+  const size_t startY = currentGrid.GetYOffset() + currentGrid.GetTotalHeight() + 2;
+
+  IO::cout << AnsiHelper::MoveCursor(startX, startY) << "Leaderboard:";
+  const auto& gameManager = AppState::GetCurrentGameManager();
+
+  std::vector<uint16_t> segmentsLeft(gameManager->Players().size(), 0);
+  for (size_t i = 0; i < gameManager->Players().size(); ++i) {
+    segmentsLeft[i] = CalculateSegmentsLeftForPlayer(i);
+  }
+
+  std::vector<std::pair<size_t, uint16_t>> leaderboard;
+  leaderboard.reserve(segmentsLeft.size());
+  for (size_t i = 0; i < segmentsLeft.size(); ++i) {
+    leaderboard.emplace_back(i, segmentsLeft[i]);
+  }
+
+  std::sort(leaderboard.begin(), leaderboard.end(), [](const auto& a, const auto& b) {
+    return a.second > b.second;
+  });
+
+  constexpr size_t LIMIT = 6;
+
+  size_t i = 1;
+  for (const auto& [playerIndex, score] : leaderboard) {
+    const auto& player = gameManager->Players().at(playerIndex);
+
+    IO::cout << AnsiHelper::MoveCursor(startX, startY + i);
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+    IO::cout << "[" << i << "] " << player.profile.name << " - " << score << " ";
+    IO::cout << AnsiHelper::Reset();
+
+    i++;
+    if (i == LIMIT) {
+      IO::cout << AnsiHelper::MoveCursor(startX, startY + i);
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+      IO::cout << "...";
+      IO::cout << AnsiHelper::Reset();
+      break;
+    }
+  }
+}
+
+void InGameView::RenderHistory() const {
+  const size_t startX = 4 + ((enemyGrid.GetTotalWidth() + 4) * 2);
+  const size_t startY = currentGrid.GetYOffset() + currentGrid.GetTotalHeight() + 2;
+
+  IO::cout << AnsiHelper::MoveCursor(startX, startY) << "Action History:";
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  constexpr size_t LIMIT = 6;
+  size_t i = 1;
+  size_t j = actionHistory.size();
+  for (auto it = actionHistory.rbegin(); it != actionHistory.rend(); ++it) {
+    const auto& [attackerIndex, defenderIndex, coord, result] = *it;
+    const auto& attacker = gameManager->Players().at(attackerIndex);
+    const auto& defender = gameManager->Players().at(defenderIndex);
+
+    IO::cout << AnsiHelper::MoveCursor(startX, startY + i);
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+    IO::cout << "[" << j << "] " << attacker.profile.name << " -> " << defender.profile.name << " ("
+             << static_cast<char>('A' + coord.x) << (coord.y + 1) << ") ";
+
+    switch (result) {
+      case 0:
+        IO::cout << "Miss";
+        break;
+      case 1:
+        IO::cout << "Hit";
+        break;
+      case 2:
+        IO::cout << "Destroyed";
+        break;
+      default:
+        IO::cout << "Unknown";
+        break;
+    }
+
+    IO::cout << AnsiHelper::Reset();
+
+    j--;
+    i++;
+    if (i == LIMIT) {
+      IO::cout << AnsiHelper::MoveCursor(startX, startY + i);
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
+      IO::cout << "...";
+      IO::cout << AnsiHelper::Reset();
+      break;
+    }
+  }
 }
 
 void InGameView::HandleGameOver() {}
