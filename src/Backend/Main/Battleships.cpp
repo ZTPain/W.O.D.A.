@@ -104,22 +104,22 @@ void Battleships::ReadSave() {
 }
 
 void Battleships::WriteToSave() const {
-  std::ofstream file("save.dat", std::ios::binary);
+  std::ofstream file("save.dat", std::ios::binary | std::ios::trunc);
 
   if (!file)
     return;
 
   const auto& users = userManager.Users();
 
-  // 10 MB should be enough
-  constexpr auto BUFFER_SIZE = static_cast<const size_t>(10 * 1024 * 1024);
+  // 1 MB should be enough
+  constexpr auto BUFFER_SIZE = static_cast<const size_t>(1 * 1024 * 1024);
 
-  std::array<uint8_t, BUFFER_SIZE> buffer{};
+  static std::array<uint8_t, BUFFER_SIZE> buffer{};
   size_t offset = 0;
 
   SerializationHelper::SerializeInt32(buffer.data(), offset, BUFFER_SIZE, users.size());
-  for (const auto* user : users) {
-    offset = user->Serialize(buffer.data(), offset, BUFFER_SIZE);
+  for (const auto& [userId, user] : users) {
+    offset = user.Serialize(buffer.data(), offset, BUFFER_SIZE);
   }
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)

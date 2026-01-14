@@ -1,12 +1,12 @@
 #include "MediumComputerStrategy.h"
-#include "Backend/Boards/ISegment.h"
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include <cstddef>
 #include <random>
 #include <vector>
 
-Coordinates MediumComputerStrategy::CalculateFireCoordinates(ISegment& board) const {
-  const auto& s = board.Segments();
+Coordinates MediumComputerStrategy::CalculateFireCoordinates(const GameBoard& board) const {
+  const auto& s = board.GetSegmentBoard().Segments();
   const size_t w = board.Width();
   const size_t h = board.Height();
 

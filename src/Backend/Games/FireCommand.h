@@ -6,7 +6,7 @@
 #include "Coordinates.h"
 #include "ICommand.h"
 
-class FireCommand : ICommand {
+class FireCommand : public ICommand {
   GameBoard& board;
   Coordinates coords;
 
