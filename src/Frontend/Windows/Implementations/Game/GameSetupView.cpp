@@ -469,6 +469,7 @@ void GameSetupView::ConfirmGridSetup() {
     ForceRender();
   } else {
     // All players have set up their boards
+    gameManager->StartGame();
     WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
   }
 }
