@@ -677,4 +677,6 @@ void InGameView::RenderHistory() const {
   }
 }
 
-void InGameView::HandleGameOver() {}
+void InGameView::HandleGameOver() {
+  WindowManager::GetInstance().SwitchToWindow(WindowType::PostGameSummary);
+}
