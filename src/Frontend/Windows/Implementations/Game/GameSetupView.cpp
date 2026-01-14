@@ -236,6 +236,7 @@ void GameSetupView::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Rese
 
 bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
+    AppState::Reset();
     WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
     return true;
   }

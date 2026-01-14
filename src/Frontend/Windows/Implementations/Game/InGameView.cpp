@@ -99,6 +99,7 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     PromptHelper::ShowYesNoPrompt(
         "Are you sure you want to exit to the main menu?", [](bool result) {
           if (result) {
+            AppState::Reset();
             WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
           } else {
             WindowManager::GetInstance().GetCurrentWindow()->ForceRender();

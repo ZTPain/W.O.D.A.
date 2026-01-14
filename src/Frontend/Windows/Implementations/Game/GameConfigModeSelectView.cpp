@@ -38,6 +38,7 @@ static bool IsContentUnlocked(const size_t index) {
 
 bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
+    AppState::Reset();
     WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
     return true;
   }

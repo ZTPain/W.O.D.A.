@@ -41,6 +41,7 @@ void GameConfigPlayerSelectView::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << Ans
 
 bool GameConfigPlayerSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
+    AppState::Reset();
     WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
     return true;
   }
