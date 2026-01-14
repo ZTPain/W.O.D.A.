@@ -1,74 +1,80 @@
 #include "UserManager.h"
 #include "Backend/Computers/Computer.h"
 #include "Backend/Games/GameManager.h"
+#include "Backend/Main/Battleships.h"
 #include "Backend/Users/UserProfile.h"
-#include <algorithm>
+#include <cassert>
+#include <map>
 #include <stdexcept>
 #include <string>
-#include <vector>
+
+static UserProfile defaultUserProfile(0, "Default", nullptr);
 
 UserManager UserManager::instance;
-unsigned int UserManager::nextUserId;
 
 UserManager& UserManager::GetInstance() { return instance; }
 
-std::vector<const UserProfile*> UserManager::Users() const {
-  std::vector<const UserProfile*> usersOnly;
+const std::map<PlayerId, UserProfile>& UserManager::Users() const { return users; }
 
-  for (const auto& user : users) {
-    if (user.AI() == nullptr) {
-      usersOnly.push_back(&user);
-    }
+std::map<PlayerId, const UserProfile*> UserManager::UsersAndComputers() const {
+  std::map<PlayerId, const UserProfile*> result;
+  for (const auto& [userId, user] : users) {
+    result[userId] = &user;
   }
-
-  return usersOnly;
+  for (const auto& [compId, comp] : computers) {
+    result[compId] = &comp;
+  }
+  return result;
 }
-
-const std::vector<UserProfile>& UserManager::UsersAndComputers() const { return users; }
 
 void UserManager::CreateUser(const std::string& name) {
   currentUserId = nextUserId++;
-  users.emplace_back(currentUserId, name, initialAchievementPool.Clone());
+  users[currentUserId] = UserProfile(currentUserId, name, initialAchievementPool.Clone());
+
+  Battleships::GetInstance().WriteToSave();
 }
 
-UserProfile& UserManager::GetCurrentUser() { return users[currentUserId]; }
+UserProfile& UserManager::GetCurrentUser() {
+  if (currentUserId >= 1000)
+    throw std::runtime_error("Current user is a computer, how?");
 
-bool UserManager::ChangeCurrentUser(unsigned int userId) {
-  auto iter = std::find_if(users.begin(), users.end(), [userId](const UserProfile& uprof) {
-    return uprof.UserId() == userId;
-  });
+  if (currentUserId == 0) {
+    return defaultUserProfile;
+  }
 
-  if (iter == users.end())
+  return users[currentUserId];
+}
+
+bool UserManager::ChangeCurrentUser(PlayerId userId) {
+  auto user = users.find(userId);
+
+  if (user == users.end())
     return false;
 
   currentUserId = userId;
   return true;
 }
 
-UserProfile& UserManager::GetUserById(unsigned int userId) {
-  auto iter = std::find_if(users.begin(), users.end(), [userId](const UserProfile& uprof) {
-    return uprof.UserId() == userId;
-  });
+UserProfile& UserManager::GetUserById(PlayerId userId) {
+  if (userId >= 1000)
+    return computers.at(userId);
 
-  if (iter == users.end())
-    throw std::out_of_range("User ID not found");
-
-  return *iter;
+  return users.at(userId);
 }
 
 UserProfile& UserManager::CreateComputer(const std::string& name, ComputerType computerType) {
-  currentUserId = nextUserId++;
-  users.emplace_back(
-      currentUserId,
+  const auto computerUserId = nextComputerUserId++;
+  computers[computerUserId] = UserProfile(
+      computerUserId,
       name,
       initialAchievementPool.Clone(),
       GameManager::GetComputerByType(computerType)
   );
 
-  return users[currentUserId];
+  return computers.at(computerUserId);
 }
 
-UserManager::UserManager() : currentUserId(0) {}
+UserManager::UserManager() : nextUserId(1), nextComputerUserId(1001), currentUserId(1) {}
 
 UserManager::~UserManager() = default;
 
@@ -77,5 +83,10 @@ void UserManager::AddUserProfile(const UserProfile& userProfile) {
     nextUserId = userProfile.UserId() + 1;
   }
 
-  users.push_back(userProfile);
+  users[userProfile.UserId()] = userProfile;
+}
+
+void UserManager::DestroyComputer(PlayerId computerId) {
+  assert(computerId >= 1000);
+  computers.erase(computerId);
 }
