@@ -15,7 +15,7 @@
 #include <vector>
 
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
-    : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(0),
+    : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(-1),
       playtime(0) {
   for (auto* profile : profiles)
     players.emplace_back(*profile, mode);
@@ -167,6 +167,8 @@ void GameManager::HandleGameOver() {
   // Calculate playtime
   const auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
+
+  winnerId = currentTurn;
 
   // Update player profiles
   UpdatePlayerStatistics();
