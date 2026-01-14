@@ -18,6 +18,13 @@ public:
   WindowManager(const WindowManager&) = delete;
   const WindowManager& operator=(const WindowManager&) = delete;
 
+  Window* GetCurrentWindow() {
+    if (currentWindowType == WindowType::None)
+      return nullptr;
+
+    return windows[currentWindowType].get();
+  }
+
   void SwitchToWindow(WindowType type);
   void OnTerminalResize(int width, int height) {
     if (minSizeShown) {
