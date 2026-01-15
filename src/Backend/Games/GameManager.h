@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Backend/Computers/Computer.h"
+#include "Backend/Games/Player.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
 #include "GameMode.h"
@@ -42,6 +43,7 @@ public:
   [[nodiscard]] const std::vector<Player>& Players();
   [[nodiscard]] unsigned int CurrentTurn() const;
   [[nodiscard]] Player& GetCurrentPlayer();
+  [[nodiscard]] Player& GetPlayerAtIndex(unsigned int playerIndex);
   [[nodiscard]] GameState State() const;
 
   [[nodiscard]] unsigned int WinnerId() const;

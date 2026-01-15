@@ -30,6 +30,8 @@ unsigned int GameManager::CurrentTurn() const { return currentTurn; }
 
 Player& GameManager::GetCurrentPlayer() { return players[currentTurn]; }
 
+Player& GameManager::GetPlayerAtIndex(unsigned int playerIndex) { return players.at(playerIndex); }
+
 GameState GameManager::State() const { return state; }
 
 unsigned int GameManager::WinnerId() const { return winnerId; }
