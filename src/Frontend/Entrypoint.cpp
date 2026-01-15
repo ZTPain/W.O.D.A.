@@ -1,3 +1,4 @@
+#include "Backend/Main/Battleships.h"
 #include "Frontend/ConsoleManager.h"
 #include "Frontend/Input/IO.h"
 #include "Helpers/AnsiHelper.h"
@@ -22,6 +23,8 @@ extern "C" void EntryPoint() {
   IO::cout.flush();
 
   ConsoleManager::SetTitle("W.O.D.A - Waiting for input...");
+
+  Battleships::GetInstance(); // Initialize singleton
 
   WindowManager::GetInstance().Initialize();
 
