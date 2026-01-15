@@ -22,8 +22,8 @@ static std::vector<Coordinates> Neighbors(size_t x, size_t y, size_t w, size_t h
   };
   std::vector<Coordinates> out;
   for (auto [dx, dy] : dirs) {
-    int nx = static_cast<int>(x) + dx;
-    int ny = static_cast<int>(y) + dy;
+    const int nx = static_cast<int>(x) + dx;
+    const int ny = static_cast<int>(y) + dy;
     if (InBounds(nx, ny, w, h))
       out.emplace_back(static_cast<size_t>(nx), static_cast<size_t>(ny));
   }
