@@ -21,7 +21,7 @@ bool ComputerStrategyHelper::IsCoordinateInList(
     const Coordinates& coord, const std::vector<Coordinates>& coordList
 ) {
   return std::any_of(coordList.begin(), coordList.end(), [&coord](const Coordinates& c) {
-    return c.x == coord.x && c.y == coord.y;
+    return c == coord;
   });
 }
 
