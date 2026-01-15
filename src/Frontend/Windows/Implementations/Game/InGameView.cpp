@@ -655,7 +655,7 @@ void InGameView::RenderLeaderboard() const {
 }
 
 void InGameView::RenderHistory() const {
-  const size_t startX = 4 + ((enemyGrid.GetTotalWidth() + 4) * 2);
+  const size_t startX = 4 + ((enemyGrid.GetTotalWidth() + 4) * 2) - 10;
   const size_t startY = currentGrid.GetYOffset() + currentGrid.GetTotalHeight() + 2;
 
   IO::cout << AnsiHelper::MoveCursor(startX, startY) << "Action History:";
