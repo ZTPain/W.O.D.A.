@@ -65,7 +65,7 @@ Coordinates ComputerStrategyHelper::ShootAtRandomCoordinate(
     for (size_t x = 0; x < w; x++) {
       const Coordinates coord{x, y};
       if (!segments[y][x] && !IsCoordinateInList(coord, blacklistedCoordinates)) {
-        pool.emplace_back(coord);
+        pool.push_back(coord);
       }
     }
   }
@@ -106,7 +106,7 @@ std::vector<Coordinates> ComputerStrategyHelper::GetShipsNotYetDestroyed(
         if (!IsValidShot(segmentBoard, coord, blacklistedCoordinates))
           continue;
 
-        pool.emplace_back(coord);
+        pool.push_back(coord);
       }
     }
   }
