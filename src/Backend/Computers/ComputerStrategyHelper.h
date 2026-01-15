@@ -31,10 +31,10 @@ public:
   );
 
   static std::vector<Coordinates> GetFreeChessboardCoordinates(
-      const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+      const GameBoard& gameBoard, const std::vector<Coordinates>& blacklistedCoordinates
   );
 
   static std::vector<Coordinates> Cheat(
-      const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+      const GameBoard& gameBoard, const std::vector<Coordinates>& blacklistedCoordinates
   );
 };

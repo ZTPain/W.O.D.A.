@@ -59,6 +59,7 @@ Coordinates ComputerStrategyHelper::ShootAtRandomCoordinate(
   const size_t h = gameBoard.Height();
   const auto& segments = gameBoard.GetSegmentBoard().Segments();
   std::vector<Coordinates> pool;
+  pool.reserve((w * h) - blacklistedCoordinates.size());
 
   for (size_t y = 0; y < h; y++) {
     for (size_t x = 0; x < w; x++) {
@@ -82,6 +83,7 @@ std::vector<Coordinates> ComputerStrategyHelper::GetShipsNotYetDestroyed(
   const size_t h = gameBoard.Height();
 
   std::vector<Coordinates> pool;
+  pool.reserve((w * h) - blacklistedCoordinates.size());
 
   for (size_t y = 0; y < h; y++) {
     for (size_t x = 0; x < w; x++) {
@@ -113,12 +115,17 @@ std::vector<Coordinates> ComputerStrategyHelper::GetShipsNotYetDestroyed(
 }
 
 std::vector<Coordinates> ComputerStrategyHelper::GetFreeChessboardCoordinates(
-    const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+    const GameBoard& gameBoard, const std::vector<Coordinates>& blacklistedCoordinates
 ) {
+  const size_t w = gameBoard.Width();
+  const size_t h = gameBoard.Height();
+  const auto& s = gameBoard.GetSegmentBoard().Segments();
+
   std::vector<Coordinates> out;
-  const auto& s = board.GetSegmentBoard().Segments();
-  for (size_t y = 0; y < board.Height(); ++y) {
-    for (size_t x = 0; x < board.Width(); ++x) {
+  out.reserve((w * h) - blacklistedCoordinates.size());
+
+  for (size_t y = 0; y < h; ++y) {
+    for (size_t x = 0; x < w; ++x) {
       if ((x + y) % 2 != 0)
         continue;
 
@@ -137,14 +144,18 @@ std::vector<Coordinates> ComputerStrategyHelper::GetFreeChessboardCoordinates(
 }
 
 std::vector<Coordinates> ComputerStrategyHelper::Cheat(
-    const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+    const GameBoard& gameBoard, const std::vector<Coordinates>& blacklistedCoordinates
 ) {
-  std::vector<Coordinates> out;
-  const auto& s = board.GetSegmentBoard().Segments();
-  const auto& units = board.Units();
+  const size_t w = gameBoard.Width();
+  const size_t h = gameBoard.Height();
+  const auto& s = gameBoard.GetSegmentBoard().Segments();
+  const auto& units = gameBoard.Units();
 
-  for (size_t y = 0; y < board.Height(); ++y) {
-    for (size_t x = 0; x < board.Width(); ++x) {
+  std::vector<Coordinates> out;
+  out.reserve((w * h) - blacklistedCoordinates.size());
+
+  for (size_t y = 0; y < h; ++y) {
+    for (size_t x = 0; x < w; ++x) {
       if (s[y][x])
         continue;
 
