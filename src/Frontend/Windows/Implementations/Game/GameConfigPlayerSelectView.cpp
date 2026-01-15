@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <iterator>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -73,6 +74,12 @@ bool GameConfigPlayerSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 }
 
 bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetails) {
+  const auto selectedPlayerOptionsOnlyPlayers =
+      std::count_if(selectedPlayerOptions.begin(), selectedPlayerOptions.end(), [](size_t userId) {
+        const auto& profile = UserManager::GetInstance().GetUserById(userId);
+        return profile.AI() == nullptr;
+      });
+
   switch (keyDetails.key) {
     case ConsoleKey::W:
     case ConsoleKey::UpArrow:
@@ -85,9 +92,9 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
     case ConsoleKey::S:
     case ConsoleKey::DownArrow:
       if ((highlightedOptionIndex < 100 &&
-           highlightedOptionIndex + 1 < UserManager::GetInstance().UsersAndComputers().size() +
+           highlightedOptionIndex + 1 < UserManager::GetInstance().Users().size() +
                                             3 /* AI add options */ -
-                                            selectedPlayerOptions.size()) ||
+                                            selectedPlayerOptionsOnlyPlayers) ||
           (highlightedOptionIndex >= 100 &&
            highlightedOptionIndex + 1 < selectedPlayerOptions.size() + 100))
         highlightedOptionIndex++;
@@ -164,7 +171,7 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
 
   // Adding AI player
   ComputerType aiType = ComputerType::None;
-  switch (highlightedOptionIndex - allProfiles.size() + selectedPlayerOptions.size()) {
+  switch (selectIndex) {
     case 0:
       aiType = ComputerType::Easy;
       break;
@@ -176,7 +183,7 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
       break;
     default:
       // Invalid index
-      return;
+      throw std::runtime_error("Invalid AI add option selected!");
   }
 
   static size_t aiCounter = 0;
