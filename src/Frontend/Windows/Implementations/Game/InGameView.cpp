@@ -125,7 +125,7 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     assert(currentPlayer.profile.AI() == nullptr);
     while (true) {
       const auto coords = GameManager::GetComputerByType(ComputerType::Medium)
-                              ->GetFireCoordinates(enemyPlayer.board);
+                              ->GetFireCoordinates(enemyPlayer.board, salvoSelectionCoordinates);
 
       if (HandleFireAtCoordinate(coords))
         break;
@@ -466,7 +466,8 @@ void InGameView::HandleAITurn() {
       throw std::runtime_error("AI failed to make a valid move after 1000 attempts!");
     }
 
-    const auto coord = currentPlayer.profile.AI()->GetFireCoordinates(enemyBoard);
+    const auto coord =
+        currentPlayer.profile.AI()->GetFireCoordinates(enemyBoard, salvoSelectionCoordinates);
 
     if (mode.commandType == FireCommandType::SalvoFireCommand) {
       // In salvo mode, ensure we don't select the same coordinate twice
