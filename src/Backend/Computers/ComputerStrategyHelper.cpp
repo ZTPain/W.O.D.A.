@@ -62,7 +62,7 @@ Coordinates ComputerStrategyHelper::ShootAtRandomCoordinate(
 
   for (size_t y = 0; y < h; y++) {
     for (size_t x = 0; x < w; x++) {
-      Coordinates coord{x, y};
+      const Coordinates coord{x, y};
       if (!segments[y][x] && !IsCoordinateInList(coord, blacklistedCoordinates)) {
         pool.emplace_back(coord);
       }
@@ -96,7 +96,7 @@ std::vector<Coordinates> ComputerStrategyHelper::GetShipsNotYetDestroyed(
           {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
       };
 
-      for (const auto [dx, dy] : DIRS) {
+      for (const auto& [dx, dy] : DIRS) {
         const size_t nx = x + dx;
         const size_t ny = y + dy;
 
