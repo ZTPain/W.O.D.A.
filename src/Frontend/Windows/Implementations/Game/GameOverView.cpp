@@ -76,7 +76,7 @@ void GameOverView::RenderWinnerSection() {
 
   const auto& gameManager = AppState::GetCurrentGameManager();
 
-  const auto& winner = gameManager->Players().at(gameManager->WinnerId());
+  const auto& winner = gameManager->GetPlayerAtIndex(gameManager->WinnerId());
 
   static std::array<char, 100> buffer{};
   std::snprintf(
@@ -139,7 +139,7 @@ void GameOverView::RenderStat(size_t index) {
 
 uint64_t GameOverView::GetStatValue(size_t index, size_t playerIndex) {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& player = gameManager->Players().at(playerIndex);
+  const auto& player = gameManager->GetPlayerAtIndex(playerIndex);
 
   switch (index) {
     case 0:

@@ -120,8 +120,8 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   }
 
   if (keyDetails.key == ConsoleKey::R) {
-    const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
-    const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
+    const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
+    const auto& enemyPlayer = gameManager->GetPlayerAtIndex(enemyPlayerIndex);
     assert(currentPlayer.profile.AI() == nullptr);
     while (true) {
       const auto coords = GameManager::GetComputerByType(ComputerType::Medium)
@@ -162,8 +162,8 @@ void InGameView::ForceRender() {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
 
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
-  const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
+  const auto& enemyPlayer = gameManager->GetPlayerAtIndex(enemyPlayerIndex);
 
   const auto alivePlayersCount = std::count_if(
       gameManager->Players().begin(), gameManager->Players().end(), [](const auto& player) {
@@ -272,7 +272,7 @@ void InGameView::RenderCell(
     size_t x, size_t y, size_t posX, size_t posY, bool isCursor, size_t playerIndex
 ) const {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& player = gameManager->Players().at(playerIndex);
+  const auto& player = gameManager->GetPlayerAtIndex(playerIndex);
   const auto& board = player.board;
   const auto& segmentBoard = board.GetSegmentBoard();
   const auto& unitsPlacement = board.Units();
@@ -361,7 +361,7 @@ void InGameView::OnToggleEnemyCell(size_t x, size_t y, size_t /*posX*/, size_t /
 size_t InGameView::CalculateSegmentsLeftForPlayer(size_t playerIndex, size_t* outMax) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& player = gameManager->Players().at(playerIndex);
+  const auto& player = gameManager->GetPlayerAtIndex(playerIndex);
   const auto& units = player.board.GetAllUnits();
 
   const auto maxCount =
@@ -383,7 +383,7 @@ size_t InGameView::CalculateSegmentsLeftForPlayer(size_t playerIndex, size_t* ou
 void InGameView::RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& player = gameManager->Players().at(playerIndex);
+  const auto& player = gameManager->GetPlayerAtIndex(playerIndex);
   const auto& units = player.board.GetAllUnits();
 
   IO::cout << AnsiHelper::MoveCursor(startX, startY);
@@ -456,7 +456,7 @@ void InGameView::HandleAITurn() {
   // If in the future we have more complex logic (like teams), this will need to be updated and we
   // will need to redraw the enemy grid accordingly
 
-  const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
+  const auto& enemyPlayer = gameManager->GetPlayerAtIndex(enemyPlayerIndex);
   const auto& enemyBoard = enemyPlayer.board;
 
   size_t attempts = 0;
@@ -466,8 +466,9 @@ void InGameView::HandleAITurn() {
       throw std::runtime_error("AI failed to make a valid move after 1000 attempts!");
     }
 
-    const auto coord =
-        currentPlayer.profile.AI()->GetFireCoordinates(enemyBoard, salvoSelectionCoordinates);
+    const auto coord = currentPlayer.profile.AI()->GetFireCoordinates(
+        enemyPlayer.board, salvoSelectionCoordinates
+    );
 
     if (mode.commandType == FireCommandType::SalvoFireCommand) {
       // In salvo mode, ensure we don't select the same coordinate twice
@@ -496,8 +497,7 @@ void InGameView::HandleAITurn() {
 bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
-  const auto& enemyBoard = enemyPlayer.board;
+  auto& enemyPlayer = gameManager->GetPlayerAtIndex(enemyPlayerIndex);
   const auto& currentPlayer = gameManager->GetCurrentPlayer();
   const auto& currentPlayerBoard = currentPlayer.board;
   const auto& currentPlayerUnits = currentPlayerBoard.GetAllUnits();
@@ -510,7 +510,7 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
 
   switch (mode.commandType) {
     case FireCommandType::FireCommand: {
-      auto command = std::make_unique<FireCommand>(const_cast<GameBoard&>(enemyBoard), coord);
+      auto command = std::make_unique<FireCommand>(enemyPlayer.board, coord);
       if (!gameManager->ExecuteCommand(std::move(command)))
         return false;
 
@@ -523,9 +523,8 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
       salvoSelectionCoordinates.push_back(coord);
 
       if (currentPlayerUnitsAlive == salvoSelectionCoordinates.size()) {
-        auto command = std::make_unique<SalvoFireCommand>(
-            const_cast<GameBoard&>(enemyBoard), salvoSelectionCoordinates
-        );
+        auto command =
+            std::make_unique<SalvoFireCommand>(enemyPlayer.board, salvoSelectionCoordinates);
 
         if (!gameManager->ExecuteCommand(std::move(command))) {
           salvoSelectionCoordinates.clear();
@@ -538,11 +537,12 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
     }
   }
 
+  const auto& enemyUnits = enemyPlayer.board.Units();
   for (size_t i = 0; i < salvoSelectionCoordinates.size(); i++) {
     const auto& coord = salvoSelectionCoordinates[i];
     uint8_t result = 0;
-    if (enemyBoard.Units()[coord.y][coord.x] != nullptr) {
-      if (enemyBoard.Units()[coord.y][coord.x]->IsDestroyed()) {
+    if (enemyUnits[coord.y][coord.x] != nullptr) {
+      if (enemyUnits[coord.y][coord.x]->IsDestroyed()) {
         result = 2; // Destroyed
       } else {
         result = 1; // Hit
@@ -702,7 +702,7 @@ void InGameView::RenderTurnQueue() const {
 
   IO::cout << AnsiHelper::MoveCursor(startX, startY + 1);
   IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
-  IO::cout << " -  " << gameManager->Players().at(queueIndex).profile.name << " ";
+  IO::cout << " -  " << gameManager->GetPlayerAtIndex(queueIndex).profile.name << " ";
   IO::cout << AnsiHelper::Reset();
   queueIndex = (queueIndex + 1) % gameManager->Players().size();
 
@@ -710,7 +710,7 @@ void InGameView::RenderTurnQueue() const {
 
   size_t i = 1;
   while (queueIndex != currentPlayerIndex) {
-    const auto& player = gameManager->Players().at(queueIndex);
+    const auto& player = gameManager->GetPlayerAtIndex(queueIndex);
     if (player.board.IsGameOver()) {
       queueIndex = (queueIndex + 1) % gameManager->Players().size();
       continue;
@@ -759,7 +759,7 @@ void InGameView::RenderLeaderboard() const {
 
   size_t i = 1;
   for (const auto& [playerIndex, score] : leaderboard) {
-    const auto& player = gameManager->Players().at(playerIndex);
+    const auto& player = gameManager->GetPlayerAtIndex(playerIndex);
 
     IO::cout << AnsiHelper::MoveCursor(startX, startY + i);
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
@@ -788,8 +788,8 @@ void InGameView::RenderHistory() const {
   size_t j = actionHistory.size();
   for (auto it = actionHistory.rbegin(); it != actionHistory.rend(); ++it) {
     const auto& [attackerIndex, defenderIndex, coord, result] = *it;
-    const auto& attacker = gameManager->Players().at(attackerIndex);
-    const auto& defender = gameManager->Players().at(defenderIndex);
+    const auto& attacker = gameManager->GetPlayerAtIndex(attackerIndex);
+    const auto& defender = gameManager->GetPlayerAtIndex(defenderIndex);
 
     IO::cout << AnsiHelper::MoveCursor(startX, startY + i);
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);

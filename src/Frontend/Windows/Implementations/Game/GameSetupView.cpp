@@ -72,7 +72,7 @@ AnsiColor GameSetupView::GetColorForUnitType(BattleUnitType type) {
 
 BattleUnitType GameSetupView::GetUnitTypeOfCoordinate(const Coordinates& coord) const {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
   const auto& units = segmentBoard.GetUnits();
@@ -143,7 +143,7 @@ void GameSetupView::RenderFilledCell(
 
 void GameSetupView::RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
 
@@ -159,7 +159,7 @@ void GameSetupView::RenderUnitsLeft(const std::unordered_map<BattleUnitType, siz
   auto i = 1;
 
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
 
@@ -187,7 +187,7 @@ void GameSetupView::RenderUnitsLeft(const std::unordered_map<BattleUnitType, siz
 void GameSetupView::OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   auto& segmentBoard = board.GetSegmentBoard();
 
@@ -251,7 +251,7 @@ bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
   if (keyDetails.key == ConsoleKey::R) {
     const auto& gameManager = AppState::GetCurrentGameManager();
-    const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+    const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
 
     GenerateRandomSetup(
         &currentPlayer.board.GetSegmentBoard(),
@@ -273,7 +273,7 @@ void GameSetupView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 void GameSetupView::ForceRender() {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
 
   if (gameManager->State() != GameState::Setting) {
     return;
@@ -334,7 +334,7 @@ bool GameSetupView::IsCorrectSize(int width, int height) const {
 // NOLINTNEXTLINE(misc-no-recursion)
 void GameSetupView::HandleAI() {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
 
   if (currentPlayer.profile.AI() == nullptr)
     return;
@@ -531,7 +531,7 @@ void GameSetupView::ShowErrorMessage(const std::string& message) {
 
 bool GameSetupView::AllUnitsPlaced() const {
   const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
+  const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
   const auto& segmentBoard = board.GetSegmentBoard();
 
