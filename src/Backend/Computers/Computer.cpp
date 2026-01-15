@@ -1,4 +1,5 @@
 #include "Computer.h"
+
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include "EasyComputerStrategy.h"
@@ -6,6 +7,7 @@
 #include "IComputerStrategy.h"
 #include "MediumComputerStrategy.h"
 #include <stdexcept>
+#include <vector>
 
 static EasyComputerStrategy easyStrategy;
 static MediumComputerStrategy mediumStrategy;
@@ -27,8 +29,10 @@ Computer::Computer(ComputerType type) : computerType(type) {
   }
 }
 
-Coordinates Computer::GetFireCoordinates(const GameBoard& board) const {
-  return computerStrategy->CalculateFireCoordinates(board);
+Coordinates Computer::GetFireCoordinates(
+    const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+) const {
+  return computerStrategy->CalculateFireCoordinates(board, blacklistedCoordinates);
 }
 
 ComputerType Computer::GetComputerType() const { return computerType; }
