@@ -457,7 +457,6 @@ void InGameView::HandleAITurn() {
   // will need to redraw the enemy grid accordingly
 
   const auto& enemyPlayer = gameManager->GetPlayerAtIndex(enemyPlayerIndex);
-  const auto& enemyBoard = enemyPlayer.board;
 
   size_t attempts = 0;
   while (true) {
