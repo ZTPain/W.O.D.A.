@@ -29,6 +29,8 @@ private:
   size_t enemyPlayerIndex = 1;
   Grid enemyGrid;
 
+  std::vector<Coordinates> salvoSelectionCoordinates;
+
   std::vector<std::tuple<size_t, size_t, Coordinates, uint8_t>> actionHistory;
 
   bool fastForwardEnabled = false;
@@ -49,7 +51,7 @@ private:
 
   void HandleAITurn();
   bool HandleFireAtCoordinate(const Coordinates& coord);
-  void ShowPlayerFireAnimation(const Coordinates& coord);
+  void ShowPlayerFireAnimation();
 
   void RenderTurnQueue() const;
   void RenderLeaderboard() const;

@@ -6,6 +6,7 @@
 #include "Backend/Games/FireCommand.h"
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Games/SalvoFireCommand.h"
 #include "Backend/Units/BattleUnitHelper.h"
 #include "Backend/Units/BattleUnitType.h"
 #include "Frontend/Helpers//PromptHelper.h"
@@ -32,6 +33,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <thread>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -121,10 +123,13 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     const auto& currentPlayer = gameManager->Players().at(currentPlayerIndex);
     const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
     assert(currentPlayer.profile.AI() == nullptr);
-    const auto coords =
-        GameManager::GetComputerByType(ComputerType::Medium)->GetFireCoordinates(enemyPlayer.board);
+    while (true) {
+      const auto coords = GameManager::GetComputerByType(ComputerType::Medium)
+                              ->GetFireCoordinates(enemyPlayer.board);
 
-    HandleFireAtCoordinate(coords);
+      if (HandleFireAtCoordinate(coords))
+        break;
+    }
     return true;
   }
 
@@ -280,6 +285,7 @@ void InGameView::RenderCell(
 
   std::array<char, 4> symbol = {' ', '.', ' ', '\0'};
 
+  bool updateColor = true;
   if (isCursor) {
     symbol[0] = '[';
     symbol[1] = ' ';
@@ -296,29 +302,59 @@ void InGameView::RenderCell(
     symbol[1] = 'o';
   }
 
-  IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Default);
-
-  if (inAnimation && isCursor) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::White);
-    symbol[0] = '[';
-    symbol[1] = ' ';
-    symbol[2] = ']';
+  if (!salvoSelectionCoordinates.empty()) {
+    for (const auto& selectedCoord : salvoSelectionCoordinates) {
+      if (selectedCoord.x == x && selectedCoord.y == y) {
+        symbol[0] = '{';
+        symbol[1] = ' ';
+        symbol[2] = '}';
+        if (inAnimation) {
+          updateColor = false;
+          IO::cout << AnsiHelper::SetTextColor(AnsiColor::White);
+        }
+        break;
+      }
+    }
   }
 
-  if (isHit && hasUnit) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << symbol.data() << AnsiHelper::Reset();
-  } else if (isHit && !hasUnit) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue) << symbol.data() << AnsiHelper::Reset();
-  } else {
-    IO::cout << symbol.data();
+  IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Default);
+
+  if (updateColor) {
+    if (isHit && hasUnit) {
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << symbol.data() << AnsiHelper::Reset();
+    } else if (isHit && !hasUnit) {
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue) << symbol.data() << AnsiHelper::Reset();
+    } else {
+      IO::cout << symbol.data();
+    }
   }
 
-  IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Default);
+  IO::cout << AnsiHelper::SetTextColor(AnsiColor::Default);
   IO::cout.flush();
 }
 
 void InGameView::OnToggleEnemyCell(size_t x, size_t y, size_t /*posX*/, size_t /*posY*/) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+
   const auto coord = Coordinates(static_cast<int>(x), static_cast<int>(y));
+
+  if (mode.commandType == FireCommandType::SalvoFireCommand) {
+    // In salvo mode, ensure we don't select the same coordinate twice
+    for (const auto& selectedCoord : salvoSelectionCoordinates) {
+      if (selectedCoord.x == coord.x && selectedCoord.y == coord.y) {
+        salvoSelectionCoordinates.erase(
+            std::remove(
+                salvoSelectionCoordinates.begin(), salvoSelectionCoordinates.end(), selectedCoord
+            ),
+            salvoSelectionCoordinates.end()
+        );
+
+        return;
+      }
+    }
+  }
+
   HandleFireAtCoordinate(coord);
 }
 
@@ -430,20 +466,25 @@ void InGameView::HandleAITurn() {
       throw std::runtime_error("AI failed to make a valid move after 1000 attempts!");
     }
 
-    switch (mode.commandType) {
-      case FireCommandType::FireCommand: {
-        const auto coord = currentPlayer.profile.AI()->GetFireCoordinates(enemyBoard);
-        if (!HandleFireAtCoordinate(coord))
-          continue;
-        break;
+    const auto coord = currentPlayer.profile.AI()->GetFireCoordinates(enemyBoard);
+
+    if (mode.commandType == FireCommandType::SalvoFireCommand) {
+      // In salvo mode, ensure we don't select the same coordinate twice
+      bool alreadySelected = false;
+      for (const auto& selectedCoord : salvoSelectionCoordinates) {
+        if (selectedCoord.x == coord.x && selectedCoord.y == coord.y) {
+          alreadySelected = true;
+          break;
+        }
       }
 
-      case FireCommandType::SalvoFireCommand: {
-        throw std::runtime_error("SalvoFireCommand not implemented in InGameView! (Yet)");
+      if (alreadySelected) {
+        continue;
       }
     }
 
-    break;
+    if (HandleFireAtCoordinate(coord))
+      break;
   }
 }
 
@@ -456,39 +497,65 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   const auto& mode = gameManager->Mode();
   const auto& enemyPlayer = gameManager->Players().at(enemyPlayerIndex);
   const auto& enemyBoard = enemyPlayer.board;
+  const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& currentPlayerBoard = currentPlayer.board;
+  const auto& currentPlayerUnits = currentPlayerBoard.GetAllUnits();
+  const size_t currentPlayerUnitsAlive =
+      std::count_if(currentPlayerUnits.begin(), currentPlayerUnits.end(), [](const auto& unit) {
+        return !unit->IsDestroyed();
+      });
 
   assert(enemyPlayerIndex != currentPlayerIndex);
 
   switch (mode.commandType) {
     case FireCommandType::FireCommand: {
-      // NOLINTNEXTLINE
       auto command = std::make_unique<FireCommand>(const_cast<GameBoard&>(enemyBoard), coord);
       if (!gameManager->ExecuteCommand(std::move(command)))
         return false;
+
+      salvoSelectionCoordinates.push_back(coord);
 
       break;
     }
 
     case FireCommandType::SalvoFireCommand: {
-      throw std::runtime_error("SalvoFireCommand not implemented in InGameView! (Yet)");
+      salvoSelectionCoordinates.push_back(coord);
+
+      if (currentPlayerUnitsAlive == salvoSelectionCoordinates.size()) {
+        auto command = std::make_unique<SalvoFireCommand>(
+            const_cast<GameBoard&>(enemyBoard), salvoSelectionCoordinates
+        );
+
+        if (!gameManager->ExecuteCommand(std::move(command))) {
+          salvoSelectionCoordinates.clear();
+          return false;
+        }
+      } else {
+        enemyGrid.Render();
+        return false;
+      }
     }
   }
 
-  uint8_t result = 0;
-  if (enemyBoard.Units()[coord.y][coord.x] != nullptr) {
-    if (enemyBoard.Units()[coord.y][coord.x]->IsDestroyed()) {
-      result = 2; // Destroyed
+  for (size_t i = 0; i < salvoSelectionCoordinates.size(); i++) {
+    const auto& coord = salvoSelectionCoordinates[i];
+    uint8_t result = 0;
+    if (enemyBoard.Units()[coord.y][coord.x] != nullptr) {
+      if (enemyBoard.Units()[coord.y][coord.x]->IsDestroyed()) {
+        result = 2; // Destroyed
+      } else {
+        result = 1; // Hit
+      }
     } else {
-      result = 1; // Hit
+      result = 0; // Miss
     }
-  } else {
-    result = 0; // Miss
+    actionHistory.emplace_back(currentPlayerIndex, enemyPlayerIndex, coord, result);
   }
-  actionHistory.emplace_back(currentPlayerIndex, enemyPlayerIndex, coord, result);
 
   enemyGrid.SetCursorPosition(coord.x, coord.y);
 
-  ShowPlayerFireAnimation(coord);
+  ShowPlayerFireAnimation();
+  salvoSelectionCoordinates.clear();
 
   if (gameManager->State() == GameState::Over) {
     // Show game over prompt
@@ -500,65 +567,120 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   return true;
 }
 
-void InGameView::ShowPlayerFireAnimation(const Coordinates& coord) {
+void InGameView::ShowPlayerFireAnimation() {
   inAnimation = true;
 
-  auto bulletY = enemyGrid.GetYOffset() + (coord.y * enemyGrid.GetCellHeightWithBorders()) +
-                 (enemyGrid.GetCellHeightWithBorders() / 2) + 1;
+  assert(!salvoSelectionCoordinates.empty());
+
+  std::vector<std::tuple<size_t, size_t, size_t>> bulletDatas{};
+
   auto bulletX = currentGrid.GetTotalWidth() + currentGrid.GetXOffset() + 1;
-
-  auto targetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
-                 (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
-
-  if (invertGridPositions) {
+  if (invertGridPositions)
     bulletX = currentGrid.GetXOffset() - 2;
-    targetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
-              (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
+
+  size_t maxDistance = 0;
+  for (const auto& coord : salvoSelectionCoordinates) {
+    auto bulletY = enemyGrid.GetYOffset() + (coord.y * enemyGrid.GetCellHeightWithBorders()) +
+                   (enemyGrid.GetCellHeightWithBorders() / 2) + 1;
+
+    auto targetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
+                   (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
+
+    if (invertGridPositions) {
+      targetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
+                (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
+    }
+
+    bulletDatas.emplace_back(bulletX, bulletY, targetX);
+
+    const auto distance = invertGridPositions ? (bulletX - targetX) : (targetX - bulletX);
+    maxDistance = std::max(distance, maxDistance);
   }
 
   enemyGrid.Render();
 
-  const auto distance = invertGridPositions ? (bulletX - targetX) : (targetX - bulletX);
-  const auto stepDelay = std::max(5, static_cast<int>(1500 / distance));
+  const auto stepDelay = std::max(5, static_cast<int>(1500 / maxDistance));
 
-  while ((invertGridPositions ? bulletX > targetX : bulletX < targetX)) {
-
-    ConsoleKeyDetails keyDetails{};
-    if (InputManager::TryGetKeyPress(keyDetails)) {
-      if (keyDetails.key == ConsoleKey::OemPeriod) {
-        fastForwardEnabled = !fastForwardEnabled;
-        ForceRender();
+  bool done = false;
+  // (invertGridPositions ? bulletX > targetX : bulletX < targetX)
+  while (!done) {
+    {
+      ConsoleKeyDetails keyDetails{};
+      if (InputManager::TryGetKeyPress(keyDetails)) {
+        if (keyDetails.key == ConsoleKey::OemPeriod) {
+          fastForwardEnabled = !fastForwardEnabled;
+          ForceRender();
+        }
       }
     }
 
-    IO::cout << AnsiHelper::MoveCursor(bulletX, bulletY);
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow) << (invertGridPositions ? "←" : "→")
-             << AnsiHelper::Reset();
-    IO::cout.flush();
+    done = true;
+    size_t i = 0;
+    std::vector<size_t> indicesToRemove{};
+    for (const auto [bulletX, bulletY, targetX] : bulletDatas) {
+      bool localDone = true;
+      if (invertGridPositions) {
+        if (bulletX > targetX) {
+          done = false;
+          localDone = false;
+        }
+      } else {
+        if (bulletX < targetX) {
+          done = false;
+          localDone = false;
+        }
+      }
+
+      if (localDone) {
+        indicesToRemove.push_back(i);
+        i++;
+        continue;
+      }
+
+      IO::cout << AnsiHelper::MoveCursor(bulletX, bulletY);
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow) << (invertGridPositions ? "←" : "→")
+               << AnsiHelper::Reset();
+      IO::cout.flush();
+
+      if (invertGridPositions) {
+        // Move left by 2 to account for character width
+        bulletDatas[i] = std::make_tuple(bulletX - 2, bulletY, targetX);
+      } else {
+        // Move right by 2 to account for character width
+        bulletDatas[i] = std::make_tuple(bulletX + 2, bulletY, targetX);
+      }
+
+      i++;
+    }
+
+    // Remove finished bullets
+    for (auto it = indicesToRemove.rbegin(); it != indicesToRemove.rend(); ++it) {
+      bulletDatas.erase(bulletDatas.begin() + static_cast<int64_t>(*it));
+    }
 
     if (!fastForwardEnabled)
       std::this_thread::sleep_for(std::chrono::milliseconds(stepDelay));
 
-    if (invertGridPositions)
-      bulletX -= 2; // Move left by 2 to account for character width
-    else
-      bulletX += 2; // Move right by 2 to account for character width
+    bool insideEnemyGrid = false;
+    for (const auto [bulletX, bulletY, targetX] : bulletDatas) {
+      // Clear previous bullet
+      IO::cout << AnsiHelper::MoveCursor(bulletX + (invertGridPositions ? 2 : -2), bulletY);
+      IO::cout << " ";
 
-    // Clear previous bullet
-    IO::cout << AnsiHelper::MoveCursor(bulletX + (invertGridPositions ? 2 : -2), bulletY);
-    IO::cout << " ";
-
-    const auto insideEnemyGrid = bulletX >= enemyGrid.GetXOffset() &&
-                                 bulletX < (enemyGrid.GetXOffset() + enemyGrid.GetTotalWidth());
+      insideEnemyGrid |= bulletX >= enemyGrid.GetXOffset() &&
+                         bulletX < (enemyGrid.GetXOffset() + enemyGrid.GetTotalWidth());
+    }
 
     if (insideEnemyGrid)
       enemyGrid.Render();
   }
 
-  // Final position
-  IO::cout << AnsiHelper::MoveCursor(targetX, bulletY);
-  IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << "*" << AnsiHelper::Reset();
-  IO::cout.flush();
+  for (const auto [bulletX, bulletY, targetX] : bulletDatas) {
+    // Final position
+    IO::cout << AnsiHelper::MoveCursor(targetX, bulletY);
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << "*" << AnsiHelper::Reset();
+    IO::cout.flush();
+  }
 
   inAnimation = false;
 
