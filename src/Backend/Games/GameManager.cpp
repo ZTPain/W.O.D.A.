@@ -39,9 +39,11 @@ unsigned int GameManager::WinnerId() const { return winnerId; }
 std::chrono::seconds GameManager::Playtime() const { return playtime; }
 
 void GameManager::StartGame() {
+  // Start timing the game
   gameStartPoint = std::chrono::steady_clock::now();
   state = GameState::Playing;
 
+  // Set up all the boards
   for (auto& player : players) {
     player.board.ParseSegments();
   }
@@ -82,7 +84,7 @@ void GameManager::UpdatePlayerStatistics() {
 
     stats.gamesPlayed++;
 
-    // For all non-winners
+    // All players who didn't win - lose
     if (i != winnerId)
       stats.gamesLost++;
 
@@ -171,6 +173,7 @@ void GameManager::HandleGameOver() {
   const auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
 
+  // Mark current (last standing) player as a winner
   winnerId = currentTurn;
 
   // Update player profiles
@@ -179,6 +182,7 @@ void GameManager::HandleGameOver() {
 
   state = GameState::Over;
 
+  // Save post game end
   Battleships::GetInstance().WriteToSave();
 }
 
