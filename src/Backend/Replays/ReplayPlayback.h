@@ -9,8 +9,7 @@ class ReplayPlayback {
   int currentStep = -1;
 
 public:
-  ReplayPlayback(Replay replay);
-  ~ReplayPlayback();
+  ReplayPlayback(const Replay& replay);
   [[nodiscard]] const Replay& Replay() const;
   [[nodiscard]] int CurrentStep() const;
   bool StepForward();

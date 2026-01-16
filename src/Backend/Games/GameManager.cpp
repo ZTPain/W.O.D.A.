@@ -7,6 +7,7 @@
 #include "Backend/Games/Player.h"
 #include "Backend/Main/Battleships.h"
 #include "Backend/Replays/Replay.h"
+#include "Backend/Replays/ReplayManager.h"
 #include "Backend/Users/UserProfile.h"
 #include <algorithm>
 #include <chrono>
@@ -195,7 +196,7 @@ void GameManager::HandleGameOver() {
   Battleships::GetInstance().WriteToSave();
 }
 
-Replay GameManager::GetReplay() {
+void GameManager::SaveReplay() {
   // Reset game boards to their set (game start) state
   for (auto& p : players) {
     p.board.GetSegmentBoard().Clear();
@@ -204,8 +205,10 @@ Replay GameManager::GetReplay() {
       unit->Reset();
   }
 
-  // Compile a replay from the game info
-  return {gameId, std::move(players), std::move(history), winnerId, playtime, 0};
+  // Compile and save a replay from the game info
+  ReplayManager::GetInstance().SaveReplay(
+      {gameId, std::move(players), std::move(history), winnerId, playtime, 0}
+  );
 }
 
 Computer* GameManager::GetComputerByType(ComputerType computerType) {

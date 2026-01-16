@@ -3,6 +3,7 @@
 #include "Backend/Games/SalvoFireCommand.h"
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
+#include "Backend/Games/ICommand.h"
 #include "Backend/Units/BattleUnit.h"
 #include <memory>
 #include <unordered_set>
@@ -11,6 +12,9 @@
 
 SalvoFireCommand::SalvoFireCommand(GameBoard& board, std::vector<Coordinates> coords)
     : board(board), coords(std::move(coords)) {}
+
+SalvoFireCommand::SalvoFireCommand(const SalvoFireCommand& other)
+    : board(other.board), coords(other.coords) {}
 
 bool SalvoFireCommand::Execute() {
   unsigned short succesfulShotCount = 0;
@@ -36,6 +40,10 @@ bool SalvoFireCommand::Execute() {
 void SalvoFireCommand::Undo() {
   for (const auto& c : coords)
     board.FixSegment(c.x, c.y);
+}
+
+std::unique_ptr<ICommand> SalvoFireCommand::Clone() const {
+  return std::make_unique<SalvoFireCommand>(*this);
 }
 
 unsigned int SalvoFireCommand::ShotsHit() const {
