@@ -6,6 +6,7 @@
 #include "Frontend/Windows/Api/Window.h"
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -33,6 +34,7 @@ private:
   std::vector<Coordinates> salvoSelectionCoordinates;
 
   std::vector<std::tuple<size_t, size_t, Coordinates, uint8_t>> actionHistory;
+  std::map<size_t, std::pair<size_t, Coordinates>> lastPositionsPerPlayer;
 
   bool fastForwardEnabled = false;
   bool inAnimation = false;

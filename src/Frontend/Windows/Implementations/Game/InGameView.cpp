@@ -62,6 +62,16 @@ void InGameView::OnEnter() {
   currentPlayerIndex = 0;
   enemyPlayerIndex = 1;
   fastForwardEnabled = false;
+  invertGridPositions = false;
+
+  actionHistory.clear();
+  lastPositionsPerPlayer.clear();
+  const auto& players = gameManager->Players();
+  for (size_t i = 0; i < players.size(); i++) {
+    lastPositionsPerPlayer[i] = {
+        (i + 1) % players.size(), Coordinates{0, 0}
+    };
+  }
 
   currentGrid = Grid(
       2 + 2,
@@ -88,9 +98,6 @@ void InGameView::OnEnter() {
       },
       [this](size_t x, size_t y, size_t posX, size_t posY) { OnToggleEnemyCell(x, y, posX, posY); }
   );
-
-  actionHistory.clear();
-  invertGridPositions = false;
 
   OnChangeTurn();
 }
@@ -275,16 +282,20 @@ void InGameView::OnChangeTurn() {
 
   currentPlayerIndex = std::find_if(players.begin(), players.end(), pred) - players.begin();
 
-  enemyPlayerIndex = (currentPlayerIndex + 1) % players.size();
-  while (players[enemyPlayerIndex].board.IsGameOver()) {
+  enemyPlayerIndex = lastPositionsPerPlayer[currentPlayerIndex].first;
+  bool firstLoop = true;
+  while (players[enemyPlayerIndex].board.IsGameOver() || currentPlayerIndex == enemyPlayerIndex) {
+    if (currentPlayerIndex == enemyPlayerIndex) {
+      if (!firstLoop)
+        throw std::runtime_error("No valid enemy player found!");
+      firstLoop = false;
+    }
+
     enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
   }
 
-  if (currentPlayerIndex == enemyPlayerIndex) {
-    throw std::runtime_error("No valid enemy player found!");
-  }
-
-  enemyGrid.SetCursorPosition(0, 0);
+  const auto& lastCoord = lastPositionsPerPlayer[currentPlayerIndex].second;
+  enemyGrid.SetCursorPosition(lastCoord.x, lastCoord.y);
 
   ForceRender();
 
@@ -366,6 +377,8 @@ void InGameView::OnToggleEnemyCell(size_t x, size_t y, size_t /*posX*/, size_t /
   const auto& mode = gameManager->Mode();
 
   const auto coord = Coordinates(static_cast<int>(x), static_cast<int>(y));
+
+  lastPositionsPerPlayer[currentPlayerIndex] = {enemyPlayerIndex, coord};
 
   if (mode.commandType == FireCommandType::SalvoFireCommand) {
     // In salvo mode, ensure we don't select the same coordinate twice
