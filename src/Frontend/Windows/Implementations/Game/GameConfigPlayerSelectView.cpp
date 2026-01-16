@@ -2,6 +2,7 @@
 
 #include "Backend/Computers/Computer.h"
 #include "Backend/Computers/ComputerHelper.h"
+#include "Backend/Computers/ComputerStrategyHelper.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Main/Battleships.h"
 #include "Backend/Users/UserManager.h"
@@ -22,6 +23,45 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+
+static constexpr const std::array<const char*, 10> EASY_AI_NAMES = {
+    "Cadet Ben Chmark",
+    "Trainee Johnathan",
+    "Recruit Justin Case",
+    "Cadet Liam",
+    "Seaman Al Gorithm",
+    "Deckhand Oliver",
+    "Cadet Candy",
+    "Sailor Noah",
+    "Federal Agent Leon Kennedy",
+    "Seaman Chris Chan",
+};
+
+static constexpr const std::array<const char*, 10> MEDIUM_AI_NAMES = {
+    "Corporal F. Frank",
+    "Corporal Joji",
+    "Sergeant Marcus Fenix",
+    "Sergeant Paul Miller",
+    "Lieutenant Harris",
+    "Petty Officer Sam",
+    "Chief Gunner Lee",
+    "Warrant Officer Cole",
+    "Gunnery Mate Ryan",
+    "Commander Shepard",
+};
+
+static constexpr const std::array<const char*, 10> HARD_AI_NAMES = {
+    "General Kenobi",
+    "Captain Bob D'Builder",
+    "Admiral Stone C. S. Austin",
+    "General Memory Leak",
+    "Captain S. Rogers",
+    "General Hawk Two huh?",
+    "Captain Jack Bird",
+    "RNGesus",
+    "Captain J.D. Vance",
+    "High Admiral Kane",
+};
 
 static bool playerRemoveSelfWarningVisible = false;
 static bool compactModeEnabled = false;
@@ -186,11 +226,29 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
       throw std::runtime_error("Invalid AI add option selected!");
   }
 
-  static size_t aiCounter = 0;
-  aiCounter++;
-  std::array<char, 100> aiNameBuffer{};
-  std::snprintf(aiNameBuffer.data(), aiNameBuffer.size(), "Computer %zu", aiCounter);
-  const auto& aiProfile = UserManager::GetInstance().CreateComputer(aiNameBuffer.data(), aiType);
+  const char* aiName = "Computer";
+  switch (aiType) {
+    case ComputerType::Easy:
+      aiName =
+          EASY_AI_NAMES.at(ComputerStrategyHelper::GetRandomFromRange(0, EASY_AI_NAMES.size() - 1));
+      break;
+
+    case ComputerType::Medium:
+      aiName = MEDIUM_AI_NAMES.at(
+          ComputerStrategyHelper::GetRandomFromRange(0, MEDIUM_AI_NAMES.size() - 1)
+      );
+      break;
+
+    case ComputerType::Hard:
+      aiName =
+          HARD_AI_NAMES.at(ComputerStrategyHelper::GetRandomFromRange(0, HARD_AI_NAMES.size() - 1));
+      break;
+
+    default:
+      break;
+  }
+
+  const auto& aiProfile = UserManager::GetInstance().CreateComputer(aiName, aiType);
   selectedPlayerOptions.emplace_back(aiProfile.UserId());
   ForceRender();
 }
