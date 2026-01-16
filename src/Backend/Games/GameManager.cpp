@@ -206,7 +206,9 @@ void GameManager::SaveReplay() {
   }
 
   // Compile and save a replay from the game info
-  ReplayManager::GetInstance().SaveReplay({gameId, std::move(players), std::move(history), winnerId, playtime, 0});
+  ReplayManager::GetInstance().SaveReplay(
+      {gameId, std::move(players), std::move(history), winnerId, playtime, 0}
+  );
 }
 
 Computer* GameManager::GetComputerByType(ComputerType computerType) {
