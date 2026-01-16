@@ -72,8 +72,6 @@ Battleships::Battleships()
   ReadSave();
 }
 
-Battleships::~Battleships() { WriteToSave(); }
-
 std::unique_ptr<GameManager> Battleships::NewGame(
     const GameMode& mode, std::vector<UserProfile*>& profiles
 ) {
