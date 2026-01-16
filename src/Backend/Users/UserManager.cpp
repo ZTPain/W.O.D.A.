@@ -10,9 +10,10 @@
 
 static UserProfile defaultUserProfile(0, "Default", nullptr);
 
-UserManager UserManager::instance;
-
-UserManager& UserManager::GetInstance() { return instance; }
+UserManager& UserManager::GetInstance() {
+  static UserManager instance;
+  return instance;
+}
 
 const std::map<PlayerId, UserProfile>& UserManager::Users() const { return users; }
 

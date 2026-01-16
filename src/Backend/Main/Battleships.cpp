@@ -16,9 +16,10 @@
 #include <memory>
 #include <vector>
 
-Battleships Battleships::instance;
-
-Battleships& Battleships::GetInstance() { return instance; }
+Battleships& Battleships::GetInstance() {
+  static Battleships instance;
+  return instance;
+}
 
 const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
     "Extended Mode",

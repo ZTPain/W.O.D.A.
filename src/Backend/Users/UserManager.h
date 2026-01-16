@@ -9,7 +9,6 @@
 #include <string>
 
 class UserManager {
-  static UserManager instance;
   unsigned int nextUserId;
   unsigned int nextComputerUserId;
   std::map<PlayerId, UserProfile> users;
