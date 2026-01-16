@@ -27,10 +27,10 @@ void GameBoard::ParseSegments() {
 
   const UnitsMap& unitsMap = segmentValidator->GetUnits();
   for (const auto& [unitType, groups] : unitsMap) {
-    for (const auto& group : groups) {
-      if (unitType == BattleUnitType::None)
-        continue;
+    if (unitType == BattleUnitType::None)
+      continue;
 
+    for (const auto& group : groups) {
       const auto battleUnit = BattleUnitHelper::CreateBattleUnit(unitType);
 
       allUnits.push_back(battleUnit);

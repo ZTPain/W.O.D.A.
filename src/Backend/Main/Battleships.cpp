@@ -10,6 +10,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <ios>
 #include <iterator>
@@ -80,6 +81,9 @@ std::unique_ptr<GameManager> Battleships::NewGame(
 }
 
 void Battleships::ReadSave() {
+  if (!std::filesystem::exists("save.dat"))
+    return;
+
   std::ifstream file("save.dat", std::ios::binary);
 
   if (!file)
