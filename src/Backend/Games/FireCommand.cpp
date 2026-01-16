@@ -9,3 +9,11 @@ FireCommand::FireCommand(GameBoard& board, Coordinates coords) : board(board), c
 bool FireCommand::Execute() { return board.FireAt(coords.x, coords.y); }
 
 void FireCommand::Undo() { board.FixSegment(coords.x, coords.y); }
+
+unsigned int FireCommand::ShotsHit() const {
+  return board.Units()[coords.y][coords.x] != nullptr ? 1 : 0;
+}
+
+unsigned int FireCommand::UnitsDestroyed() const {
+  return board.Units()[coords.y][coords.x]->IsDestroyed() ? 1 : 0;
+}

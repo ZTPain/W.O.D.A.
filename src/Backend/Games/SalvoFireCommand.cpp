@@ -3,6 +3,9 @@
 #include "Backend/Games/SalvoFireCommand.h"
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
+#include "Backend/Units/BattleUnit.h"
+#include <memory>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -33,4 +36,28 @@ bool SalvoFireCommand::Execute() {
 void SalvoFireCommand::Undo() {
   for (const auto& c : coords)
     board.FixSegment(c.x, c.y);
+}
+
+unsigned int SalvoFireCommand::ShotsHit() const {
+  unsigned int shotsHit = 0;
+
+  for (const auto& c : coords)
+    shotsHit += board.Units()[c.y][c.x] != nullptr ? 1 : 0;
+
+  return shotsHit;
+}
+
+unsigned int SalvoFireCommand::UnitsDestroyed() const {
+  unsigned int unitsDestroyed = 0;
+  std::unordered_set<std::shared_ptr<BattleUnit>> unitsChecked;
+
+  for (const auto& c : coords) {
+    if (unitsChecked.count(board.Units()[c.y][c.x]) != 0)
+      continue;
+
+    unitsDestroyed += board.Units()[c.y][c.x]->IsDestroyed() ? 1 : 0;
+    unitsChecked.insert(board.Units()[c.y][c.x]);
+  }
+
+  return unitsDestroyed;
 }
