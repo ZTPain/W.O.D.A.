@@ -540,8 +540,7 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   }
 
   const auto& enemyUnits = enemyPlayer.board.Units();
-  for (size_t i = 0; i < salvoSelectionCoordinates.size(); i++) {
-    const auto& coord = salvoSelectionCoordinates[i];
+  for (const auto& coord : salvoSelectionCoordinates) {
     uint8_t result = 0;
     if (enemyUnits[coord.y][coord.x] != nullptr) {
       if (enemyUnits[coord.y][coord.x]->IsDestroyed()) {
