@@ -133,10 +133,35 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     return true;
   }
 
-  if (keyDetails.key == ConsoleKey::OemPeriod) {
-    fastForwardEnabled = !fastForwardEnabled;
-    ForceRender();
-    return true;
+  const auto& players = gameManager->Players();
+
+  switch (keyDetails.key) {
+    case ConsoleKey::OemPeriod: // .
+      fastForwardEnabled = !fastForwardEnabled;
+      ForceRender();
+      return true;
+
+    case ConsoleKey::Oem4: // [
+      enemyPlayerIndex = (enemyPlayerIndex + players.size() - 1) % players.size();
+      while (enemyPlayerIndex == currentPlayerIndex ||
+             gameManager->GetPlayerAtIndex(enemyPlayerIndex).board.IsGameOver()) {
+        enemyPlayerIndex = (enemyPlayerIndex + players.size() - 1) % players.size();
+      }
+      ForceRender();
+      return true;
+
+    case ConsoleKey::Tab:
+    case ConsoleKey::Oem6: // ]
+      enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
+      while (enemyPlayerIndex == currentPlayerIndex ||
+             gameManager->GetPlayerAtIndex(enemyPlayerIndex).board.IsGameOver()) {
+        enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
+      }
+      ForceRender();
+      return true;
+
+    default:
+      break;
   }
 
   enemyGrid.OnKeyPressed(keyDetails);
