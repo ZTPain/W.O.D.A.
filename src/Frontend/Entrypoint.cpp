@@ -29,4 +29,6 @@ extern "C" void EntryPoint() {
   WindowManager::GetInstance().Initialize();
 
   AppHelper::AwaitExit();
+
+  Battleships::GetInstance().WriteToSave();
 }
