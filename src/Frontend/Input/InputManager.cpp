@@ -33,14 +33,14 @@ void InputManager::OnKeyPressed(uint8_t key, uint8_t modifier, int32_t keyCode) 
   }
 
   keyPressQueue.push(lastKeyDetails);
+
+  waitForKeyCv.notify_all();
 }
 
 void InputManager::OnUpdate() {
   while (!keyPressQueue.empty()) {
     const auto keyDetails = keyPressQueue.front();
     keyPressQueue.pop();
-
-    waitForKeyCv.notify_all();
 
     if (onKeyPressedProvider.Call([keyDetails](const OnKeyPressedCallback& callback) {
           return callback(keyDetails);
@@ -75,7 +75,8 @@ void InputManager::GetCursorPosition(int& x, int& y) { ConsoleManager::GetCursor
 void InputManager::GetNextKeyPress(ConsoleKeyDetails& keyDetails) {
   WaitUntillKeyPressed();
 
-  keyDetails = lastKeyDetails;
+  keyDetails = keyPressQueue.front();
+  keyPressQueue.pop();
 }
 
 void InputManager::GetTerminalSize(int& width, int& height) {
