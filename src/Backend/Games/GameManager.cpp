@@ -98,16 +98,6 @@ void GameManager::UpdatePlayerStatistics() {
     if (i != winnerId)
       stats.gamesLost++;
 
-    // TODO: Remove
-    // for (const auto& unit : players[i].board.GetAllUnits()) {
-    //   // Sum up game performance
-    //   players[i].shotsHit += unit->GetDestroyedSegments();
-    //   players[i].score +=
-    //       (unit->GetTotalSegments() - unit->GetDestroyedSegments()) * unit->GetTotalSegments() *
-    //       5;
-    //   players[i].unitsDestroyed += unit->IsDestroyed() ? 1 : 0;
-    // }
-
     // New highscore
     stats.highestScore = std::max(stats.highestScore, players[i].score);
 
