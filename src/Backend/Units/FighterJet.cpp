@@ -5,7 +5,6 @@
 #include "BattleUnitHelper.h"
 #include "BattleUnitType.h"
 #include <algorithm>
-#include <array>
 #include <vector>
 
 FighterJet::FighterJet() {
@@ -24,38 +23,6 @@ bool FighterJet::IsValidUnitShape(const std::vector<Coordinates>& segments) {
   );
 
   const Coordinates origin = *targetXY;
-
-  static const std::array<Coordinates, 5> EXPECTED_COORDINATES_ROTATION_RIGHT = {
-      Coordinates(0, 0),
-      Coordinates(0, 1),
-      Coordinates(1, 1),
-      Coordinates(2, 1),
-      Coordinates(0, 2),
-  };
-
-  static const std::array<Coordinates, 5> EXPECTED_COORDINATES_ROTATION_DOWN = {
-      Coordinates(0, 0),
-      Coordinates(1, 0),
-      Coordinates(2, 0),
-      Coordinates(1, 1),
-      Coordinates(1, 2),
-  };
-
-  static const std::array<Coordinates, 5> EXPECTED_COORDINATES_ROTATION_LEFT = {
-      Coordinates(0, 0),
-      Coordinates(1, 0),
-      Coordinates(2, 0),
-      Coordinates(2, -1),
-      Coordinates(2, 1),
-  };
-
-  static const std::array<Coordinates, 5> EXPECTED_COORDINATES_ROTATION_UP = {
-      Coordinates(0, 0),
-      Coordinates(1, 0),
-      Coordinates(2, 0),
-      Coordinates(1, -1),
-      Coordinates(1, -2),
-  };
 
   if (BattleUnitHelper::IsValidShape(EXPECTED_COORDINATES_ROTATION_RIGHT, segments, origin))
     return true;
