@@ -25,15 +25,23 @@ Battleships& Battleships::GetInstance() {
 const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
     "Extended Mode",
     "An extended mode with additional ships and larger board. (TMP)",
-    21,
+    22,
     14,
     true,
     FireCommandType::FireCommand,
     {
-                   {BattleUnitType::PatrolBoat, 6},
-                   {BattleUnitType::Interceptor, 5},
-                   {BattleUnitType::Cruiser, 4},
-                   {BattleUnitType::Dreadnought, 2},
+                   {BattleUnitType::PatrolBoat, 4},
+                   {BattleUnitType::Interceptor, 3},
+                   {BattleUnitType::Cruiser, 2},
+                   {BattleUnitType::Dreadnought, 1},
+
+                   {BattleUnitType::InfantrySquadron, 4},
+                   {BattleUnitType::GrenadeLauncher, 3},
+                   {BattleUnitType::MobileArtillery, 2},
+                   {BattleUnitType::ArmoredTrain, 1},
+                   {BattleUnitType::OperationsHeadquarter, 1},
+
+                   {BattleUnitType::FighterJet, 3},
                    }
 };
 
