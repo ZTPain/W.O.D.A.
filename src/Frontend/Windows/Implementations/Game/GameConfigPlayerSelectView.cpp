@@ -66,14 +66,8 @@ static constexpr const std::array<const char*, 10> HARD_AI_NAMES = {
 static bool playerRemoveSelfWarningVisible = false;
 static bool compactModeEnabled = false;
 
-// #define AUTO_LOAD_CURRENT_USER
-
 void GameConfigPlayerSelectView::OnEnter() {
   selectedPlayerOptions.clear();
-#ifdef AUTO_LOAD_CURRENT_USER
-  const auto& currentUser = UserManager::GetInstance().GetCurrentUser();
-  selectedPlayerOptions.emplace_back(currentUser.UserId());
-#endif
   highlightedOptionIndex = 0;
   ForceRender();
 }
@@ -256,14 +250,6 @@ void GameConfigPlayerSelectView::HandleInputSelectionLeft() {
 void GameConfigPlayerSelectView::HandleInputSelectionRight() {
   // Deselect selected player
   size_t const deselectIndex = highlightedOptionIndex - 100;
-#ifdef AUTO_LOAD_CURRENT_USER
-  if (deselectIndex == 0) {
-    // Prevent deselecting the current user
-    playerRemoveSelfWarningVisible = true;
-    ForceRender();
-    return;
-  }
-#endif // AUTO_LOAD_CURRENT_USER
 
   const auto deselectedUserId = selectedPlayerOptions[deselectIndex];
   if (deselectedUserId >= 1000) {
