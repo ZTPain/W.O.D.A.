@@ -7,15 +7,13 @@
 #include <vector>
 
 class ReplayManager {
-  static ReplayManager instance;
   std::vector<Replay> replays;
 
   ReplayManager();
 
 public:
   static ReplayManager& GetInstance();
-  ~ReplayManager();
   [[nodiscard]] const std::vector<Replay>& Replays() const;
-  void SaveReplay(Replay replay);
+  void SaveReplay(const Replay& replay);
   ReplayPlayback Play(unsigned int replayId);
 };

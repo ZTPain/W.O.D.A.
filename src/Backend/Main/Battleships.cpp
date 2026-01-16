@@ -3,7 +3,7 @@
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Main/SerializationHelper.h"
-// #include "Backend/Replays/ReplayManager.h"
+#include "Backend/Replays/ReplayManager.h"
 #include "Backend/Units/BattleUnitType.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
@@ -77,7 +77,7 @@ const GameMode Battleships::STANDARD_GAME_MODE = GameMode{
 };
 
 Battleships::Battleships()
-    : userManager(UserManager::GetInstance()) /*, replayManager(ReplayManager::GetInstance())*/ {
+    : userManager(UserManager::GetInstance()), replayManager(ReplayManager::GetInstance()) {
   ReadSave();
 }
 
