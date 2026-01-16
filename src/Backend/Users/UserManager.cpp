@@ -75,7 +75,7 @@ UserProfile& UserManager::CreateComputer(const std::string& name, ComputerType c
   return computers.at(computerUserId);
 }
 
-UserManager::UserManager() : nextUserId(1), nextComputerUserId(1001), currentUserId(1) {}
+UserManager::UserManager() : nextUserId(1), nextComputerUserId(1001), currentUserId(0) {}
 
 UserManager::~UserManager() = default;
 

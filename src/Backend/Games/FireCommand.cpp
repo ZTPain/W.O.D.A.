@@ -15,3 +15,13 @@ void FireCommand::Undo() { board.FixSegment(coords.x, coords.y); }
 std::unique_ptr<ICommand> FireCommand::Clone() const {
   return std::make_unique<FireCommand>(*this);
 }
+
+unsigned int FireCommand::ShotsHit() const {
+  return board.Units()[coords.y][coords.x] != nullptr ? 1 : 0;
+}
+
+unsigned int FireCommand::UnitsDestroyed() const {
+  if (board.Units()[coords.y][coords.x] == nullptr)
+    return 0;
+  return board.Units()[coords.y][coords.x]->IsDestroyed() ? 1 : 0;
+}

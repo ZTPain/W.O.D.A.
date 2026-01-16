@@ -16,6 +16,8 @@
 #include <utility>
 #include <vector>
 
+constexpr unsigned int UNIT_DESTROYED_MULTIPLIER = 4;
+
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
     : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(-1),
       playtime(0) {
@@ -40,9 +42,11 @@ unsigned int GameManager::WinnerId() const { return winnerId; }
 std::chrono::seconds GameManager::Playtime() const { return playtime; }
 
 void GameManager::StartGame() {
+  // Start timing the game
   gameStartPoint = std::chrono::steady_clock::now();
   state = GameState::Playing;
 
+  // Set up all the boards
   for (auto& player : players) {
     player.board.ParseSegments();
   }
@@ -52,7 +56,15 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
   if (!command->Execute())
     return false;
 
+  const unsigned int commandShotsHit = command->ShotsHit();
+  const unsigned int commandUnitsDestroyed = command->UnitsDestroyed();
+
   players[currentTurn].shotsFired++;
+  players[currentTurn].shotsHit += commandShotsHit;
+  players[currentTurn].unitsDestroyed += commandUnitsDestroyed;
+  players[currentTurn].score +=
+      commandShotsHit + (UNIT_DESTROYED_MULTIPLIER * commandUnitsDestroyed);
+
   // Add command to history
   history.push_back(std::move(command));
 
@@ -83,17 +95,9 @@ void GameManager::UpdatePlayerStatistics() {
 
     stats.gamesPlayed++;
 
-    // For all non-winners
+    // All players who didn't win - lose
     if (i != winnerId)
       stats.gamesLost++;
-
-    for (const auto& unit : players[i].board.GetAllUnits()) {
-      // Sum up game performance
-      players[i].shotsHit += unit->GetDestroyedSegments();
-      players[i].score +=
-          (unit->GetTotalSegments() - unit->GetDestroyedSegments()) * unit->GetTotalSegments() * 5;
-      players[i].unitsDestroyed += unit->IsDestroyed() ? 1 : 0;
-    }
 
     // New highscore
     stats.highestScore = std::max(stats.highestScore, players[i].score);
@@ -128,41 +132,48 @@ void GameManager::UpdatePlayerAchievements() {
   if (isPvP)
     players[winnerId].profile.achievements->Unlock("Do You Feel Lucky?");
 
+  bool hasDestroyedSegments = false;
+  for (const auto& unit : players[winnerId].board.GetAllUnits()) {
+    if (unit->GetDestroyedSegments() != 0) {
+      hasDestroyedSegments = true;
+      break;
+    }
+  }
+
+  // Win without getting hit.
+  if (!hasDestroyedSegments)
+    players[winnerId].profile.achievements->Unlock("Smooth Sailing");
+
   // OTHER ACHIEVEMENTS:
-  for (unsigned int i = 0; i < players.size(); ++i) {
-    auto& achievements = players[i].profile.achievements;
+  for (auto& player : players) {
+    auto& achievements = player.profile.achievements;
 
     // Land 50 shots.
-    if (players[i].profile.statistics.totalShotsHit >= 50)
+    if (player.profile.statistics.totalShotsHit >= 50)
       achievements->Unlock("Texas Sharpshooter");
 
     // Score over 100 points.
-    if (players[i].score > 100)
+    if (player.score > 100)
       achievements->Unlock("Per Aspera ad Astra");
 
     // Lose without landing a shot.
-    if (players[i].shotsHit == 0)
+    if (player.shotsHit == 0)
       achievements->Unlock("Pacifish");
 
     // Play 3 games.
-    if (players[i].profile.statistics.gamesPlayed >= 3)
+    if (player.profile.statistics.gamesPlayed >= 3)
       achievements->Unlock("Oh Man, Look at Those Cavemen Go");
 
-    bool hasDestroyedSegments = false;
-    for (const auto& unit : players[i].board.GetAllUnits()) {
-      if (unit->GetDestroyedSegments() != 0) {
-        hasDestroyedSegments = true;
+    bool areAnyDestroyed = false;
+    for (const auto& unit : player.board.GetAllUnits()) {
+      if (unit->IsDestroyed()) {
+        areAnyDestroyed = true;
         break;
       }
     }
 
-    // ONE WIN CONDITION HERE :)
-    // Win without getting hit.
-    if (i == winnerId && !hasDestroyedSegments)
-      achievements->Unlock("Smooth Sailing");
-
     // Lose a ship.
-    if (hasDestroyedSegments)
+    if (areAnyDestroyed)
       achievements->Unlock("For the Voyage Is Long and the Winds Don't Blow");
   }
 }
@@ -172,6 +183,7 @@ void GameManager::HandleGameOver() {
   const auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
 
+  // Mark current (last standing) player as a winner
   winnerId = currentTurn;
 
   // Update player profiles
@@ -180,6 +192,7 @@ void GameManager::HandleGameOver() {
 
   state = GameState::Over;
 
+  // Save post game end
   Battleships::GetInstance().WriteToSave();
 }
 

@@ -4,7 +4,9 @@
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/ICommand.h"
+#include "Backend/Units/BattleUnit.h"
 #include <memory>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -42,4 +44,29 @@ void SalvoFireCommand::Undo() {
 
 std::unique_ptr<ICommand> SalvoFireCommand::Clone() const {
   return std::make_unique<SalvoFireCommand>(*this);
+}
+
+unsigned int SalvoFireCommand::ShotsHit() const {
+  unsigned int shotsHit = 0;
+
+  for (const auto& c : coords)
+    shotsHit += board.Units()[c.y][c.x] != nullptr ? 1 : 0;
+
+  return shotsHit;
+}
+
+unsigned int SalvoFireCommand::UnitsDestroyed() const {
+  unsigned int unitsDestroyed = 0;
+  std::unordered_set<std::shared_ptr<BattleUnit>> unitsChecked;
+  unitsChecked.insert(nullptr); // For skipping empty fields
+
+  for (const auto& c : coords) {
+    if (unitsChecked.count(board.Units()[c.y][c.x]) != 0)
+      continue;
+
+    unitsDestroyed += board.Units()[c.y][c.x]->IsDestroyed() ? 1 : 0;
+    unitsChecked.insert(board.Units()[c.y][c.x]);
+  }
+
+  return unitsDestroyed;
 }

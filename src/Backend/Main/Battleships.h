@@ -25,7 +25,6 @@ private:
 
 public:
   static Battleships& GetInstance();
-  ~Battleships();
   static std::unique_ptr<GameManager> NewGame(
       const GameMode& mode, std::vector<UserProfile*>& profiles
   );
