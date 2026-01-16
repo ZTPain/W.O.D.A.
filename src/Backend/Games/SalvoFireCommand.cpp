@@ -20,11 +20,14 @@ bool SalvoFireCommand::Execute() {
       break;
   }
 
+  if (succesfulShotCount == coords.size())
+    return true;
+
   // ... and if some were illegal, undo
   for (auto i = 0; i < succesfulShotCount; ++i)
     board.FixSegment(coords[i].x, coords[i].y);
 
-  return succesfulShotCount == coords.size();
+  return false;
 }
 
 void SalvoFireCommand::Undo() {
