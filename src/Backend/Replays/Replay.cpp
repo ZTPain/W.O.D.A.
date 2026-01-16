@@ -8,8 +8,8 @@
 #include <vector>
 
 Replay::Replay(const Replay& other)
-    : replayId(other.replayId), players(other.players), history(other.history),
-      winnerId(other.winnerId), playtime(other.playtime), timestamp(other.timestamp) {
+    : replayId(other.replayId), players(other.players), winnerId(other.winnerId),
+      playtime(other.playtime), timestamp(other.timestamp) {
   for (const auto& command : other.history) {
     history.emplace_back(command->Clone());
   }
