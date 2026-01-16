@@ -11,8 +11,6 @@
 #include <vector>
 
 class Battleships {
-  static Battleships instance;
-
 public:
   UserManager& userManager;
   // ReplayManager& replayManager;
