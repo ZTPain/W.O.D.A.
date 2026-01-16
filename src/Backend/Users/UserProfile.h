@@ -110,10 +110,8 @@ public:
     return *this;
   }
 
-  size_t Serialize(uint8_t* buffer, size_t offset, size_t bufferSize) const;
-  static UserProfile Deserialize(
-      const uint8_t* buffer, size_t offset, size_t bufferSize, size_t& bytesRead
-  );
+  void Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
+  static UserProfile Deserialize(const uint8_t* buffer, size_t& offset, size_t bufferSize);
 
 private:
   void SerializeStatistics(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
