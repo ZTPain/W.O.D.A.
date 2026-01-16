@@ -303,16 +303,19 @@ void InGameView::RenderCell(
   }
 
   if (!salvoSelectionCoordinates.empty()) {
-    for (const auto& selectedCoord : salvoSelectionCoordinates) {
-      if (selectedCoord.x == x && selectedCoord.y == y) {
-        symbol[0] = '{';
-        symbol[1] = ' ';
-        symbol[2] = '}';
-        if (inAnimation) {
-          updateColor = false;
-          IO::cout << AnsiHelper::SetTextColor(AnsiColor::White);
-        }
-        break;
+    const auto isSelected = std::any_of(
+        salvoSelectionCoordinates.begin(),
+        salvoSelectionCoordinates.end(),
+        [x, y](const Coordinates& coord) { return coord.x == x && coord.y == y; }
+    );
+
+    if (isSelected) {
+      symbol[0] = '{';
+      symbol[1] = ' ';
+      symbol[2] = '}';
+      if (inAnimation) {
+        updateColor = false;
+        IO::cout << AnsiHelper::SetTextColor(AnsiColor::White);
       }
     }
   }
