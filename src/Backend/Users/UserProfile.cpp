@@ -9,6 +9,8 @@
 #include <string>
 #include <utility>
 
+UserProfile::UserProfile() : UserProfile(0, "", nullptr) {}
+
 UserProfile::UserProfile(const UserProfile& other)
     : UserProfile(
           other.userId,

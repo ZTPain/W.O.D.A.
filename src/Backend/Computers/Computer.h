@@ -2,9 +2,10 @@
 
 #pragma once
 
-#include "Backend/Boards/ISegment.h"
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
 #include "IComputerStrategy.h"
+#include <vector>
 
 enum class ComputerType {
   None,
@@ -19,6 +20,8 @@ class Computer {
 
 public:
   Computer(ComputerType type);
-  [[nodiscard]] Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
+  [[nodiscard]] Coordinates GetFireCoordinates(
+      const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+  ) const;
   [[nodiscard]] ComputerType GetComputerType() const;
 };

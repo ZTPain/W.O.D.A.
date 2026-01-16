@@ -5,6 +5,7 @@
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
+#include "Backend/Main/Battleships.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Replays/ReplayManager.h"
 #include "Backend/Users/UserProfile.h"
@@ -16,7 +17,7 @@
 #include <vector>
 
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
-    : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(0),
+    : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(-1),
       playtime(0) {
   for (auto* profile : profiles)
     players.emplace_back(*profile, mode);
@@ -30,9 +31,21 @@ unsigned int GameManager::CurrentTurn() const { return currentTurn; }
 
 Player& GameManager::GetCurrentPlayer() { return players[currentTurn]; }
 
+Player& GameManager::GetPlayerAtIndex(unsigned int playerIndex) { return players.at(playerIndex); }
+
+GameState GameManager::State() const { return state; }
+
+unsigned int GameManager::WinnerId() const { return winnerId; }
+
+std::chrono::seconds GameManager::Playtime() const { return playtime; }
+
 void GameManager::StartGame() {
   gameStartPoint = std::chrono::steady_clock::now();
   state = GameState::Playing;
+
+  for (auto& player : players) {
+    player.board.ParseSegments();
+  }
 }
 
 bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
@@ -159,11 +172,15 @@ void GameManager::HandleGameOver() {
   const auto gameEndPoint = std::chrono::steady_clock::now();
   playtime = std::chrono::duration_cast<std::chrono::seconds>(gameEndPoint - gameStartPoint);
 
+  winnerId = currentTurn;
+
   // Update player profiles
   UpdatePlayerStatistics();
   UpdatePlayerAchievements();
 
   state = GameState::Over;
+
+  Battleships::GetInstance().WriteToSave();
 }
 
 void GameManager::SaveReplay() {

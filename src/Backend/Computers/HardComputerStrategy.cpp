@@ -1,74 +1,30 @@
 #include "HardComputerStrategy.h"
-#include "Backend/Boards/ISegment.h"
+
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Games/Coordinates.h"
-#include <cstddef>
-#include <random>
+#include "ComputerStrategyHelper.h"
 #include <vector>
 
-static std::mt19937& Rng() {
-  static std::mt19937 rng{std::random_device{}()};
-  return rng;
-}
+static bool ShouldCheat() { return ComputerStrategyHelper::GetRandomFromRange(0, 100) <= 20; }
 
-static Coordinates RandomFrom(const std::vector<Coordinates>& v) {
-  std::uniform_int_distribution<size_t> d(0, v.size() - 1);
-  return v[d(Rng())];
-}
+Coordinates HardComputerStrategy::CalculateFireCoordinates(
+    const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+) const {
+  const auto finishTargets =
+      ComputerStrategyHelper::GetShipsNotYetDestroyed(board, blacklistedCoordinates);
+  if (!finishTargets.empty())
+    return ComputerStrategyHelper::RandomFrom(finishTargets);
 
-static std::vector<Coordinates> AllFree(const ISegment& board) {
-  std::vector<Coordinates> out;
-  const auto& s = board.Segments();
-
-  for (size_t y = 0; y < board.Height(); ++y)
-    for (size_t x = 0; x < board.Width(); ++x)
-      if (!s[y][x])
-        out.emplace_back(x, y);
-
-  return out;
-}
-
-static std::vector<Coordinates> ChessboardFree(const ISegment& board) {
-  std::vector<Coordinates> out;
-  const auto& s = board.Segments();
-
-  for (size_t y = 0; y < board.Height(); ++y)
-    for (size_t x = 0; x < board.Width(); ++x)
-      if ((x + y) % 2 == 0 && !s[y][x])
-        out.emplace_back(x, y);
-
-  return out;
-}
-
-static std::vector<Coordinates> CheatableTargets(const ISegment& board) {
-  std::vector<Coordinates> out;
-  const auto& s = board.Segments();
-  const auto& units = board.GetUnits();
-
-  for (const auto& [_, ships] : units)
-    for (const auto& ship : ships)
-      for (const auto& c : ship)
-        if (!s[c.y][c.x])
-          out.push_back(c);
-
-  return out;
-}
-
-static bool ShouldCheat() {
-  static std::uniform_int_distribution<int> d(1, 100);
-  return d(Rng()) <= 20;
-}
-
-Coordinates HardComputerStrategy::CalculateFireCoordinates(ISegment& board) const {
   if (ShouldCheat()) {
-    const auto cheatTargets = CheatableTargets(board);
+    const auto cheatTargets = ComputerStrategyHelper::Cheat(board, blacklistedCoordinates);
     if (!cheatTargets.empty())
-      return RandomFrom(cheatTargets);
+      return ComputerStrategyHelper::RandomFrom(cheatTargets);
   }
 
-  const auto chess = ChessboardFree(board);
+  const auto chess =
+      ComputerStrategyHelper::GetFreeChessboardCoordinates(board, blacklistedCoordinates);
   if (!chess.empty())
-    return RandomFrom(chess);
+    return ComputerStrategyHelper::RandomFrom(chess);
 
-  const auto all = AllFree(board);
-  return RandomFrom(all);
+  return ComputerStrategyHelper::ShootAtRandomCoordinate(board, blacklistedCoordinates);
 }
