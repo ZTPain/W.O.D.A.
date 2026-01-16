@@ -570,117 +570,155 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   return true;
 }
 
+void InGameView::CalculateBulletPath(
+    size_t startX,
+    size_t startY,
+    size_t targetX,
+    std::vector<std::pair<Coordinates, bool>>& outPath,
+    const Grid& enemyGrid
+) {
+  outPath.clear();
+
+  size_t bulletX = startX;
+  size_t const bulletY = startY;
+
+  const auto invertGridPositions = bulletX > targetX;
+
+  while ((invertGridPositions ? bulletX > targetX : bulletX < targetX)) {
+    const auto insideEnemyGrid = bulletX >= enemyGrid.GetXOffset() &&
+                                 bulletX < (enemyGrid.GetXOffset() + enemyGrid.GetTotalWidth());
+    outPath.push_back({
+        {bulletX, bulletY},
+        insideEnemyGrid
+    });
+
+    if (!invertGridPositions) {
+      bulletX += 2;
+    } else {
+      bulletX -= 2;
+    }
+  }
+}
+
+void InGameView::CalculateAnimationCoordinates(
+    const Coordinates& coord,
+    const Grid& enemyGrid,
+    bool invertGridPositions,
+    size_t& outTargetX,
+    size_t& outTargetY
+) {
+  outTargetY = enemyGrid.GetYOffset() + (coord.y * enemyGrid.GetCellHeightWithBorders()) +
+               (enemyGrid.GetCellHeightWithBorders() / 2) + 1;
+
+  outTargetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
+               (enemyGrid.GetCellWidthWithBorders() / 2) + 2 + 1;
+
+  if (invertGridPositions) {
+    outTargetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
+                 (enemyGrid.GetCellWidthWithBorders() / 2) + 2 - 1;
+  }
+}
+
+std::vector<std::vector<std::pair<Coordinates, bool>>> InGameView::CalculateBulletPaths(
+    const std::vector<Coordinates>& targetCoordinates,
+    const Grid& enemyGrid,
+    bool invertGridPositions,
+    size_t& maxDistance,
+    size_t bulletX
+) {
+  std::vector<std::vector<std::pair<Coordinates, bool>>> out;
+
+  maxDistance = 0;
+  std::vector<std::pair<Coordinates, bool>> emptyPath{};
+  for (const auto& coord : targetCoordinates) {
+    size_t outTargetX = 0;
+    size_t outTargetY = 0;
+    CalculateAnimationCoordinates(coord, enemyGrid, invertGridPositions, outTargetX, outTargetY);
+
+    CalculateBulletPath(bulletX, outTargetY, outTargetX, emptyPath, enemyGrid);
+    out.push_back(emptyPath);
+
+    const auto distance = invertGridPositions ? (bulletX - outTargetX) : (outTargetX - bulletX);
+    maxDistance = std::max(distance, maxDistance);
+  }
+
+  return out;
+}
+
+void InGameView::CheckForPeriod() {
+  ConsoleKeyDetails keyDetails{};
+  if (InputManager::TryGetKeyPress(keyDetails)) {
+    if (keyDetails.key == ConsoleKey::OemPeriod) {
+      fastForwardEnabled = !fastForwardEnabled;
+      ForceRender();
+    }
+  }
+}
+
 void InGameView::ShowPlayerFireAnimation() {
   inAnimation = true;
 
   assert(!salvoSelectionCoordinates.empty());
 
-  std::vector<std::tuple<size_t, size_t, size_t>> bulletDatas{};
-
-  auto bulletX = currentGrid.GetTotalWidth() + currentGrid.GetXOffset() + 1;
+  auto bulletX = currentGrid.GetTotalWidth() + currentGrid.GetXOffset() + 2;
   if (invertGridPositions)
     bulletX = currentGrid.GetXOffset() - 2;
 
   size_t maxDistance = 0;
-  for (const auto& coord : salvoSelectionCoordinates) {
-    auto bulletY = enemyGrid.GetYOffset() + (coord.y * enemyGrid.GetCellHeightWithBorders()) +
-                   (enemyGrid.GetCellHeightWithBorders() / 2) + 1;
-
-    auto targetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
-                   (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
-
-    if (invertGridPositions) {
-      targetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
-                (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
-    }
-
-    bulletDatas.emplace_back(bulletX, bulletY, targetX);
-
-    const auto distance = invertGridPositions ? (bulletX - targetX) : (targetX - bulletX);
-    maxDistance = std::max(distance, maxDistance);
-  }
+  const auto bulletPaths = CalculateBulletPaths(
+      salvoSelectionCoordinates, enemyGrid, invertGridPositions, maxDistance, bulletX
+  );
 
   enemyGrid.Render();
 
   const auto stepDelay = std::max(5, static_cast<int>(1500 / maxDistance));
 
-  bool done = false;
-  // (invertGridPositions ? bulletX > targetX : bulletX < targetX)
-  while (!done) {
-    {
-      ConsoleKeyDetails keyDetails{};
-      if (InputManager::TryGetKeyPress(keyDetails)) {
-        if (keyDetails.key == ConsoleKey::OemPeriod) {
-          fastForwardEnabled = !fastForwardEnabled;
-          ForceRender();
-        }
-      }
-    }
+  const size_t totalFrames =
+      std::max_element(bulletPaths.begin(), bulletPaths.end(), [](const auto& a, const auto& b) {
+        return a.size() < b.size();
+      })->size();
 
-    done = true;
-    size_t i = 0;
-    std::vector<size_t> indicesToRemove{};
-    for (const auto [bulletX, bulletY, targetX] : bulletDatas) {
-      bool localDone = true;
-      if (invertGridPositions) {
-        if (bulletX > targetX) {
-          done = false;
-          localDone = false;
-        }
-      } else {
-        if (bulletX < targetX) {
-          done = false;
-          localDone = false;
-        }
-      }
+  for (size_t frameId = 0; frameId < totalFrames; frameId++) {
+    CheckForPeriod();
 
-      if (localDone) {
-        indicesToRemove.push_back(i);
-        i++;
+    for (const auto& path : bulletPaths) {
+      if (frameId >= path.size())
         continue;
-      }
 
-      IO::cout << AnsiHelper::MoveCursor(bulletX, bulletY);
+      const auto& [coord, _] = path.at(frameId);
+
+      IO::cout << AnsiHelper::MoveCursor(coord.x, coord.y);
       IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow) << (invertGridPositions ? "←" : "→")
                << AnsiHelper::Reset();
       IO::cout.flush();
-
-      if (invertGridPositions) {
-        // Move left by 2 to account for character width
-        bulletDatas[i] = std::make_tuple(bulletX - 2, bulletY, targetX);
-      } else {
-        // Move right by 2 to account for character width
-        bulletDatas[i] = std::make_tuple(bulletX + 2, bulletY, targetX);
-      }
-
-      i++;
-    }
-
-    // Remove finished bullets
-    for (auto it = indicesToRemove.rbegin(); it != indicesToRemove.rend(); ++it) {
-      bulletDatas.erase(bulletDatas.begin() + static_cast<int64_t>(*it));
     }
 
     if (!fastForwardEnabled)
       std::this_thread::sleep_for(std::chrono::milliseconds(stepDelay));
 
     bool insideEnemyGrid = false;
-    for (const auto [bulletX, bulletY, targetX] : bulletDatas) {
+    for (const auto& path : bulletPaths) {
+      if (frameId >= path.size())
+        continue;
+
+      const auto& [coord, localInsideEnemyGrid] = path.at(frameId);
+
       // Clear previous bullet
-      IO::cout << AnsiHelper::MoveCursor(bulletX + (invertGridPositions ? 2 : -2), bulletY);
+      IO::cout << AnsiHelper::MoveCursor(coord.x + (invertGridPositions ? 2 : -2), coord.y);
       IO::cout << " ";
 
-      insideEnemyGrid |= bulletX >= enemyGrid.GetXOffset() &&
-                         bulletX < (enemyGrid.GetXOffset() + enemyGrid.GetTotalWidth());
+      insideEnemyGrid |= localInsideEnemyGrid;
     }
 
     if (insideEnemyGrid)
       enemyGrid.Render();
   }
 
-  for (const auto [bulletX, bulletY, targetX] : bulletDatas) {
+  for (const auto& path : bulletPaths) {
+    const auto& [coord, _] = path.back();
+
     // Final position
-    IO::cout << AnsiHelper::MoveCursor(targetX, bulletY);
+    IO::cout << AnsiHelper::MoveCursor(coord.x, coord.y);
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << "*" << AnsiHelper::Reset();
     IO::cout.flush();
   }

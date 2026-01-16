@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 class InGameView : public Window {
@@ -51,7 +52,32 @@ private:
 
   void HandleAITurn();
   bool HandleFireAtCoordinate(const Coordinates& coord);
+
   void ShowPlayerFireAnimation();
+  void CheckForPeriod();
+  static std::vector<std::vector<std::pair<Coordinates, bool>>> CalculateBulletPaths(
+      const std::vector<Coordinates>& targetCoordinates,
+      const Grid& enemyGrid,
+      bool invertGridPositions,
+      size_t& maxDistance,
+      size_t bulletX
+  );
+
+  static void CalculateAnimationCoordinates(
+      const Coordinates& coord,
+      const Grid& enemyGrid,
+      bool invertGridPositions,
+      size_t& outTargetX,
+      size_t& outTargetY
+  );
+
+  static void CalculateBulletPath(
+      size_t startX,
+      size_t startY,
+      size_t targetX,
+      std::vector<std::pair<Coordinates, bool>>& outPath,
+      const Grid& enemyGrid
+  );
 
   void RenderTurnQueue() const;
   void RenderLeaderboard() const;
