@@ -14,6 +14,7 @@
 #include "MobileArtillery.h"
 #include "OperationsHeadquarter.h"
 #include "PatrolBoat.h"
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <memory>
