@@ -24,7 +24,10 @@ Battleships& Battleships::GetInstance() {
 
 const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
     "Extended Mode",
-    "An extended mode with additional ships and larger board. (TMP)",
+    "The game is played on a much larger, rectangular board (22x14), "
+    "which is divided into 'sea' and 'land' zones, introducing a new strategic dimension. The "
+    "fleet is enlarged and diversified, containing units dedicated only to sea, only to land, and "
+    "hybrid ones (like airplanes in the shape of the letter T) that can operate in both zones.",
     21,
     14,
     true,
@@ -39,7 +42,10 @@ const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
 
 const GameMode Battleships::SALVO_GAME_MODE = GameMode{
     "Salvo Mode",
-    "A mode where players can fire multiple shots per turn. (TMP)",
+    "In this dynamic version, the number of shots per turn equals the number of ships the player "
+    "still has on the board. A player with five ships therefore fires five shots simultaneously, "
+    "but loses one shot with each of their own sunken ships. This requires more strategic planning "
+    "of attacks and prioritizes fully destroying enemy ships.",
     10,
     10,
     false,
@@ -54,7 +60,10 @@ const GameMode Battleships::SALVO_GAME_MODE = GameMode{
 
 const GameMode Battleships::STANDARD_GAME_MODE = GameMode{
     "Standard Mode",
-    "The classic battleships experience. (TMP)",
+    "The classic battleships experience. This is the most well-known and commonly played variant. "
+    "Players take turns making single shots by guessing coordinates on the opponent's board. The "
+    "winner is the one who first sinks the entire enemy fleet, which consists of four ships of "
+    "different lengths.",
     10,
     10,
     false,
