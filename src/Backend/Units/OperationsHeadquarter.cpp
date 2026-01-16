@@ -33,19 +33,5 @@ bool OperationsHeadquarter::IsValidUnitShape(const std::vector<Coordinates>& seg
       Coordinates(1, 1),
   };
 
-  for (const auto& seg : segments) {
-    const auto isInExpectedCoordinates = std::any_of(
-        EXPECTED_COORDINATES.begin(),
-        EXPECTED_COORDINATES.end(),
-        [seg, origin](const Coordinates& cord) {
-          return cord.x == seg.x + origin.x && cord.y == seg.y + origin.y;
-        }
-    );
-
-    if (!isInExpectedCoordinates) {
-      return false;
-    }
-  }
-
-  return true;
+  return BattleUnitHelper::IsValidShape(EXPECTED_COORDINATES, segments, origin);
 }

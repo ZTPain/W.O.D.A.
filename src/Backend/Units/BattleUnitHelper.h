@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ArmoredTrain.h"
+#include "Backend/Games/Coordinates.h"
 #include "Backend/Units/BattleUnitType.h"
 #include "BattleUnit.h"
 #include "BattleUnitType.h"
@@ -13,8 +14,10 @@
 #include "MobileArtillery.h"
 #include "OperationsHeadquarter.h"
 #include "PatrolBoat.h"
+#include <array>
 #include <cstddef>
 #include <memory>
+#include <vector>
 
 class BattleUnitHelper {
 public:
@@ -118,5 +121,27 @@ public:
       default:
         return "Unknown";
     }
+  }
+
+  template <size_t Size>
+  static bool IsValidShape(
+      const std::array<Coordinates, Size>& shape,
+      const Coordinates& origin,
+      const Coordinates& target
+  ) {
+    return std::any_of(shape.begin(), shape.end(), [target, origin](const Coordinates& cord) {
+      return cord.x == target.x + origin.x && cord.y == target.y + origin.y;
+    });
+  }
+
+  template <size_t Size>
+  static bool IsValidShape(
+      const std::array<Coordinates, Size>& shape,
+      const std::vector<Coordinates>& segments,
+      const Coordinates& origin
+  ) {
+    return std::all_of(segments.begin(), segments.end(), [shape, origin](const auto& segment) {
+      return BattleUnitHelper::IsValidShape(shape, origin, segment);
+    });
   }
 };

@@ -57,78 +57,17 @@ bool FighterJet::IsValidUnitShape(const std::vector<Coordinates>& segments) {
       Coordinates(1, -2),
   };
 
-  bool allSegmentsGood = true;
-
-  for (const auto& seg : segments) {
-    const auto isInExpectedCoordinates = std::any_of(
-        EXPECTED_COORDINATES_ROTATION_RIGHT.begin(),
-        EXPECTED_COORDINATES_ROTATION_RIGHT.end(),
-        [seg, origin](const Coordinates& cord) {
-          return cord.x == seg.x + origin.x && cord.y == seg.y + origin.y;
-        }
-    );
-
-    if (!isInExpectedCoordinates) {
-      allSegmentsGood = false;
-      break;
-    }
-  }
-
-  if (allSegmentsGood)
+  if (BattleUnitHelper::IsValidShape(EXPECTED_COORDINATES_ROTATION_RIGHT, segments, origin))
     return true;
 
-  allSegmentsGood = true;
-  for (const auto& seg : segments) {
-    const auto isInExpectedCoordinates = std::any_of(
-        EXPECTED_COORDINATES_ROTATION_DOWN.begin(),
-        EXPECTED_COORDINATES_ROTATION_DOWN.end(),
-        [seg, origin](const Coordinates& cord) {
-          return cord.x == seg.x + origin.x && cord.y == seg.y + origin.y;
-        }
-    );
-
-    if (!isInExpectedCoordinates) {
-      allSegmentsGood = false;
-      break;
-    }
-  }
-
-  if (allSegmentsGood)
+  if (BattleUnitHelper::IsValidShape(EXPECTED_COORDINATES_ROTATION_DOWN, segments, origin))
     return true;
 
-  allSegmentsGood = true;
-  for (const auto& seg : segments) {
-    const auto isInExpectedCoordinates = std::any_of(
-        EXPECTED_COORDINATES_ROTATION_LEFT.begin(),
-        EXPECTED_COORDINATES_ROTATION_LEFT.end(),
-        [seg, origin](const Coordinates& cord) {
-          return cord.x == seg.x + origin.x && cord.y == seg.y + origin.y;
-        }
-    );
-
-    if (!isInExpectedCoordinates) {
-      allSegmentsGood = false;
-      break;
-    }
-  }
-
-  if (allSegmentsGood)
+  if (BattleUnitHelper::IsValidShape(EXPECTED_COORDINATES_ROTATION_LEFT, segments, origin))
     return true;
 
-  allSegmentsGood = true;
-  for (const auto& seg : segments) {
-    const auto isInExpectedCoordinates = std::any_of(
-        EXPECTED_COORDINATES_ROTATION_UP.begin(),
-        EXPECTED_COORDINATES_ROTATION_UP.end(),
-        [seg, origin](const Coordinates& cord) {
-          return cord.x == seg.x + origin.x && cord.y == seg.y + origin.y;
-        }
-    );
+  if (BattleUnitHelper::IsValidShape(EXPECTED_COORDINATES_ROTATION_UP, segments, origin))
+    return true;
 
-    if (!isInExpectedCoordinates) {
-      allSegmentsGood = false;
-      break;
-    }
-  }
-  return allSegmentsGood;
+  return false;
 }
