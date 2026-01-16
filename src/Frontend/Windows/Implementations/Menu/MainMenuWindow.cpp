@@ -16,6 +16,11 @@ void MainMenuWindow::OnEnter() { Draw(); }
 void MainMenuWindow::OnExit() { printf("Exited Main Menu Window\n"); }
 
 bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
+  if (keyDetails.key == ConsoleKey::Escape) {
+    AppHelper::Exit();
+    return true;
+  }
+
   switch (keyDetails.key) {
     case ConsoleKey::W:
     case ConsoleKey::UpArrow:
@@ -76,13 +81,12 @@ void MainMenuWindow::HandleSelection() const {
       WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigModeSelect);
       break;
     case 1:
-      IO::cout << AnsiHelper::MoveCursor(0, 11) << "Opening settings..." << '\n';
+      WindowManager::GetInstance().SwitchToWindow(WindowType::Settings);
       break;
     case 2:
       WindowManager::GetInstance().SwitchToWindow(WindowType::UserSelect);
       break;
     case 3:
-      IO::cout << AnsiHelper::MoveCursor(0, 11) << "Quitting..." << '\n';
       AppHelper::Exit();
       break;
     default:
