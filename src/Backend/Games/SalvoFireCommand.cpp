@@ -50,6 +50,7 @@ unsigned int SalvoFireCommand::ShotsHit() const {
 unsigned int SalvoFireCommand::UnitsDestroyed() const {
   unsigned int unitsDestroyed = 0;
   std::unordered_set<std::shared_ptr<BattleUnit>> unitsChecked;
+  unitsChecked.insert(nullptr); // For skipping empty fields
 
   for (const auto& c : coords) {
     if (unitsChecked.count(board.Units()[c.y][c.x]) != 0)

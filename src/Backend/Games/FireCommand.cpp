@@ -15,5 +15,7 @@ unsigned int FireCommand::ShotsHit() const {
 }
 
 unsigned int FireCommand::UnitsDestroyed() const {
+  if (board.Units()[coords.y][coords.x] == nullptr)
+    return 0;
   return board.Units()[coords.y][coords.x]->IsDestroyed() ? 1 : 0;
 }
