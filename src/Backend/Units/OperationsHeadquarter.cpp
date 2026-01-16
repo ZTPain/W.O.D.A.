@@ -6,7 +6,6 @@
 #include "BattleUnitType.h"
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <vector>
 
 OperationsHeadquarter::OperationsHeadquarter() {
