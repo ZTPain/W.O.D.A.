@@ -58,6 +58,7 @@ void WindowManager::SwitchToWindow(WindowType type) {
   if (currentWindowType != WindowType::None) {
     windows[currentWindowType]->Exit();
     currentWindowType = WindowType::None;
+    minSizeShown = false;
   }
 
   pendingWindowType = type;
