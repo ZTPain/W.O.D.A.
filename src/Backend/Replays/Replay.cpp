@@ -6,10 +6,7 @@
 #include <utility>
 #include <vector>
 
-Replay::Replay(const Replay& other)
-    : replayId(other.replayId), players(other.players), history(other.history),
-      winnerId(other.winnerId), playtime(other.playtime), timestamp(other.timestamp),
-      mode(other.mode) {}
+Replay::Replay(const Replay& other) = default;
 
 Replay& Replay::operator=(const Replay& other) {
   if (this == &other)
