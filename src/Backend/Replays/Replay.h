@@ -18,6 +18,7 @@ struct Replay {
   time_t timestamp{};
 
   Replay(const Replay& other);
+  Replay& operator=(const Replay& other);
 
   Replay(
       unsigned int replayId,

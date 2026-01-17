@@ -24,7 +24,10 @@ Battleships& Battleships::GetInstance() {
 
 const GameMode Battleships::EXTENDED_SALVO_GAME_MODE = GameMode{
     "Extended Salvo Mode",
-    "Extended mode with salvo firing.",
+    "Combines the larger zoned game board from Extended mode with salvo firing rules. This is the "
+    "ultimate tactical challenge, as winning in this mode requires players to carefully plan each "
+    "round of attacks in order to quickly destroy an even larger and more diverse fleet of enemy "
+    "units.",
     22,
     14,
     true,
