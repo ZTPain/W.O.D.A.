@@ -37,6 +37,7 @@ private:
   std::map<size_t, std::pair<size_t, Coordinates>> lastPositionsPerPlayer;
 
   bool fastForwardEnabled = false;
+  bool ultraFastForwardEnabled = false;
   bool inAnimation = false;
   bool invertGridPositions = false;
   void SetGridOffsets();

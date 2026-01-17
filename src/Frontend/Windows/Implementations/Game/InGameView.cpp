@@ -185,7 +185,11 @@ void InGameView::ForceRender() {
 
   BoxDrawing::DrawWindowFrame(true, "In-Game View");
 
-  if (fastForwardEnabled) {
+  if (ultraFastForwardEnabled) {
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow);
+    TextHelper::DrawCenteredText(3, "Ultra Fast Forward Enabled (Press Shift + '.' to toggle)");
+    IO::cout << AnsiHelper::Reset();
+  } else if (fastForwardEnabled) {
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow);
     TextHelper::DrawCenteredText(3, "Fast Forward Enabled (Press '.' to toggle)");
     IO::cout << AnsiHelper::Reset();
@@ -594,7 +598,8 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
 
   enemyGrid.SetCursorPosition(coord.x, coord.y);
 
-  ShowPlayerFireAnimation();
+  if (!ultraFastForwardEnabled)
+    ShowPlayerFireAnimation();
   salvoSelectionCoordinates.clear();
 
   if (gameManager->State() == GameState::Over) {
@@ -686,7 +691,12 @@ void InGameView::CheckForPeriod() {
   ConsoleKeyDetails keyDetails{};
   if (InputManager::TryGetKeyPress(keyDetails)) {
     if (keyDetails.key == ConsoleKey::OemPeriod) {
-      fastForwardEnabled = !fastForwardEnabled;
+      if (keyDetails.modifiers == ConsoleModifiers::Shift) {
+        ultraFastForwardEnabled = !ultraFastForwardEnabled;
+      } else {
+        fastForwardEnabled = !fastForwardEnabled;
+        ultraFastForwardEnabled = false;
+      }
       ForceRender();
     }
   }
