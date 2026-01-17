@@ -50,6 +50,29 @@ public:
     }
   }
 
+  static constexpr BattleUnitCategory GetCategoryForUnitType(BattleUnitType type) {
+    switch (type) {
+      case BattleUnitType::PatrolBoat:
+      case BattleUnitType::Interceptor:
+      case BattleUnitType::Cruiser:
+      case BattleUnitType::Dreadnought:
+        return BattleUnitCategory::Marine;
+
+      case BattleUnitType::InfantrySquadron:
+      case BattleUnitType::GrenadeLauncher:
+      case BattleUnitType::MobileArtillery:
+      case BattleUnitType::ArmoredTrain:
+      case BattleUnitType::OperationsHeadquarter:
+        return BattleUnitCategory::Land;
+
+      case BattleUnitType::FighterJet:
+        return BattleUnitCategory::Aerial;
+
+      default:
+        return BattleUnitCategory::None;
+    }
+  }
+
   static std::shared_ptr<BattleUnit> CreateBattleUnit(BattleUnitType type) {
     switch (type) {
       case BattleUnitType::PatrolBoat:
