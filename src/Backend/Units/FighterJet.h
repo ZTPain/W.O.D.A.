@@ -5,12 +5,11 @@
 #include "Backend/Games/Coordinates.h"
 #include "BattleUnit.h"
 #include <array>
-#include <corecrt.h>
 #include <cstddef>
 #include <utility>
 #include <vector>
 
-using SCoordinates = std::pair<ssize_t, ssize_t>;
+using SCoordinates = std::pair<int, int>;
 
 class FighterJet : public BattleUnit {
 public:
