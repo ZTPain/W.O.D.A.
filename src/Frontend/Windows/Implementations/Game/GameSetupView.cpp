@@ -46,7 +46,7 @@ void GameSetupView::RenderEmptyCell(
   if (mode.isExtended) {
     const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
     const auto& board = currentPlayer.board;
-    const auto& segmentBoard = board.GetSegmentBoard();
+    const auto& segmentBoard = board->GetSegmentBoard();
     const auto& landSegments = segmentBoard.LandSegments();
 
     if (landSegments[y][x]) {
@@ -114,7 +114,7 @@ BattleUnitType GameSetupView::GetUnitTypeOfCoordinate(const Coordinates& coord) 
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
-  const auto& segmentBoard = board.GetSegmentBoard();
+  const auto& segmentBoard = board->GetSegmentBoard();
   const auto& units = segmentBoard.GetUnits();
 
   const auto predicate = [&](const Coordinates& c) { return c == coord; };
@@ -174,7 +174,7 @@ void GameSetupView::RenderFilledCell(
   if (mode.isExtended) {
     const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
     const auto& board = currentPlayer.board;
-    const auto& segmentBoard = board.GetSegmentBoard();
+    const auto& segmentBoard = board->GetSegmentBoard();
     const auto& landSegments = segmentBoard.LandSegments();
 
     if (landSegments[y][x]) {
@@ -209,7 +209,7 @@ void GameSetupView::RenderCell(size_t x, size_t y, size_t posX, size_t posY, boo
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
-  const auto& segmentBoard = board.GetSegmentBoard();
+  const auto& segmentBoard = board->GetSegmentBoard();
 
   if (segmentBoard.Segments()[y][x]) {
     RenderFilledCell(x, y, posX, posY, isCursor);
@@ -225,7 +225,7 @@ void GameSetupView::RenderUnitsLeft(const std::unordered_map<BattleUnitType, siz
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
-  const auto& segmentBoard = board.GetSegmentBoard();
+  const auto& segmentBoard = board->GetSegmentBoard();
 
   for (const auto& [unitType, count] : unitPool) {
     const auto color = GetColorForUnitType(unitType);
@@ -253,7 +253,7 @@ void GameSetupView::OnToggleCell(size_t x, size_t y, size_t /*posX*/, size_t /*p
   const auto& mode = gameManager->Mode();
   const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
-  auto& segmentBoard = board.GetSegmentBoard();
+  auto& segmentBoard = board->GetSegmentBoard();
 
   if (segmentBoard.ToggleSegment(x, y)) {
     grid.Render();
@@ -323,7 +323,7 @@ bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
 
     GenerateRandomSetup(
-        &currentPlayer.board.GetSegmentBoard(),
+        &currentPlayer.board->GetSegmentBoard(),
         currentPlayer.profile.AI() != nullptr ? currentPlayer.profile.AI()->GetComputerType()
                                               : ComputerType::Easy
     );
@@ -407,12 +407,12 @@ void GameSetupView::HandleAI() {
     return;
 
   GenerateRandomSetup(
-      &currentPlayer.board.GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
+      &currentPlayer.board->GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
   );
 
   while (!ConfirmGridSetup()) {
     GenerateRandomSetup(
-        &currentPlayer.board.GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
+        &currentPlayer.board->GetSegmentBoard(), currentPlayer.profile.AI()->GetComputerType()
     );
   }
 }
@@ -761,7 +761,7 @@ bool GameSetupView::AllUnitsPlaced() const {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
   const auto& board = currentPlayer.board;
-  const auto& segmentBoard = board.GetSegmentBoard();
+  const auto& segmentBoard = board->GetSegmentBoard();
 
   const auto& units = segmentBoard.GetUnits();
 

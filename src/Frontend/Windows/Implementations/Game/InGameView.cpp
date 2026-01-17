@@ -146,7 +146,7 @@ void InGameView::ForceRender() {
 
   const auto alivePlayersCount =
       std::count_if(GetPlayers().begin(), GetPlayers().end(), [](const auto& player) {
-        return !player.board.IsGameOver();
+        return !player.board->IsGameOver();
       });
 
   bool shouldInvert = false;
@@ -229,7 +229,7 @@ void InGameView::OnChangeTurn() {
 
   enemyPlayerIndex = lastPositionsPerPlayer[currentPlayerIndex].first;
   bool firstLoop = true;
-  while (players[enemyPlayerIndex].board.IsGameOver() || currentPlayerIndex == enemyPlayerIndex) {
+  while (players[enemyPlayerIndex].board->IsGameOver() || currentPlayerIndex == enemyPlayerIndex) {
     if (currentPlayerIndex == enemyPlayerIndex) {
       if (!firstLoop)
         throw std::runtime_error("No valid enemy player found!");
@@ -252,8 +252,8 @@ void InGameView::RenderCell(
 ) const {
   const auto& player = GetPlayerAtIndex(playerIndex);
   const auto& board = player.board;
-  const auto& segmentBoard = board.GetSegmentBoard();
-  const auto& unitsPlacement = board.Units();
+  const auto& segmentBoard = board->GetSegmentBoard();
+  const auto& unitsPlacement = board->Units();
 
   const Coordinates coord(static_cast<int>(x), static_cast<int>(y));
   const bool isHit = segmentBoard.Segments()[y][x];
@@ -317,7 +317,7 @@ void InGameView::RenderCell(
 size_t InGameView::CalculateSegmentsLeftForPlayer(size_t playerIndex, size_t* outMax) const {
   const auto& mode = GetGameMode();
   const auto& player = GetPlayerAtIndex(playerIndex);
-  const auto& units = player.board.GetAllUnits();
+  const auto& units = player.board->GetAllUnits();
 
   const auto maxCount =
       std::accumulate(mode.unitPool.begin(), mode.unitPool.end(), 0, [](int sum, const auto& pair) {
@@ -338,7 +338,7 @@ size_t InGameView::CalculateSegmentsLeftForPlayer(size_t playerIndex, size_t* ou
 void InGameView::RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY) const {
   const auto& mode = GetGameMode();
   const auto& player = GetPlayerAtIndex(playerIndex);
-  const auto& units = player.board.GetAllUnits();
+  const auto& units = player.board->GetAllUnits();
 
   IO::cout << AnsiHelper::MoveCursor(startX, startY);
   IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);
@@ -396,7 +396,7 @@ void InGameView::RenderUnitsLeft() const {
 
 void InGameView::HandleAfterFireAtCoordinate() {
   const auto& enemyPlayer = GetPlayerAtIndex(enemyPlayerIndex);
-  const auto& enemyUnits = enemyPlayer.board.Units();
+  const auto& enemyUnits = enemyPlayer.board->Units();
   for (const auto& coord : salvoSelectionCoordinates) {
     uint8_t result = 0;
     if (enemyUnits[coord.y][coord.x] != nullptr) {
@@ -615,7 +615,7 @@ void InGameView::RenderTurnQueue() const {
   size_t i = 1;
   while (queueIndex != currentPlayerIndex) {
     const auto& player = GetPlayerAtIndex(queueIndex);
-    if (player.board.IsGameOver()) {
+    if (player.board->IsGameOver()) {
       queueIndex = (queueIndex + 1) % GetPlayers().size();
       continue;
     }

@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iterator>
-#include <memory>
 #include <stack>
 #include <stdexcept>
 #include <unordered_map>
@@ -273,8 +272,4 @@ const std::vector<std::vector<bool>>& SegmentBoardValidator::Segments() const {
 
 const std::vector<std::vector<bool>>& SegmentBoardValidator::LandSegments() const {
   return segmentBoard.LandSegments();
-}
-
-std::unique_ptr<ISegment> SegmentBoardValidator::Clone() const {
-  return std::make_unique<SegmentBoardValidator>(segmentBoard, mode);
 }

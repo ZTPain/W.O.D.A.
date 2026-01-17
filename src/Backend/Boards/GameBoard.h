@@ -18,8 +18,6 @@ class GameBoard {
 
 public:
   GameBoard(const GameMode& mode);
-  GameBoard(const GameBoard& other);
-  GameBoard& operator=(const GameBoard& other);
   [[nodiscard]] size_t Width() const;
   [[nodiscard]] size_t Height() const;
   [[nodiscard]] ISegment& GetSegmentBoard() const;

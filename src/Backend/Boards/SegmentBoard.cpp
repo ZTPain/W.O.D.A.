@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
-#include <memory>
 #include <optional>
 #include <stdexcept>
 #include <vector>
@@ -64,8 +63,4 @@ const std::vector<std::vector<bool>>& SegmentBoard::LandSegments() const {
   }
 
   return landSegments.value();
-}
-
-std::unique_ptr<ISegment> SegmentBoard::Clone() const {
-  return std::make_unique<SegmentBoard>(*this);
 }

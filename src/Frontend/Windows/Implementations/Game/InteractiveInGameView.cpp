@@ -71,7 +71,7 @@ bool InteractiveInGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     case ConsoleKey::Oem4: // [
       enemyPlayerIndex = (enemyPlayerIndex + players.size() - 1) % players.size();
       while (enemyPlayerIndex == currentPlayerIndex ||
-             gameManager->GetPlayerAtIndex(enemyPlayerIndex).board.IsGameOver()) {
+             gameManager->GetPlayerAtIndex(enemyPlayerIndex).board->IsGameOver()) {
         enemyPlayerIndex = (enemyPlayerIndex + players.size() - 1) % players.size();
       }
       ForceRender();
@@ -81,7 +81,7 @@ bool InteractiveInGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     case ConsoleKey::Oem6: // ]
       enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
       while (enemyPlayerIndex == currentPlayerIndex ||
-             gameManager->GetPlayerAtIndex(enemyPlayerIndex).board.IsGameOver()) {
+             gameManager->GetPlayerAtIndex(enemyPlayerIndex).board->IsGameOver()) {
         enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
       }
       ForceRender();
@@ -123,7 +123,7 @@ void InteractiveInGameView::HandleAITurn() {
 
   enemyPlayerIndex = ComputerStrategyHelper::GetRandomFromRange(0, players.size() - 1);
   while (enemyPlayerIndex == currentPlayerIndex ||
-         gameManager->GetPlayerAtIndex(enemyPlayerIndex).board.IsGameOver()) {
+         gameManager->GetPlayerAtIndex(enemyPlayerIndex).board->IsGameOver()) {
     enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
   }
 
@@ -192,7 +192,7 @@ bool InteractiveInGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   const auto& mode = gameManager->Mode();
   const auto& currentPlayer = gameManager->GetCurrentPlayer();
   const auto& currentPlayerBoard = currentPlayer.board;
-  const auto& currentPlayerUnits = currentPlayerBoard.GetAllUnits();
+  const auto& currentPlayerUnits = currentPlayerBoard->GetAllUnits();
   const size_t currentPlayerUnitsAlive =
       std::count_if(currentPlayerUnits.begin(), currentPlayerUnits.end(), [](const auto& unit) {
         return !unit->IsDestroyed();
@@ -201,7 +201,7 @@ bool InteractiveInGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   assert(enemyPlayerIndex != currentPlayerIndex);
 
   auto& enemyBoard = gameManager->GetPlayerAtIndex(enemyPlayerIndex).board;
-  const auto& enemySegmentBoard = enemyBoard.GetSegmentBoard();
+  const auto& enemySegmentBoard = enemyBoard->GetSegmentBoard();
   const auto& enemySegments = enemySegmentBoard.Segments();
   const size_t nonShootSegmentsLeft =
       std::count_if(enemySegments.begin(), enemySegments.end(), [](const auto& row) {

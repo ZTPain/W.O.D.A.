@@ -9,12 +9,12 @@
 #include <vector>
 
 class SalvoFireCommand : public ICommand {
-  GameBoard& board;
+  GameBoard* board;
   std::vector<Coordinates> coords;
 
 public:
   SalvoFireCommand(const SalvoFireCommand& other);
-  SalvoFireCommand(GameBoard& board, std::vector<Coordinates> coords);
+  SalvoFireCommand(GameBoard* board, std::vector<Coordinates> coords);
   [[nodiscard]] std::unique_ptr<ICommand> Clone() const override;
 
   bool Execute() override;
