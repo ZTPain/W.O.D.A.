@@ -23,8 +23,11 @@ constexpr unsigned int UNIT_DESTROYED_MULTIPLIER = 4;
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
     : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(-1),
       playtime(0) {
-  for (auto* profile : profiles)
-    players.emplace_back(*profile, mode);
+  for (auto* profile : profiles) {
+    // Store all game boards globally to preserve their lifetime
+    gameBoards.emplace_back(mode);
+    players.emplace_back(*profile, gameBoards.back());
+  }
 }
 
 const GameMode& GameManager::Mode() const { return mode; }
