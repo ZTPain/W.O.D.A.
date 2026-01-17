@@ -121,6 +121,17 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     return true;
   }
 
+  if (keyDetails.key == ConsoleKey::OemPeriod) {
+    if (keyDetails.modifiers == ConsoleModifiers::Shift) {
+      ultraFastForwardEnabled = !ultraFastForwardEnabled;
+    } else {
+      fastForwardEnabled = !fastForwardEnabled;
+      ultraFastForwardEnabled = false;
+    }
+    ForceRender();
+    return true;
+  }
+
   const auto& gameManager = AppState::GetCurrentGameManager();
 
   if (gameManager->State() != GameState::Playing) {
@@ -616,6 +627,9 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
 
   if (!ultraFastForwardEnabled)
     ShowPlayerFireAnimation();
+
+  CheckForPeriod();
+
   salvoSelectionCoordinates.clear();
   AppState::IncrementTurnCounter(currentPlayerIndex);
 
