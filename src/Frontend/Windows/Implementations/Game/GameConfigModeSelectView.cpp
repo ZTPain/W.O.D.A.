@@ -17,6 +17,8 @@
 #include <cstddef>
 #include <string>
 
+static constexpr size_t OPTION_COUNT = 5;
+
 static size_t selectedIndex = 0;
 
 void GameConfigModeSelectView::OnEnter() { ForceRender(); }
@@ -59,10 +61,10 @@ bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
     case ConsoleKey::S:
     case ConsoleKey::DownArrow:
-      if (selectedIndex + 1 < 4) {
+      if (selectedIndex + 1 < OPTION_COUNT) {
         const auto prevIndex = selectedIndex;
         ++selectedIndex;
-        while (!IsContentUnlocked(selectedIndex) && selectedIndex + 1 < 4)
+        while (!IsContentUnlocked(selectedIndex) && selectedIndex + 1 < OPTION_COUNT)
           ++selectedIndex;
 
         DrawOption(prevIndex);
@@ -71,44 +73,60 @@ bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       return true;
 
     case ConsoleKey::Spacebar:
-    case ConsoleKey::Enter: {
-      const auto currentUser = UserManager::GetInstance().GetCurrentUser();
-
-      switch (selectedIndex) {
-        case 0:
-          // Standard Mode
-          AppState::SetCurrentGameMode(Battleships::STANDARD_GAME_MODE);
-          WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
-          break;
-        case 1:
-          // Salvo Mode
-          if (currentUser.unlockedContent & UnlockableContent::SalvoMode) {
-            AppState::SetCurrentGameMode(Battleships::SALVO_GAME_MODE);
-            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
-          }
-          break;
-        case 2:
-          // Extended Mode
-          if (currentUser.unlockedContent & UnlockableContent::ExtendedMode) {
-            AppState::SetCurrentGameMode(Battleships::EXTENDED_GAME_MODE);
-            WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
-          }
-          break;
-        case 3:
-          // Cancel
-          WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
-          break;
-        default:
-          break;
-      }
+    case ConsoleKey::Enter:
+      HandleInputSelect();
       return true;
-    }
 
     default:
       break;
   }
 
   return false;
+}
+
+void GameConfigModeSelectView::HandleInputSelect() {
+  const auto currentUser = UserManager::GetInstance().GetCurrentUser();
+
+  switch (selectedIndex) {
+    case 0:
+      // Standard Mode
+      AppState::SetCurrentGameMode(Battleships::STANDARD_GAME_MODE);
+      WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+      break;
+
+    case 1:
+      // Salvo Mode
+      if (currentUser.unlockedContent & UnlockableContent::SalvoMode) {
+        AppState::SetCurrentGameMode(Battleships::SALVO_GAME_MODE);
+        WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+      }
+      break;
+
+    case 2:
+      // Extended Mode
+      if (currentUser.unlockedContent & UnlockableContent::ExtendedMode) {
+        AppState::SetCurrentGameMode(Battleships::EXTENDED_GAME_MODE);
+        WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+      }
+      break;
+
+    case 3:
+      // Extended Salvo Mode
+      if ((currentUser.unlockedContent & UnlockableContent::ExtendedMode) &&
+          (currentUser.unlockedContent & UnlockableContent::SalvoMode)) {
+        AppState::SetCurrentGameMode(Battleships::EXTENDED_SALVO_GAME_MODE);
+        WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigPlayersSelect);
+      }
+      break;
+
+    case 4:
+      // Cancel
+      WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
+      break;
+
+    default:
+      break;
+  }
 }
 
 void GameConfigModeSelectView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
@@ -130,7 +148,7 @@ void GameConfigModeSelectView::ForceRender() {
 }
 
 void GameConfigModeSelectView::DrawOptions() {
-  for (size_t i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < OPTION_COUNT; ++i) {
     DrawOption(i);
   }
 }
@@ -147,8 +165,11 @@ void GameConfigModeSelectView::DrawOption(size_t index) {
     case 2:
       text = Battleships::EXTENDED_GAME_MODE.name;
       break;
-
     case 3:
+      text = Battleships::EXTENDED_SALVO_GAME_MODE.name;
+      break;
+
+    case 4:
       text = "Cancel";
       break;
 
@@ -185,6 +206,9 @@ void GameConfigModeSelectView::DrawDescription(size_t index) {
       description = Battleships::EXTENDED_GAME_MODE.description;
       break;
     case 3:
+      description = Battleships::EXTENDED_SALVO_GAME_MODE.description;
+      break;
+    case 4:
       description = "Return to the main menu.";
       break;
 
