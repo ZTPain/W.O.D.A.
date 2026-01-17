@@ -2,6 +2,7 @@
 
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Computers/Computer.h"
+#include "Backend/Computers/ComputerStrategyHelper.h"
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/FireCommand.h"
 #include "Backend/Games/GameManager.h"
@@ -493,6 +494,7 @@ void InGameView::HandleAITurn() {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
   const auto& currentPlayer = gameManager->GetCurrentPlayer();
+  const auto& players = gameManager->Players();
 
   assert(currentPlayer.profile.AI() != nullptr);
 
@@ -500,6 +502,12 @@ void InGameView::HandleAITurn() {
   // For now, just the next player who is not defeated, so default to enemyPlayerIndex
   // If in the future we have more complex logic (like teams), this will need to be updated and we
   // will need to redraw the enemy grid accordingly
+
+  enemyPlayerIndex = ComputerStrategyHelper::GetRandomFromRange(0, players.size() - 1);
+  while (enemyPlayerIndex == currentPlayerIndex ||
+         gameManager->GetPlayerAtIndex(enemyPlayerIndex).board.IsGameOver()) {
+    enemyPlayerIndex = (enemyPlayerIndex + 1) % players.size();
+  }
 
   const auto& enemyPlayer = gameManager->GetPlayerAtIndex(enemyPlayerIndex);
 
