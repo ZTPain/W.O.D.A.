@@ -116,9 +116,7 @@ void Battleships::ReadSave() {
   const auto playerCount = SerializationHelper::DeserializeInt32(buffer, offset, bufferSize);
 
   for (uint32_t i = 0; i < playerCount; ++i) {
-    size_t bytesRead = 0;
-    const auto profile = UserProfile::Deserialize(buffer, offset, bufferSize, bytesRead);
-
+    const auto profile = UserProfile::Deserialize(buffer, offset, bufferSize);
     userManager.AddUserProfile(profile);
   }
 }
@@ -139,10 +137,10 @@ void Battleships::WriteToSave() const {
 
   SerializationHelper::SerializeInt32(buffer.data(), offset, BUFFER_SIZE, users.size());
   for (const auto& [userId, user] : users) {
-    offset = user.Serialize(buffer.data(), offset, BUFFER_SIZE);
+    user.Serialize(buffer.data(), offset, BUFFER_SIZE);
   }
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<uint32_t>(offset));
-  file.close();
+  file.flush();
 }
