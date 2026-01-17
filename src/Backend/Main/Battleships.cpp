@@ -28,15 +28,23 @@ const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
     "which is divided into 'sea' and 'land' zones, introducing a new strategic dimension. The "
     "fleet is enlarged and diversified, containing units dedicated only to sea, only to land, and "
     "hybrid ones (like airplanes in the shape of the letter T) that can operate in both zones.",
-    21,
+    22,
     14,
     true,
     FireCommandType::FireCommand,
     {
-                   {BattleUnitType::PatrolBoat, 6},
-                   {BattleUnitType::Interceptor, 5},
-                   {BattleUnitType::Cruiser, 4},
-                   {BattleUnitType::Dreadnought, 2},
+                   {BattleUnitType::PatrolBoat, 4},
+                   {BattleUnitType::Interceptor, 3},
+                   {BattleUnitType::Cruiser, 2},
+                   {BattleUnitType::Dreadnought, 1},
+
+                   {BattleUnitType::InfantrySquadron, 4},
+                   {BattleUnitType::GrenadeLauncher, 3},
+                   {BattleUnitType::MobileArtillery, 2},
+                   {BattleUnitType::ArmoredTrain, 1},
+                   {BattleUnitType::OperationsHeadquarter, 1},
+
+                   {BattleUnitType::FighterJet, 3},
                    }
 };
 
@@ -124,7 +132,7 @@ void Battleships::WriteToSave() const {
   const auto& users = userManager.Users();
 
   // 1 MB should be enough
-  constexpr auto BUFFER_SIZE = static_cast<const size_t>(1 * 1024 * 1024);
+  constexpr auto BUFFER_SIZE = static_cast<size_t>(1 * 1024 * 1024);
 
   static std::array<uint8_t, BUFFER_SIZE> buffer{};
   size_t offset = 0;

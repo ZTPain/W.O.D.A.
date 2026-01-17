@@ -50,6 +50,29 @@ public:
     }
   }
 
+  static constexpr BattleUnitCategory GetCategoryForUnitType(BattleUnitType type) {
+    switch (type) {
+      case BattleUnitType::PatrolBoat:
+      case BattleUnitType::Interceptor:
+      case BattleUnitType::Cruiser:
+      case BattleUnitType::Dreadnought:
+        return BattleUnitCategory::Marine;
+
+      case BattleUnitType::InfantrySquadron:
+      case BattleUnitType::GrenadeLauncher:
+      case BattleUnitType::MobileArtillery:
+      case BattleUnitType::ArmoredTrain:
+      case BattleUnitType::OperationsHeadquarter:
+        return BattleUnitCategory::Land;
+
+      case BattleUnitType::FighterJet:
+        return BattleUnitCategory::Aerial;
+
+      default:
+        return BattleUnitCategory::None;
+    }
+  }
+
   static std::shared_ptr<BattleUnit> CreateBattleUnit(BattleUnitType type) {
     switch (type) {
       case BattleUnitType::PatrolBoat:
@@ -131,13 +154,35 @@ public:
       const Coordinates& target
   ) {
     return std::any_of(shape.begin(), shape.end(), [target, origin](const Coordinates& cord) {
-      return cord.x == target.x + origin.x && cord.y == target.y + origin.y;
+      return cord.x + origin.x == target.x && cord.y + origin.y == target.y;
     });
   }
 
   template <size_t Size>
   static bool IsValidShape(
       const std::array<Coordinates, Size>& shape,
+      const std::vector<Coordinates>& segments,
+      const Coordinates& origin
+  ) {
+    return std::all_of(segments.begin(), segments.end(), [shape, origin](const auto& segment) {
+      return BattleUnitHelper::IsValidShape(shape, origin, segment);
+    });
+  }
+
+  template <size_t Size>
+  static bool IsValidShape(
+      const std::array<SCoordinates, Size>& shape,
+      const Coordinates& origin,
+      const Coordinates& target
+  ) {
+    return std::any_of(shape.begin(), shape.end(), [target, origin](const SCoordinates& cord) {
+      return cord.first + origin.x == target.x && cord.second + origin.y == target.y;
+    });
+  }
+
+  template <size_t Size>
+  static bool IsValidShape(
+      const std::array<SCoordinates, Size>& shape,
       const std::vector<Coordinates>& segments,
       const Coordinates& origin
   ) {
