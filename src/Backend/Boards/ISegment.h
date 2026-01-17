@@ -5,7 +5,6 @@
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Units/BattleUnitType.h"
 #include <cstddef>
-#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -22,5 +21,4 @@ public:
   virtual void Clear() = 0;
   // Array[UnitType][UnitNumber] of Coordinates[]
   [[nodiscard]] virtual const UnitsMap& GetUnits() const = 0;
-  [[nodiscard]] virtual std::unique_ptr<ISegment> Clone() const = 0;
 };

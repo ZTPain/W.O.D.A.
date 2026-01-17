@@ -1,6 +1,7 @@
 // GameManager.cpp
 
 #include "Backend/Games/GameManager.h"
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Computers/Computer.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/ICommand.h"
@@ -25,8 +26,11 @@ GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profil
       playtime(0) {
   for (auto* profile : profiles) {
     // Store all game boards globally to preserve their lifetime
-    gameBoards.emplace_back(mode);
-    players.emplace_back(*profile, gameBoards.back());
+    // They will be deleted when the program ends
+    // NOLINTNEXTLINE
+    auto* const board = new GameBoard(mode);
+    gameBoards.push_back(board);
+    players.emplace_back(*profile, board);
   }
 }
 
@@ -53,7 +57,7 @@ void GameManager::StartGame() {
 
   // Set up all the boards
   for (auto& player : players) {
-    player.board.ParseSegments();
+    player.board->ParseSegments();
   }
 }
 
@@ -79,7 +83,7 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command, size_t enemy
 
   // Change turn until another not dead player is found
   currentTurn = (currentTurn + 1) % players.size();
-  while (players[currentTurn].board.IsGameOver())
+  while (players[currentTurn].board->IsGameOver())
     currentTurn = (currentTurn + 1) % players.size();
 
   // If the turn rolled over to the same player, mark game as over
@@ -139,7 +143,7 @@ void GameManager::UpdatePlayerAchievements() {
     players[winnerId].profile.achievements->Unlock("Do You Feel Lucky?");
 
   bool hasDestroyedSegments = false;
-  for (const auto& unit : players[winnerId].board.GetAllUnits()) {
+  for (const auto& unit : players[winnerId].board->GetAllUnits()) {
     if (unit->GetDestroyedSegments() != 0) {
       hasDestroyedSegments = true;
       break;
@@ -171,7 +175,7 @@ void GameManager::UpdatePlayerAchievements() {
       achievements->Unlock("Oh Man, Look at Those Cavemen Go");
 
     bool areAnyDestroyed = false;
-    for (const auto& unit : player.board.GetAllUnits()) {
+    for (const auto& unit : player.board->GetAllUnits()) {
       if (unit->IsDestroyed()) {
         areAnyDestroyed = true;
         break;
@@ -205,9 +209,9 @@ void GameManager::HandleGameOver() {
 void GameManager::SaveReplay() {
   // Reset game boards to their set (game start) state
   for (auto& p : players) {
-    p.board.GetSegmentBoard().Clear();
+    p.board->GetSegmentBoard().Clear();
 
-    for (const auto& unit : p.board.GetAllUnits())
+    for (const auto& unit : p.board->GetAllUnits())
       unit->Reset();
   }
 

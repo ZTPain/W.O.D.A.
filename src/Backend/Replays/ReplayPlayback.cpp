@@ -30,9 +30,9 @@ bool ReplayPlayback::StepForward() {
 }
 
 bool ReplayPlayback::StepBackward() {
-  if (currentStep < 0 || static_cast<size_t>(currentStep) >= replay.history.size())
+  if (currentStep <= 0 || static_cast<size_t>(currentStep) > replay.history.size())
     return false;
 
-  replay.history[currentStep++].command->Undo();
+  replay.history[--currentStep].command->Undo();
   return true;
 }

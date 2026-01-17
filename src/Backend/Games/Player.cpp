@@ -2,7 +2,7 @@
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Users/UserProfile.h"
 
-Player::Player(UserProfile& profile, GameBoard& board) : profile(profile), board(board) {}
+Player::Player(UserProfile& profile, GameBoard* board) : profile(profile), board(board) {}
 
 Player& Player::operator=(const Player& other) {
   if (this == &other)
