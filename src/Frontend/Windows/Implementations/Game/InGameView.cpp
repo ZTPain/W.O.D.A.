@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <numeric>
@@ -486,7 +487,7 @@ std::vector<std::vector<std::pair<Coordinates, bool>>> InGameView::CalculateBull
 ) {
   std::vector<std::vector<std::pair<Coordinates, bool>>> out;
 
-  maxDistance = 0;
+  maxDistance = 1;
   std::vector<std::pair<Coordinates, bool>> emptyPath{};
   for (const auto& coord : targetCoordinates) {
     size_t outTargetX = 0;
@@ -496,7 +497,8 @@ std::vector<std::vector<std::pair<Coordinates, bool>>> InGameView::CalculateBull
     CalculateBulletPath(bulletX, outTargetY, outTargetX, emptyPath, enemyGrid);
     out.push_back(emptyPath);
 
-    const auto distance = invertGridPositions ? (bulletX - outTargetX) : (outTargetX - bulletX);
+    const auto distance =
+        static_cast<size_t>(std::abs(static_cast<int>(bulletX) - static_cast<int>(outTargetX)));
     maxDistance = std::max(distance, maxDistance);
   }
 
