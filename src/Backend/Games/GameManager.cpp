@@ -58,8 +58,9 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
 
   const unsigned int commandShotsHit = command->ShotsHit();
   const unsigned int commandUnitsDestroyed = command->UnitsDestroyed();
+  const unsigned int commandShots = command->Shots();
 
-  players[currentTurn].shotsFired++;
+  players[currentTurn].shotsFired += commandShots;
   players[currentTurn].shotsHit += commandShotsHit;
   players[currentTurn].unitsDestroyed += commandUnitsDestroyed;
   players[currentTurn].score +=

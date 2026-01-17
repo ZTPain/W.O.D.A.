@@ -68,7 +68,7 @@ std::unique_ptr<AchievementPool> AchievementPool::Clone() {
   return std::make_unique<AchievementPool>(*this);
 }
 
-size_t AchievementPool::Serialize(uint8_t* buffer, size_t offset, size_t bufferSize) const {
+void AchievementPool::Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const {
   auto unlockedCount = static_cast<uint16_t>(0);
   for (const auto& [name, achievement] : nameToAchievementMap) {
     if (achievement.unlocked) {
@@ -83,8 +83,6 @@ size_t AchievementPool::Serialize(uint8_t* buffer, size_t offset, size_t bufferS
       SerializationHelper::SerializeString(buffer, offset, bufferSize, name);
     }
   }
-
-  return offset;
 }
 
 std::unique_ptr<AchievementPool> AchievementPool::Deserialize(

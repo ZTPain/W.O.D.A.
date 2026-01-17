@@ -22,6 +22,32 @@ Battleships& Battleships::GetInstance() {
   return instance;
 }
 
+const GameMode Battleships::EXTENDED_SALVO_GAME_MODE = GameMode{
+    "Extended Salvo Mode",
+    "Combines the larger zoned game board from Extended mode with salvo firing rules. This is the "
+    "ultimate tactical challenge, as winning in this mode requires players to carefully plan each "
+    "round of attacks in order to quickly destroy an even larger and more diverse fleet of enemy "
+    "units.",
+    22,
+    14,
+    true,
+    FireCommandType::SalvoFireCommand,
+    {
+                        {BattleUnitType::PatrolBoat, 4},
+                        {BattleUnitType::Interceptor, 3},
+                        {BattleUnitType::Cruiser, 2},
+                        {BattleUnitType::Dreadnought, 1},
+
+                        {BattleUnitType::InfantrySquadron, 4},
+                        {BattleUnitType::GrenadeLauncher, 3},
+                        {BattleUnitType::MobileArtillery, 2},
+                        {BattleUnitType::ArmoredTrain, 1},
+                        {BattleUnitType::OperationsHeadquarter, 1},
+
+                        {BattleUnitType::FighterJet, 3},
+                        }
+};
+
 const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
     "Extended Mode",
     "The game is played on a much larger, rectangular board (22x14), "
@@ -116,9 +142,7 @@ void Battleships::ReadSave() {
   const auto playerCount = SerializationHelper::DeserializeInt32(buffer, offset, bufferSize);
 
   for (uint32_t i = 0; i < playerCount; ++i) {
-    size_t bytesRead = 0;
-    const auto profile = UserProfile::Deserialize(buffer, offset, bufferSize, bytesRead);
-
+    const auto profile = UserProfile::Deserialize(buffer, offset, bufferSize);
     userManager.AddUserProfile(profile);
   }
 }
@@ -139,10 +163,10 @@ void Battleships::WriteToSave() const {
 
   SerializationHelper::SerializeInt32(buffer.data(), offset, BUFFER_SIZE, users.size());
   for (const auto& [userId, user] : users) {
-    offset = user.Serialize(buffer.data(), offset, BUFFER_SIZE);
+    user.Serialize(buffer.data(), offset, BUFFER_SIZE);
   }
 
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
   file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<uint32_t>(offset));
-  file.close();
+  file.flush();
 }

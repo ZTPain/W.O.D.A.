@@ -53,7 +53,7 @@ unsigned int UserProfile::UserId() const { return userId; }
 
 Computer* UserProfile::AI() const { return ai; }
 
-size_t UserProfile::Serialize(uint8_t* buffer, size_t offset, size_t bufferSize) const {
+void UserProfile::Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const {
   // Serializee userId
   SerializationHelper::SerializeInt32(buffer, offset, bufferSize, userId);
 
@@ -70,17 +70,10 @@ size_t UserProfile::Serialize(uint8_t* buffer, size_t offset, size_t bufferSize)
   SerializeStatistics(buffer, offset, bufferSize);
 
   // Serialize achievements
-  const size_t achievementsBytes = achievements->Serialize(buffer, offset, bufferSize);
-  offset += achievementsBytes;
-
-  return offset;
+  achievements->Serialize(buffer, offset, bufferSize);
 }
 
-UserProfile UserProfile::Deserialize(
-    const uint8_t* buffer, size_t offset, size_t bufferSize, size_t& bytesRead
-) {
-  const size_t startOffset = offset;
-
+UserProfile UserProfile::Deserialize(const uint8_t* buffer, size_t& offset, size_t bufferSize) {
   // Deserialize userId
   const unsigned int userId = SerializationHelper::DeserializeInt32(buffer, offset, bufferSize);
 
@@ -112,8 +105,6 @@ UserProfile UserProfile::Deserialize(
       settings,
       nullptr
   );
-
-  bytesRead = offset - startOffset;
 
   return userProfile;
 }

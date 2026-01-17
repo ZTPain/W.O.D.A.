@@ -46,6 +46,8 @@ std::unique_ptr<ICommand> SalvoFireCommand::Clone() const {
   return std::make_unique<SalvoFireCommand>(*this);
 }
 
+unsigned int SalvoFireCommand::Shots() const { return static_cast<unsigned int>(coords.size()); }
+
 unsigned int SalvoFireCommand::ShotsHit() const {
   unsigned int shotsHit = 0;
 
