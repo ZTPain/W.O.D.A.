@@ -8,4 +8,12 @@ enum class BattleUnitType {
   Interceptor,
   Cruiser,
   Dreadnought,
+
+  InfantrySquadron,
+  GrenadeLauncher,
+  MobileArtillery,
+  ArmoredTrain,
+  OperationsHeadquarter,
+
+  FighterJet
 };

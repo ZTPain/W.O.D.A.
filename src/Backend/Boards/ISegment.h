@@ -17,6 +17,7 @@ public:
   [[nodiscard]] virtual size_t Width() const = 0;
   [[nodiscard]] virtual size_t Height() const = 0;
   [[nodiscard]] virtual const std::vector<std::vector<bool>>& Segments() const = 0;
+  [[nodiscard]] virtual const std::vector<std::vector<bool>>& LandSegments() const = 0;
   virtual bool ToggleSegment(size_t x, size_t y) = 0;
   virtual void Clear() = 0;
   // Array[UnitType][UnitNumber] of Coordinates[]

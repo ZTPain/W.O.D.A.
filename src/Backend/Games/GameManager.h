@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Backend/Computers/Computer.h"
-#include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
 #include "GameMode.h"
 #include "ICommand.h"
@@ -51,6 +50,6 @@ public:
   void StartGame();
   bool ExecuteCommand(std::unique_ptr<ICommand> command);
   void HandleGameOver();
-  Replay GetReplay();
+  void SaveReplay();
   static Computer* GetComputerByType(ComputerType computerType);
 };
