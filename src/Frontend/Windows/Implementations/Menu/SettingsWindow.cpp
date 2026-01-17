@@ -5,7 +5,6 @@
 #include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
-#include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -63,7 +62,7 @@ void SettingsWindow::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
 bool SettingsWindow::IsCorrectSize(int width, int height) const {
   const auto requiredWidth = 70;
-  const auto requiredHeight = 20;
+  const auto requiredHeight = 12;
   return static_cast<size_t>(width) >= requiredWidth &&
          static_cast<size_t>(height) >= requiredHeight;
 }
@@ -72,8 +71,6 @@ void SettingsWindow::ForceRender() {
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();
 
   BoxDrawing::DrawWindowFrame(true, "Settings");
-
-  TextHelper::DrawCenteredText(3, "Settings Window - (Functionality not implemented yet)");
 
   RenderOptions();
 
@@ -88,7 +85,7 @@ void SettingsWindow::RenderOptions() const {
 
 void SettingsWindow::RenderOption(size_t index) const {
   const auto x = 12;
-  const auto y = 5 + (index * 2);
+  const auto y = 3 + (index * 2);
   IO::cout << AnsiHelper::MoveCursor(x, y);
   if (selectedIndex == index) {
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Black)
