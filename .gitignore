@@ -9,3 +9,4 @@ build/
 *.code-workspace
 docs/diagrams/uml-diagram
 save.dat
+run-clang-tidy.py
