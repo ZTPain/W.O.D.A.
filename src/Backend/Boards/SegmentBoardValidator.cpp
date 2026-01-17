@@ -142,7 +142,7 @@ static void GroupsToUnits(
     const auto size = group.size();
     const auto predicate = [&](const std::pair<const BattleUnitType, unsigned long long>& c) {
       const auto category = BattleUnitHelper::GetCategoryForUnitType(c.first);
-      if (!ValidateUnitCategory(category, group, landSegments))
+      if (mode.isExtended && !ValidateUnitCategory(category, group, landSegments))
         return false;
 
       return BattleUnitHelper::GetSizeForUnitType(c.first) == size;
