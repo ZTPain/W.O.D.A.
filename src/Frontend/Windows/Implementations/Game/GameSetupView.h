@@ -42,12 +42,27 @@ private:
       size_t startY,
       size_t orientation
   );
+  static bool CanPlaceUnitAtSpecialCase(
+      ISegment* segmentBoard,
+      BattleUnitType unitType,
+      size_t startX,
+      size_t startY,
+      size_t orientation
+  );
+  static bool CheckSegmentAvailability(ISegment* segmentBoard, size_t x, size_t y);
+  static void PlaceUnitAt(
+      ISegment* segmentBoard,
+      BattleUnitType unitType,
+      size_t startX,
+      size_t startY,
+      size_t orientation
+  );
   static bool CheckAdjacentCells(ISegment* segmentBoard, size_t x, size_t y);
 
   void OnToggleCell(size_t x, size_t y, size_t posX, size_t posY);
   void RenderUnitsLeft(const std::unordered_map<BattleUnitType, size_t>& unitPool);
   void RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const;
-  static void RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor);
+  void RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const;
   void RenderFilledCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const;
 
   [[nodiscard]] BattleUnitType GetUnitTypeOfCoordinate(const Coordinates& coord) const;

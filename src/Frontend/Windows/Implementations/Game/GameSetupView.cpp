@@ -5,8 +5,11 @@
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Units/BattleUnit.h"
 #include "Backend/Units/BattleUnitHelper.h"
 #include "Backend/Units/BattleUnitType.h"
+#include "Backend/Units/FighterJet.h"
+#include "Backend/Units/OperationsHeadquarter.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
@@ -22,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,8 +35,25 @@ GameSetupView::GameSetupView() : Window(WindowType::GameSetup), currentPlayerInd
 static int redX = -1;
 static int redY = -1;
 
-void GameSetupView::RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) {
+void GameSetupView::RenderEmptyCell(
+    size_t x, size_t y, size_t posX, size_t posY, bool isCursor
+) const {
   IO::cout << AnsiHelper::MoveCursor(posX, posY);
+
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = AppState::GetCurrentGameMode();
+  if (mode.isExtended) {
+    const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
+    const auto& board = currentPlayer.board;
+    const auto& segmentBoard = board.GetSegmentBoard();
+    const auto& landSegments = segmentBoard.LandSegments();
+
+    if (landSegments[y][x]) {
+      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Green);
+    } else {
+      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue);
+    }
+  }
 
   if (redX == static_cast<int>(x) && redY == static_cast<int>(y)) {
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
@@ -44,7 +65,7 @@ void GameSetupView::RenderEmptyCell(size_t x, size_t y, size_t posX, size_t posY
     IO::cout << " .  ";
   }
 
-  IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Default);
+  IO::cout << AnsiHelper::Reset();
   IO::cout.flush();
 }
 
@@ -64,6 +85,24 @@ AnsiColor GameSetupView::GetColorForUnitType(BattleUnitType type) {
 
     case BattleUnitType::None:
       return AnsiColor::Red;
+
+    case BattleUnitType::InfantrySquadron:
+      return AnsiColor::Blue;
+
+    case BattleUnitType::GrenadeLauncher:
+      return AnsiColor::BrightGreen;
+
+    case BattleUnitType::MobileArtillery:
+      return AnsiColor::BrightYellow;
+
+    case BattleUnitType::ArmoredTrain:
+      return AnsiColor::BrightMagenta;
+
+    case BattleUnitType::OperationsHeadquarter:
+      return AnsiColor::BrightCyan;
+
+    case BattleUnitType::FighterJet:
+      return AnsiColor::BrightRed;
 
     default:
       return AnsiColor::White;
@@ -101,12 +140,6 @@ void GameSetupView::RenderFilledCell(
   const auto unitType = GetUnitTypeOfCoordinate(currentCoord);
   const auto color = GetColorForUnitType(unitType);
 
-  IO::cout << AnsiHelper::SetBackgroundColor(color);
-
-  if (redX == static_cast<int>(x) && redY == static_cast<int>(y)) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
-  }
-
   const char* symbol = nullptr;
 
   switch (unitType) {
@@ -127,17 +160,47 @@ void GameSetupView::RenderFilledCell(
       break;
 
     case BattleUnitType::None:
-      symbol = "❀";
+      symbol = "!";
+      break;
+
+    default:
+      symbol = "■";
       break;
   }
 
-  if (isCursor) {
-    IO::cout << "[" << symbol << " ]";
-  } else {
-    IO::cout << " " << symbol << "  ";
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = AppState::GetCurrentGameMode();
+  if (mode.isExtended) {
+    const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
+    const auto& board = currentPlayer.board;
+    const auto& segmentBoard = board.GetSegmentBoard();
+    const auto& landSegments = segmentBoard.LandSegments();
+
+    if (landSegments[y][x]) {
+      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Green);
+    } else {
+      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue);
+    }
   }
 
-  IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Default);
+  const bool red = redX == static_cast<int>(x) && redY == static_cast<int>(y);
+  if (red) {
+    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
+  }
+
+  if (isCursor)
+    IO::cout << "[";
+  else
+    IO::cout << " ";
+  IO::cout << AnsiHelper::SetTextColor(color) << symbol
+           << AnsiHelper::SetTextColor(red ? AnsiColor::Red : AnsiColor::Default);
+  if (isCursor)
+    IO::cout << "]";
+  else
+    IO::cout << " ";
+
+  IO::cout << AnsiHelper::Reset();
+  IO::cout << " ";
   IO::cout.flush();
 }
 
@@ -374,12 +437,11 @@ void GameSetupView::GenerateUnitPlacement(
 void GameSetupView::PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType unitType) {
   const auto& gameManager = AppState::GetCurrentGameManager();
   const auto& mode = gameManager->Mode();
-  const auto& unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
 
   bool placed = false;
 
   size_t attempts = 0;
-  const size_t maxAttempts = 1000;
+  const size_t maxAttempts = mode.isExtended ? 10000 : 1000;
 
   while (!placed) {
     // Prevent infinite loop
@@ -390,7 +452,7 @@ void GameSetupView::PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType uni
       break;
     }
 
-    const auto orientation = rand() % 2;
+    const auto orientation = rand() % 4;
     const auto startX = rand() % mode.boardWidth;
     const auto startY = rand() % mode.boardHeight;
 
@@ -402,19 +464,7 @@ void GameSetupView::PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType uni
     }
 
     // Place unit
-    for (size_t j = 0; j < unitSize; ++j) {
-      size_t x = startX;
-      size_t y = startY;
-
-      if (orientation == 0) {
-        x += j;
-      } else {
-        y += j;
-      }
-
-      segmentBoard->ToggleSegment(x, y);
-    }
-
+    PlaceUnitAt(segmentBoard, unitType, startX, startY, orientation);
     placed = true;
   }
 }
@@ -426,10 +476,17 @@ bool GameSetupView::CanPlaceUnitAt(
     size_t startY,
     size_t orientation
 ) {
-  const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& mode = gameManager->Mode();
-  const auto& segments = segmentBoard->Segments();
   const auto& unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
+  const auto category = BattleUnitHelper::GetCategoryForUnitType(unitType);
+  const auto& mode = AppState::GetCurrentGameMode();
+  const auto& landSegments =
+      mode.isExtended ? segmentBoard->LandSegments() : std::vector<std::vector<bool>>();
+
+  if (unitType == BattleUnitType::OperationsHeadquarter || unitType == BattleUnitType::FighterJet) {
+    return CanPlaceUnitAtSpecialCase(segmentBoard, unitType, startX, startY, orientation);
+  }
+
+  orientation = orientation % 2; // 0 = horizontal, 1 = vertical
 
   for (size_t j = 0; j < unitSize; ++j) {
     size_t x = startX;
@@ -441,17 +498,184 @@ bool GameSetupView::CanPlaceUnitAt(
       y += j;
     }
 
-    if (x >= mode.boardWidth || y >= mode.boardHeight || segments[y][x]) {
+    if (!CheckSegmentAvailability(segmentBoard, x, y)) {
       return false;
     }
 
-    // Check adjacent cells
-    if (!CheckAdjacentCells(segmentBoard, x, y)) {
-      return false;
+    if (mode.isExtended) {
+      if (category == BattleUnitCategory::Land && !landSegments[y][x])
+        return false;
+
+      if (category == BattleUnitCategory::Marine && landSegments[y][x])
+        return false;
     }
   }
 
   return true;
+}
+
+bool GameSetupView::CanPlaceUnitAtSpecialCase(
+    ISegment* segmentBoard,
+    BattleUnitType unitType,
+    size_t startX,
+    size_t startY,
+    size_t orientation
+) {
+
+  const auto& mode = AppState::GetCurrentGameMode();
+  const auto& landSegments =
+      mode.isExtended ? segmentBoard->LandSegments() : std::vector<std::vector<bool>>();
+
+  if (unitType == BattleUnitType::OperationsHeadquarter) {
+    return std::all_of(
+        OperationsHeadquarter::EXPECTED_COORDINATES.begin(),
+        OperationsHeadquarter::EXPECTED_COORDINATES.end(),
+        [&](const Coordinates& offset) {
+          const auto x = startX + offset.x;
+          const auto y = startY + offset.y;
+
+          if (!CheckSegmentAvailability(segmentBoard, x, y))
+            return false;
+
+          if (mode.isExtended && !landSegments[y][x])
+            return false;
+
+          return true;
+        }
+    );
+  }
+
+  if (unitType == BattleUnitType::FighterJet) {
+    const auto predicate = [&](const SCoordinates& offset) {
+      const auto x = startX + offset.first;
+      const auto y = startY + offset.second;
+
+      return CheckSegmentAvailability(segmentBoard, x, y);
+    };
+
+    switch (orientation) {
+      case 0:
+        // Rotation Right
+        return std::all_of(
+            FighterJet::EXPECTED_COORDINATES_ROTATION_RIGHT.begin(),
+            FighterJet::EXPECTED_COORDINATES_ROTATION_RIGHT.end(),
+            predicate
+        );
+
+      case 1:
+        // Rotation Down
+        return std::all_of(
+            FighterJet::EXPECTED_COORDINATES_ROTATION_DOWN.begin(),
+            FighterJet::EXPECTED_COORDINATES_ROTATION_DOWN.end(),
+            predicate
+        );
+
+      case 2:
+        // Rotation Left
+        return std::all_of(
+            FighterJet::EXPECTED_COORDINATES_ROTATION_LEFT.begin(),
+            FighterJet::EXPECTED_COORDINATES_ROTATION_LEFT.end(),
+            predicate
+        );
+
+      case 3:
+        // Rotation Up
+        return std::all_of(
+            FighterJet::EXPECTED_COORDINATES_ROTATION_UP.begin(),
+            FighterJet::EXPECTED_COORDINATES_ROTATION_UP.end(),
+            predicate
+        );
+
+      default:
+        throw std::runtime_error("Invalid orientation for Fighter Jet");
+    }
+  }
+
+  throw std::runtime_error("CanPlaceUnitAtSpecialCase called for unsupported unit type");
+}
+
+bool GameSetupView::CheckSegmentAvailability(ISegment* segmentBoard, size_t x, size_t y) {
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto& segments = segmentBoard->Segments();
+
+  if (x >= mode.boardWidth || y >= mode.boardHeight || segments[y][x]) {
+    return false;
+  }
+
+  // Check adjacent cells
+  if (!CheckAdjacentCells(segmentBoard, x, y)) {
+    return false;
+  }
+
+  return true;
+}
+
+void GameSetupView::PlaceUnitAt(
+    ISegment* segmentBoard,
+    BattleUnitType unitType,
+    size_t startX,
+    size_t startY,
+    size_t orientation
+) {
+  const auto& unitSize = BattleUnitHelper::GetSizeForUnitType(unitType);
+
+  if (unitType == BattleUnitType::OperationsHeadquarter) {
+    for (const auto& offset : OperationsHeadquarter::EXPECTED_COORDINATES) {
+      const auto x = startX + offset.x;
+      const auto y = startY + offset.y;
+
+      segmentBoard->ToggleSegment(x, y);
+    }
+    return;
+  }
+
+  if (unitType == BattleUnitType::FighterJet) {
+    const std::array<SCoordinates, 5>* shape = nullptr;
+
+    switch (orientation) {
+      case 0:
+        shape = &FighterJet::EXPECTED_COORDINATES_ROTATION_RIGHT;
+        break;
+
+      case 1:
+        shape = &FighterJet::EXPECTED_COORDINATES_ROTATION_DOWN;
+        break;
+
+      case 2:
+        shape = &FighterJet::EXPECTED_COORDINATES_ROTATION_LEFT;
+        break;
+
+      case 3:
+        shape = &FighterJet::EXPECTED_COORDINATES_ROTATION_UP;
+        break;
+
+      default:
+        throw std::runtime_error("Invalid orientation for Fighter Jet");
+    }
+
+    for (const auto& offset : *shape) {
+      const auto x = startX + offset.first;
+      const auto y = startY + offset.second;
+
+      segmentBoard->ToggleSegment(x, y);
+    }
+
+    return;
+  }
+
+  for (size_t j = 0; j < unitSize; ++j) {
+    size_t x = startX;
+    size_t y = startY;
+
+    if (orientation == 0) {
+      x += j;
+    } else {
+      y += j;
+    }
+
+    segmentBoard->ToggleSegment(x, y);
+  }
 }
 
 bool GameSetupView::CheckAdjacentCells(ISegment* segmentBoard, size_t x, size_t y) {
