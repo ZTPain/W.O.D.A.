@@ -186,7 +186,11 @@ void GameOverView::RenderGeneralStats() {
   IO::cout << "Total Turns: ";
   IO::cout << AnsiHelper::Reset();
   IO::cout << AnsiHelper::MoveCursor(startX + 20, startY);
-  IO::cout << GetStatValue(1, gameManager->WinnerId());
+  IO::cout << std::max_element(
+                  AppState::GetTurnCounter().begin(),
+                  AppState::GetTurnCounter().end(),
+                  [](const auto& a, const auto& b) { return a.second < b.second; }
+  )->second;
 
   IO::cout << AnsiHelper::MoveCursor(startX, startY + 2);
   IO::cout << AnsiHelper::SetTextColor(AnsiColor::Cyan);

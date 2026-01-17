@@ -2,6 +2,8 @@
 
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
+#include <cstddef>
+#include <map>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -12,6 +14,7 @@ public:
   static void Reset() {
     currentGameMode = nullptr;
     currentGameManager.reset();
+    turnCounter.clear();
   }
 
   static const GameMode& GetCurrentGameMode() { return *currentGameMode; }
@@ -31,7 +34,12 @@ public:
   static bool IsGameManagerSet() { return currentGameManager.has_value(); }
   static void ClearCurrentGameManager() { currentGameManager.reset(); }
 
+  static const std::map<size_t, size_t>& GetTurnCounter() { return turnCounter; }
+  static void IncrementTurnCounter(size_t key) { turnCounter[key]++; }
+  static void ClearTurnCounter() { turnCounter.clear(); }
+
 private:
   inline static const GameMode* currentGameMode = nullptr;
   inline static std::optional<std::unique_ptr<GameManager>> currentGameManager;
+  inline static std::map<size_t, size_t> turnCounter = {};
 };

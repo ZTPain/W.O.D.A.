@@ -617,6 +617,7 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   if (!ultraFastForwardEnabled)
     ShowPlayerFireAnimation();
   salvoSelectionCoordinates.clear();
+  AppState::IncrementTurnCounter(currentPlayerIndex);
 
   if (gameManager->State() == GameState::Over) {
     // Show game over prompt
