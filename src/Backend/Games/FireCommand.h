@@ -8,11 +8,11 @@
 #include <memory>
 
 class FireCommand : public ICommand {
-  GameBoard& board;
+  GameBoard* board;
   Coordinates coords;
 
 public:
-  FireCommand(GameBoard& board, Coordinates coords);
+  FireCommand(GameBoard* board, Coordinates coords);
   [[nodiscard]] std::unique_ptr<ICommand> Clone() const override;
 
   bool Execute() override;

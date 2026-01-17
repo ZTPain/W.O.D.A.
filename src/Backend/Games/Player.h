@@ -7,13 +7,13 @@
 
 struct Player {
   UserProfile& profile;
-  GameBoard& board;
+  GameBoard* board;
   unsigned int shotsFired = 0;
   unsigned int shotsHit = 0;
   unsigned int score = 0;
   unsigned int unitsDestroyed = 0;
 
-  Player(UserProfile& profile, GameBoard& gameBoard);
+  Player(UserProfile& profile, GameBoard* gameBoard);
 
   Player(const Player& other) = default;
   Player& operator=(const Player& other);

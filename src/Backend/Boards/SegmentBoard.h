@@ -4,7 +4,6 @@
 
 #include "ISegment.h"
 #include <cstddef>
-#include <memory>
 #include <optional>
 #include <vector>
 
@@ -23,5 +22,4 @@ public:
   bool ToggleSegment(size_t x, size_t y) override;
   void Clear() override;
   [[nodiscard]] const UnitsMap& GetUnits() const override;
-  [[nodiscard]] std::unique_ptr<ISegment> Clone() const override;
 };

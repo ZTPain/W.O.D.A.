@@ -21,7 +21,7 @@ class Computer {
 public:
   Computer(ComputerType type);
   [[nodiscard]] Coordinates GetFireCoordinates(
-      const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+      const GameBoard* board, const std::vector<Coordinates>& blacklistedCoordinates
   ) const;
   [[nodiscard]] ComputerType GetComputerType() const;
 };

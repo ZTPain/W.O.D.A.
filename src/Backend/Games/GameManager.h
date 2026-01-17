@@ -25,7 +25,7 @@ class GameManager {
   inline static Computer easyComputer = Computer(ComputerType::Easy);
   inline static Computer mediumComputer = Computer(ComputerType::Medium);
   inline static Computer hardComputer = Computer(ComputerType::Hard);
-  inline static std::vector<GameBoard> gameBoards;
+  inline static std::vector<GameBoard*> gameBoards;
   unsigned int gameId;
   GameMode mode;
   GameState state;
