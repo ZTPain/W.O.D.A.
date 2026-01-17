@@ -2,12 +2,17 @@
 
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Units/ArmoredTrain.h"
+#include "Backend/Units/BattleUnit.h"
 #include "Backend/Units/BattleUnitHelper.h"
 #include "Backend/Units/BattleUnitType.h"
+#include "Backend/Units/FighterJet.h"
+#include "Backend/Units/OperationsHeadquarter.h"
 #include "ISegment.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <iterator>
 #include <memory>
 #include <stack>
 #include <stdexcept>
@@ -77,9 +82,52 @@ static void GroupCoordinates(
   }
 }
 
+static bool HandleSpecialShapeUnits(
+    BattleUnitType unitType, const std::vector<Coordinates>& group
+) {
+  switch (unitType) {
+    case BattleUnitType::ArmoredTrain:
+      return ArmoredTrain::IsValidUnitShape(group);
+
+    case BattleUnitType::OperationsHeadquarter:
+      return OperationsHeadquarter::IsValidUnitShape(group);
+
+    case BattleUnitType::FighterJet:
+      return FighterJet::IsValidUnitShape(group);
+
+    default:
+      return true;
+  }
+}
+
+static bool ValidateUnitCategory(
+    BattleUnitCategory unitCategory,
+    const std::vector<Coordinates>& group,
+    const std::vector<std::vector<bool>>& landSegments
+) {
+  switch (unitCategory) {
+    case BattleUnitCategory::Land:
+      return std::all_of(group.begin(), group.end(), [&](const Coordinates& coord) {
+        return landSegments[coord.y][coord.x];
+      });
+
+    case BattleUnitCategory::Marine:
+      return std::all_of(group.begin(), group.end(), [&](const Coordinates& coord) {
+        return !landSegments[coord.y][coord.x];
+      });
+
+    case BattleUnitCategory::Aerial:
+      return true;
+
+    default:
+      throw std::logic_error("Unknown BattleUnitCategory encountered during validation!");
+  }
+}
+
 static void GroupsToUnits(
     const std::vector<std::vector<Coordinates>>& inGroups,
     const GameMode& mode,
+    const std::vector<std::vector<bool>>& landSegments,
     std::unordered_map<BattleUnitType, std::vector<std::vector<Coordinates>>>& outUnits
 ) {
   outUnits.clear();
@@ -93,23 +141,39 @@ static void GroupsToUnits(
     BattleUnitType unitType = BattleUnitType::None;
     const auto size = group.size();
     const auto predicate = [&](const std::pair<const BattleUnitType, unsigned long long>& c) {
+      const auto category = BattleUnitHelper::GetCategoryForUnitType(c.first);
+      if (!ValidateUnitCategory(category, group, landSegments))
+        return false;
+
       return BattleUnitHelper::GetSizeForUnitType(c.first) == size;
     };
 
-    const auto result = std::find_if(mode.unitPool.begin(), mode.unitPool.end(), predicate);
-    if (result != mode.unitPool.end()) {
+    auto result = mode.unitPool.begin();
+    while (true) {
+      result = std::find_if(result, mode.unitPool.end(), predicate);
+
+      if (result == mode.unitPool.end())
+        break;
+
       unitType = result->first;
+
+      if (!HandleSpecialShapeUnits(unitType, group)) {
+        std::advance(result, 1);
+        continue;
+      }
+
+      const auto it = outUnits.find(unitType);
+      if (it == outUnits.end())
+        throw std::logic_error("Invalid unit type found during grouping! (HOW?)");
+
+      if (unitType != BattleUnitType::None && it->second.size() >= mode.unitPool.at(unitType)) {
+        unitType = BattleUnitType::None;
+      }
+
+      outUnits.at(unitType).push_back(group);
+
+      std::advance(result, 1);
     }
-
-    const auto it = outUnits.find(unitType);
-    if (it == outUnits.end())
-      throw std::logic_error("Invalid unit type found during grouping! (HOW?)");
-
-    if (unitType != BattleUnitType::None && it->second.size() >= mode.unitPool.at(unitType)) {
-      unitType = BattleUnitType::None;
-    }
-
-    outUnits.at(unitType).push_back(group);
   }
 
   for (const auto& [unitType, count] : mode.unitPool) {
@@ -147,7 +211,12 @@ SegmentBoardValidator::SegmentBoardValidator(ISegment& segmentBoard, const GameM
   static std::vector<std::vector<Coordinates>> groups;
   GroupCoordinates(coordinates, groups);
 
-  GroupsToUnits(groups, mode, lastUnits);
+  GroupsToUnits(
+      groups,
+      mode,
+      mode.isExtended ? segmentBoard.LandSegments() : std::vector<std::vector<bool>>(),
+      lastUnits
+  );
 }
 
 bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
@@ -177,14 +246,19 @@ bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
   if (!segmentBoard.ToggleSegment(x, y))
     return false;
 
-  GroupsToUnits(groups, mode, lastUnits);
+  GroupsToUnits(
+      groups,
+      mode,
+      mode.isExtended ? segmentBoard.LandSegments() : std::vector<std::vector<bool>>(),
+      lastUnits
+  );
   return true;
 }
 
 void SegmentBoardValidator::Clear() {
   segmentBoard.Clear();
 
-  GroupsToUnits({}, mode, lastUnits);
+  GroupsToUnits({}, mode, std::vector<std::vector<bool>>(), lastUnits);
 }
 
 const UnitsMap& SegmentBoardValidator::GetUnits() const { return lastUnits; }
@@ -195,6 +269,10 @@ size_t SegmentBoardValidator::Height() const { return segmentBoard.Height(); }
 
 const std::vector<std::vector<bool>>& SegmentBoardValidator::Segments() const {
   return segmentBoard.Segments();
+}
+
+const std::vector<std::vector<bool>>& SegmentBoardValidator::LandSegments() const {
+  return segmentBoard.LandSegments();
 }
 
 std::unique_ptr<ISegment> SegmentBoardValidator::Clone() const {

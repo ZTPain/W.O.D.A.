@@ -13,7 +13,10 @@
 #include <vector>
 
 GameBoard::GameBoard(const GameMode& mode)
-    : mode(mode), segmentBoard(std::make_unique<SegmentBoard>(mode.boardWidth, mode.boardHeight)),
+    : mode(mode),
+      segmentBoard(
+          std::make_unique<SegmentBoard>(mode.boardWidth, mode.boardHeight, mode.isExtended)
+      ),
       segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
       units(mode.boardHeight, std::vector<std::shared_ptr<BattleUnit>>(mode.boardWidth, nullptr)) {}
 
