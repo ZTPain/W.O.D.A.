@@ -154,7 +154,7 @@ public:
       const Coordinates& target
   ) {
     return std::any_of(shape.begin(), shape.end(), [target, origin](const Coordinates& cord) {
-      return cord.x == target.x + origin.x && cord.y == target.y + origin.y;
+      return cord.x + origin.x == target.x && cord.y + origin.y == target.y;
     });
   }
 
