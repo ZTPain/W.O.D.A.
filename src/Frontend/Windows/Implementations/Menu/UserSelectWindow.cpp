@@ -19,6 +19,7 @@ void UserSelectWindow::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::R
 
 bool UserSelectWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
+    IO::cout << AnsiHelper::HideCursor();
     if (UserManager::GetInstance().GetCurrentUser().UserId() != 0) {
       WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
       return true;
