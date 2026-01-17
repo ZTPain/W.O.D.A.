@@ -5,7 +5,6 @@
 #include "Backend/Games/Coordinates.h"
 #include "BattleUnit.h"
 #include <array>
-#include <cstddef>
 #include <utility>
 #include <vector>
 
