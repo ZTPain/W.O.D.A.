@@ -52,7 +52,7 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       const auto playback =
           ReplayManager::GetInstance().Play(replays.at(selectedReplayIndex).replayId);
       AppState::SetCurrentReplayPlayback(playback);
-      WindowManager::GetInstance().SwitchToWindow(WindowType::InGame);
+      WindowManager::GetInstance().SwitchToWindow(WindowType::GameReplay);
       return true;
     }
 

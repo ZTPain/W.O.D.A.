@@ -15,7 +15,8 @@
 #include "Implementations/Game/GameConfigPlayerSelectView.h"
 #include "Implementations/Game/GameOverView.h"
 #include "Implementations/Game/GameSetupView.h"
-#include "Implementations/Game/InGameView.h"
+#include "Implementations/Game/InteractiveInGameView.h"
+#include "Implementations/Game/ReplayInGameView.h"
 #include "Implementations/Menu/MainMenuWindow.h"
 #include "Implementations/Menu/MatchHistoryWindow.h"
 #include "Implementations/Menu/SettingsWindow.h"
@@ -27,10 +28,11 @@ void WindowManager::Initialize() {
   windows[WindowType::UserSelect] = std::make_unique<UserSelectWindow>();
   windows[WindowType::GameConfigModeSelect] = std::make_unique<GameConfigModeSelectView>();
   windows[WindowType::GameConfigPlayersSelect] = std::make_unique<GameConfigPlayerSelectView>();
-  windows[WindowType::InGame] = std::make_unique<InGameView>();
+  windows[WindowType::InGame] = std::make_unique<InteractiveInGameView>();
   windows[WindowType::PostGameSummary] = std::make_unique<GameOverView>();
   windows[WindowType::Settings] = std::make_unique<SettingsWindow>();
   windows[WindowType::MatchHistory] = std::make_unique<MatchHistoryWindow>();
+  windows[WindowType::GameReplay] = std::make_unique<ReplayInGameView>();
 
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
     if (keyDetails.key == ConsoleKey::R && keyDetails.modifiers == ConsoleModifiers::Control) {

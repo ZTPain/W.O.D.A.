@@ -18,6 +18,7 @@ enum class WindowType : uint8_t {
   GameSetup,
 
   InGame,
+  GameReplay,
 
   PostGameSummary,
 };

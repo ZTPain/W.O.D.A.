@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Backend/Games/Coordinates.h"
+#include "Backend/Games/GameManager.h"
+#include "Backend/Games/GameMode.h"
+#include "Backend/Games/Player.h"
 #include "Frontend/Helpers/Grid.h"
-#include "Frontend/Input/InputManager.h"
 #include "Frontend/Windows/Api/Window.h"
 #include <cstddef>
 #include <cstdint>
@@ -13,16 +15,21 @@
 
 class InGameView : public Window {
 public:
-  InGameView() : Window(WindowType::InGame) {}
+  InGameView(WindowType type) : Window(type) {}
   ~InGameView() override = default;
 
   void OnEnter() override;
   void OnExit() override;
-  bool OnKeyPressed(ConsoleKeyDetails keyDetails) override;
   void OnResize(int width, int height) override;
   [[nodiscard]] bool IsCorrectSize(int width, int height) const override;
 
-private:
+protected:
+  [[nodiscard]] virtual const GameMode& GetGameMode() const = 0;
+  [[nodiscard]] virtual const std::vector<Player>& GetPlayers() const = 0;
+  [[nodiscard]] virtual const Player& GetPlayerAtIndex(size_t index) const = 0;
+  [[nodiscard]] virtual const Player& GetCurrentPlayer() const = 0;
+  [[nodiscard]] virtual GameState GetGameState() const = 0;
+
   void ForceRender() override;
 
   size_t currentPlayerIndex = 0;
@@ -48,13 +55,13 @@ private:
       size_t x, size_t y, size_t posX, size_t posY, bool isCursor, size_t playerIndex
   ) const;
 
-  void OnToggleEnemyCell(size_t x, size_t y, size_t posX, size_t posY);
+  virtual void OnToggleEnemyCell(size_t x, size_t y, size_t posX, size_t posY) = 0;
 
   void RenderUnitsLeft() const;
-  static void RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY);
+  void RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, size_t startY) const;
 
-  void HandleAITurn();
-  bool HandleFireAtCoordinate(const Coordinates& coord);
+  virtual void HandleNextTurn() = 0;
+  void HandleAfterFireAtCoordinate();
 
   void ShowPlayerFireAnimation();
   void CheckForPeriod();
@@ -87,9 +94,9 @@ private:
   void RenderLeaderboard() const;
   void RenderHistory() const;
 
-  [[nodiscard]] static size_t CalculateSegmentsLeftForPlayer(
+  [[nodiscard]] size_t CalculateSegmentsLeftForPlayer(
       size_t playerIndex, size_t* outMax = nullptr
-  );
+  ) const;
 
   static void HandleGameOver();
 };
