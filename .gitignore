@@ -8,3 +8,5 @@ compile_commands.json
 build/
 *.code-workspace
 docs/diagrams/uml-diagram
+run-clang-tidy.py
+save.dat
