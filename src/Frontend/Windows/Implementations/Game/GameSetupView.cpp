@@ -2,6 +2,7 @@
 
 #include "Backend/Boards/ISegment.h"
 #include "Backend/Computers/Computer.h"
+#include "Backend/Computers/ComputerStrategyHelper.h"
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
@@ -455,9 +456,9 @@ void GameSetupView::PlaceUnitAtRandom(ISegment* segmentBoard, BattleUnitType uni
       break;
     }
 
-    const auto orientation = rand() % 4;
-    const auto startX = rand() % mode.boardWidth;
-    const auto startY = rand() % mode.boardHeight;
+    const auto orientation = ComputerStrategyHelper::GetRandomFromRange(0, 3);
+    const auto startX = ComputerStrategyHelper::GetRandomFromRange(0, mode.boardWidth);
+    const auto startY = ComputerStrategyHelper::GetRandomFromRange(0, mode.boardHeight);
 
     // Check if unit can be placed
     bool const canPlace = CanPlaceUnitAt(segmentBoard, unitType, startX, startY, orientation);
