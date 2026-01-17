@@ -1,10 +1,8 @@
 #include "Player.h"
 #include "Backend/Boards/GameBoard.h"
-#include "Backend/Games/GameMode.h"
 #include "Backend/Users/UserProfile.h"
 
-Player::Player(UserProfile& profile, const GameMode& mode)
-    : profile(profile), board(GameBoard(mode)) {}
+Player::Player(UserProfile& profile, GameBoard& board) : profile(profile), board(board) {}
 
 Player& Player::operator=(const Player& other) {
   if (this == &other)

@@ -2,12 +2,15 @@
 
 #pragma once
 
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Computers/Computer.h"
+#include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
 #include "GameMode.h"
 #include "ICommand.h"
 #include "Player.h"
 #include <chrono>
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -22,12 +25,13 @@ class GameManager {
   inline static Computer easyComputer = Computer(ComputerType::Easy);
   inline static Computer mediumComputer = Computer(ComputerType::Medium);
   inline static Computer hardComputer = Computer(ComputerType::Hard);
+  inline static std::vector<GameBoard> gameBoards;
   unsigned int gameId;
   GameMode mode;
   GameState state;
   std::vector<Player> players;
   unsigned int currentTurn;
-  std::vector<std::unique_ptr<ICommand>> history;
+  std::vector<ReplayAction> history;
   unsigned int winnerId;
   std::chrono::time_point<std::chrono::steady_clock> gameStartPoint;
   std::chrono::seconds playtime;
@@ -48,7 +52,7 @@ public:
   [[nodiscard]] std::chrono::seconds Playtime() const;
 
   void StartGame();
-  bool ExecuteCommand(std::unique_ptr<ICommand> command);
+  bool ExecuteCommand(std::unique_ptr<ICommand> command, size_t enemyIndex);
   void HandleGameOver();
   void SaveReplay();
   static Computer* GetComputerByType(ComputerType computerType);

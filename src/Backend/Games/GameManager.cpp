@@ -11,6 +11,8 @@
 #include "Backend/Users/UserProfile.h"
 #include <algorithm>
 #include <chrono>
+#include <cstddef>
+#include <ctime>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -21,8 +23,11 @@ constexpr unsigned int UNIT_DESTROYED_MULTIPLIER = 4;
 GameManager::GameManager(const GameMode& mode, std::vector<UserProfile*>& profiles)
     : gameId(nextGameId++), mode(mode), state(GameState::Setting), currentTurn(0), winnerId(-1),
       playtime(0) {
-  for (auto* profile : profiles)
-    players.emplace_back(*profile, mode);
+  for (auto* profile : profiles) {
+    // Store all game boards globally to preserve their lifetime
+    gameBoards.emplace_back(mode);
+    players.emplace_back(*profile, gameBoards.back());
+  }
 }
 
 const GameMode& GameManager::Mode() const { return mode; }
@@ -52,7 +57,7 @@ void GameManager::StartGame() {
   }
 }
 
-bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
+bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command, size_t enemyIndex) {
   if (!command->Execute())
     return false;
 
@@ -67,7 +72,7 @@ bool GameManager::ExecuteCommand(std::unique_ptr<ICommand> command) {
       commandShotsHit + (UNIT_DESTROYED_MULTIPLIER * commandUnitsDestroyed);
 
   // Add command to history
-  history.push_back(std::move(command));
+  history.emplace_back(currentTurn, enemyIndex, std::move(command));
 
   // Save turn of the player that executed the command
   const unsigned int commandPlayerTurn = currentTurn;
@@ -206,9 +211,12 @@ void GameManager::SaveReplay() {
       unit->Reset();
   }
 
+  time_t timestamp = 0;
+  time(&timestamp);
+
   // Compile and save a replay from the game info
   ReplayManager::GetInstance().SaveReplay(
-      {gameId, std::move(players), std::move(history), winnerId, playtime, 0}
+      {gameId, std::move(players), std::move(history), winnerId, playtime, timestamp, mode}
   );
 }
 
