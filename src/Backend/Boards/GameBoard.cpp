@@ -25,6 +25,20 @@ GameBoard::GameBoard(const GameBoard& other)
       segmentValidator(std::make_unique<SegmentBoardValidator>(*segmentBoard, mode)),
       units(other.units), allUnits(other.allUnits) {}
 
+GameBoard& GameBoard::operator=(const GameBoard& other) {
+  if (this == &other)
+    return *this;
+
+  // We have to cast away the constness of mode here even though we are just assigning it
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+  *const_cast<GameMode*>(&mode) = other.mode;
+  segmentBoard = other.segmentBoard->Clone();
+  segmentValidator = std::make_unique<SegmentBoardValidator>(*segmentBoard, mode);
+  units = other.units;
+  allUnits = other.allUnits;
+  return *this;
+}
+
 void GameBoard::ParseSegments() {
   allUnits.clear();
 

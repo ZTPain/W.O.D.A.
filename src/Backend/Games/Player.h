@@ -15,4 +15,7 @@ struct Player {
   unsigned int unitsDestroyed = 0;
 
   Player(UserProfile& profile, const GameMode& mode);
+
+  Player(const Player& other) = default;
+  Player& operator=(const Player& other);
 };
