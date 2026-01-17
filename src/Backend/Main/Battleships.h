@@ -18,6 +18,7 @@ public:
   static const GameMode STANDARD_GAME_MODE;
   static const GameMode SALVO_GAME_MODE;
   static const GameMode EXTENDED_GAME_MODE;
+  static const GameMode EXTENDED_SALVO_GAME_MODE;
 
 private:
   void ReadSave();

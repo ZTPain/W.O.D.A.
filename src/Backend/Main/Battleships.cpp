@@ -22,6 +22,29 @@ Battleships& Battleships::GetInstance() {
   return instance;
 }
 
+const GameMode Battleships::EXTENDED_SALVO_GAME_MODE = GameMode{
+    "Extended Salvo Mode",
+    "Extended mode with salvo firing.",
+    22,
+    14,
+    true,
+    FireCommandType::SalvoFireCommand,
+    {
+                        {BattleUnitType::PatrolBoat, 4},
+                        {BattleUnitType::Interceptor, 3},
+                        {BattleUnitType::Cruiser, 2},
+                        {BattleUnitType::Dreadnought, 1},
+
+                        {BattleUnitType::InfantrySquadron, 4},
+                        {BattleUnitType::GrenadeLauncher, 3},
+                        {BattleUnitType::MobileArtillery, 2},
+                        {BattleUnitType::ArmoredTrain, 1},
+                        {BattleUnitType::OperationsHeadquarter, 1},
+
+                        {BattleUnitType::FighterJet, 3},
+                        }
+};
+
 const GameMode Battleships::EXTENDED_GAME_MODE = GameMode{
     "Extended Mode",
     "The game is played on a much larger, rectangular board (22x14), "
