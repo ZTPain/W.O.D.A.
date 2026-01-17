@@ -28,7 +28,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <map>
-#include <memory>
 #include <numeric>
 #include <stdexcept>
 #include <thread>
