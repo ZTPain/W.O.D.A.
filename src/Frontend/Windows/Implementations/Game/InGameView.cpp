@@ -552,9 +552,17 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
 
   assert(enemyPlayerIndex != currentPlayerIndex);
 
+  auto& enemyBoard = enemyPlayer.board;
+  const auto& enemySegmentBoard = enemyBoard.GetSegmentBoard();
+  const auto& enemySegments = enemySegmentBoard.Segments();
+  const size_t nonShootSegmentsLeft =
+      std::count_if(enemySegments.begin(), enemySegments.end(), [](const auto& row) {
+        return std::count_if(row.begin(), row.end(), [](bool segment) { return !segment; });
+      });
+
   switch (mode.commandType) {
     case FireCommandType::FireCommand: {
-      auto command = std::make_unique<FireCommand>(enemyPlayer.board, coord);
+      auto command = std::make_unique<FireCommand>(enemyBoard, coord);
       if (!gameManager->ExecuteCommand(std::move(command)))
         return false;
 
@@ -566,9 +574,9 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
     case FireCommandType::SalvoFireCommand: {
       salvoSelectionCoordinates.push_back(coord);
 
-      if (currentPlayerUnitsAlive == salvoSelectionCoordinates.size()) {
-        auto command =
-            std::make_unique<SalvoFireCommand>(enemyPlayer.board, salvoSelectionCoordinates);
+      if (std::min(currentPlayerUnitsAlive, nonShootSegmentsLeft) ==
+          salvoSelectionCoordinates.size()) {
+        auto command = std::make_unique<SalvoFireCommand>(enemyBoard, salvoSelectionCoordinates);
 
         if (!gameManager->ExecuteCommand(std::move(command))) {
           salvoSelectionCoordinates.clear();
@@ -581,7 +589,7 @@ bool InGameView::HandleFireAtCoordinate(const Coordinates& coord) {
     }
   }
 
-  const auto& enemyUnits = enemyPlayer.board.Units();
+  const auto& enemyUnits = enemyBoard.Units();
   for (const auto& coord : salvoSelectionCoordinates) {
     uint8_t result = 0;
     if (enemyUnits[coord.y][coord.x] != nullptr) {
