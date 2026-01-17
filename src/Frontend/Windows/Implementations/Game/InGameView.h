@@ -58,7 +58,7 @@ private:
 
   void ShowPlayerFireAnimation();
   void CheckForPeriod();
-  static void HandleEscape();
+  void HandleEscape();
   static std::vector<std::vector<std::pair<Coordinates, bool>>> CalculateBulletPaths(
       const std::vector<Coordinates>& targetCoordinates,
       const Grid& enemyGrid,

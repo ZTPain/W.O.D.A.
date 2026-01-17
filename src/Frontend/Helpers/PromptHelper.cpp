@@ -8,11 +8,8 @@
 #include "Frontend/Input/InputManager.h"
 
 #include <cstddef>
-#include <functional>
 
-void PromptHelper::ShowYesNoPrompt(
-    const char* message, const std::function<void(bool result)>& callback
-) {
+bool PromptHelper::ShowYesNoPrompt(const char* message) {
   int width = 0;
   int height = 0;
   InputManager::GetTerminalSize(width, height);
@@ -37,23 +34,8 @@ void PromptHelper::ShowYesNoPrompt(
            << "[Y] Yes    [N] No";
   IO::cout.flush();
 
-  storedCallback = callback;
+  ConsoleKeyDetails keyDetails{};
+  InputManager::GetNextKeyPress(keyDetails);
 
-  subscriptionId = InputManager::onKeyPressedProvider.Subscribe([](ConsoleKeyDetails details) {
-    if (details.key == ConsoleKey::Y) {
-      PromptHelper::storedCallback(true);
-      InputManager::onKeyPressedProvider.Unsubscribe(PromptHelper::subscriptionId);
-      PromptHelper::subscriptionId = -1;
-      return true;
-    }
-
-    if (details.key == ConsoleKey::N) {
-      PromptHelper::storedCallback(false);
-      InputManager::onKeyPressedProvider.Unsubscribe(PromptHelper::subscriptionId);
-      PromptHelper::subscriptionId = -1;
-      return true;
-    }
-
-    return true;
-  });
+  return keyDetails.key == ConsoleKey::Y || keyDetails.key == ConsoleKey::Enter;
 }
