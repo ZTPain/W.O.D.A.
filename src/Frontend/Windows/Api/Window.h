@@ -9,6 +9,8 @@ enum class WindowType : uint8_t {
   UserSelect,
   MainMenu,
   Settings,
+  MatchHistory,
+  UserProfile,
 
   GameConfigModeSelect,
   GameConfigPlayersSelect,

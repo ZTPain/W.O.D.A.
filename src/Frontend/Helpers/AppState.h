@@ -2,7 +2,6 @@
 
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
-#include "Backend/Replays/Replay.h"
 #include "Backend/Replays/ReplayPlayback.h"
 #include <cstddef>
 #include <map>
@@ -48,8 +47,8 @@ public:
     return currentReplayPlayback.value();
   }
 
-  static void SetCurrentReplayPlayback(const Replay& replay) {
-    currentReplayPlayback = ReplayPlayback(replay);
+  static void SetCurrentReplayPlayback(const ReplayPlayback& replayPlayback) {
+    currentReplayPlayback = replayPlayback;
   }
 
   static bool IsReplayPlaybackSet() { return currentReplayPlayback.has_value(); }

@@ -57,7 +57,7 @@ bool MainMenuWindow::IsCorrectSize(int width, int height) const {
 }
 
 void MainMenuWindow::ForceRender() {
-  BoxDrawing::DrawWindowFrame(true, "Main Menu");
+  BoxDrawing::DrawWindowFrame(true, "Main Menu", false);
 
   DrawOptions();
 }
@@ -89,15 +89,27 @@ void MainMenuWindow::HandleSelection() const {
     case 0:
       WindowManager::GetInstance().SwitchToWindow(WindowType::GameConfigModeSelect);
       break;
+
     case 1:
       WindowManager::GetInstance().SwitchToWindow(WindowType::Settings);
       break;
+
     case 2:
+      WindowManager::GetInstance().SwitchToWindow(WindowType::MatchHistory);
+      break;
+
+    case 3:
+      WindowManager::GetInstance().SwitchToWindow(WindowType::UserProfile);
+      break;
+
+    case 4:
       WindowManager::GetInstance().SwitchToWindow(WindowType::UserSelect);
       break;
-    case 3:
+
+    case 5:
       AppHelper::Exit();
       break;
+
     default:
       break;
   }

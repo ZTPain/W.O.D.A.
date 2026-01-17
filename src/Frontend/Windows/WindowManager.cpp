@@ -17,6 +17,7 @@
 #include "Implementations/Game/GameSetupView.h"
 #include "Implementations/Game/InGameView.h"
 #include "Implementations/Menu/MainMenuWindow.h"
+#include "Implementations/Menu/MatchHistoryWindow.h"
 #include "Implementations/Menu/SettingsWindow.h"
 #include "Implementations/Menu/UserSelectWindow.h"
 
@@ -29,6 +30,7 @@ void WindowManager::Initialize() {
   windows[WindowType::InGame] = std::make_unique<InGameView>();
   windows[WindowType::PostGameSummary] = std::make_unique<GameOverView>();
   windows[WindowType::Settings] = std::make_unique<SettingsWindow>();
+  windows[WindowType::MatchHistory] = std::make_unique<MatchHistoryWindow>();
 
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
     if (keyDetails.key == ConsoleKey::R && keyDetails.modifiers == ConsoleModifiers::Control) {

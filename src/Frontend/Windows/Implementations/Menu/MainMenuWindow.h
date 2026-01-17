@@ -23,8 +23,8 @@ private:
   static void DrawOption(size_t index, const char* text, bool selected);
   void HandleSelection() const;
 
-  static constexpr std::array<std::string_view, 4> OPTIONS = {
-      "Start Game", "Settings", "User Select", "Quit"
+  static constexpr std::array<std::string_view, 6> OPTIONS = {
+      "Start Game", "Settings", "Match History", "Profile", "User Select", "Quit"
   };
   size_t selectedIndex = 0;
 };
