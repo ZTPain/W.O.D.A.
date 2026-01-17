@@ -108,19 +108,21 @@ void InGameView::OnEnter() {
 
 void InGameView::OnExit() { IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset(); }
 
+void InGameView::HandleEscape() {
+  // Prompt to confirm exit to main menu
+  PromptHelper::ShowYesNoPrompt("Are you sure you want to exit to the main menu?", [](bool result) {
+    if (result) {
+      AppState::Reset();
+      WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
+    } else {
+      WindowManager::GetInstance().GetCurrentWindow()->ForceRender();
+    }
+  });
+}
+
 bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
-    // Prompt to confirm exit to main menu
-    PromptHelper::ShowYesNoPrompt(
-        "Are you sure you want to exit to the main menu?", [](bool result) {
-          if (result) {
-            AppState::Reset();
-            WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
-          } else {
-            WindowManager::GetInstance().GetCurrentWindow()->ForceRender();
-          }
-        }
-    );
+    HandleEscape();
     return true;
   }
 
@@ -194,7 +196,9 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 void InGameView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
 bool InGameView::IsCorrectSize(int width, int height) const {
-  const auto requiredWidth = (currentGrid.GetTotalWidth() + enemyGrid.GetTotalWidth() + 6);
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  const auto& mode = gameManager->Mode();
+  const auto requiredWidth = (((mode.boardWidth + 1) * (5) * 2) + 6);
   const auto requiredHeight = currentGrid.GetTotalHeight() + 10;
   return static_cast<size_t>(width) >= requiredWidth &&
          static_cast<size_t>(height) >= requiredHeight;
@@ -737,6 +741,8 @@ void InGameView::CheckForPeriod() {
         ultraFastForwardEnabled = false;
       }
       ForceRender();
+    } else if (keyDetails.key == ConsoleKey::Escape) {
+      HandleEscape();
     }
   }
 }
