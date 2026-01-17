@@ -56,7 +56,12 @@ bool GameOverView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
 void GameOverView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
-bool GameOverView::IsCorrectSize(int /*width*/, int /*height*/) const { return true; }
+bool GameOverView::IsCorrectSize(int width, int height) const {
+  constexpr auto REQUIRED_WIDTH = 60;
+  constexpr auto REQUIRED_HEIGHT = 20;
+  return static_cast<size_t>(width) >= REQUIRED_WIDTH &&
+         static_cast<size_t>(height) >= REQUIRED_HEIGHT;
+}
 
 void GameOverView::ForceRender() {
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();

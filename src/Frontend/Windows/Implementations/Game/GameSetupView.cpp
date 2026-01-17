@@ -293,6 +293,11 @@ void GameSetupView::OnEnter() {
   HandleAI();
 
   ForceRender();
+
+  int width = 0;
+  int height = 0;
+  InputManager::GetTerminalSize(width, height);
+  WindowManager::GetInstance().OnTerminalResize(width, height);
 }
 
 void GameSetupView::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset(); }
@@ -383,10 +388,8 @@ void GameSetupView::ForceRender() {
 }
 
 bool GameSetupView::IsCorrectSize(int width, int height) const {
-  const auto& gameManager = AppState::GetCurrentGameManager();
-  const auto& mode = gameManager->Mode();
-  const auto requiredWidth = ((mode.boardWidth + 1) * 5) + 5;
-  const auto requiredHeight = ((mode.boardHeight + 1) * 2) + 5;
+  const auto requiredWidth = grid.GetTotalWidth() + 5;
+  const auto requiredHeight = grid.GetTotalHeight() + 5;
   return static_cast<size_t>(width) >= requiredWidth &&
          static_cast<size_t>(height) >= requiredHeight;
 }

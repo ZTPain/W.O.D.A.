@@ -11,9 +11,9 @@
 #include <cstdio>
 #include <iostream>
 
-void MainMenuWindow::OnEnter() { Draw(); }
+void MainMenuWindow::OnEnter() { ForceRender(); }
 
-void MainMenuWindow::OnExit() { printf("Exited Main Menu Window\n"); }
+void MainMenuWindow::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset(); }
 
 bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
@@ -47,7 +47,16 @@ bool MainMenuWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   }
 }
 
-void MainMenuWindow::Draw() const {
+void MainMenuWindow::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
+
+bool MainMenuWindow::IsCorrectSize(int width, int height) const {
+  const auto requiredWidth = 40;
+  const auto requiredHeight = 12;
+  return static_cast<size_t>(width) >= requiredWidth &&
+         static_cast<size_t>(height) >= requiredHeight;
+}
+
+void MainMenuWindow::ForceRender() {
   BoxDrawing::DrawWindowFrame(true, "Main Menu");
 
   DrawOptions();

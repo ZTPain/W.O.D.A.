@@ -101,6 +101,9 @@ void InGameView::OnEnter() {
   );
 
   OnChangeTurn();
+
+  InputManager::GetTerminalSize(width, height);
+  WindowManager::GetInstance().OnTerminalResize(width, height);
 }
 
 void InGameView::OnExit() { IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset(); }
@@ -190,7 +193,12 @@ bool InGameView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
 void InGameView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
-bool InGameView::IsCorrectSize(int /*width*/, int /*height*/) const { return true; }
+bool InGameView::IsCorrectSize(int width, int height) const {
+  const auto requiredWidth = (currentGrid.GetTotalWidth() + enemyGrid.GetTotalWidth() + 6);
+  const auto requiredHeight = currentGrid.GetTotalHeight() + 10;
+  return static_cast<size_t>(width) >= requiredWidth &&
+         static_cast<size_t>(height) >= requiredHeight;
+}
 
 void InGameView::ForceRender() {
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();

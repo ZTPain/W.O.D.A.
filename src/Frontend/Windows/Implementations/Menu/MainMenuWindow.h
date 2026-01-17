@@ -14,9 +14,11 @@ protected:
   void OnEnter() override;
   void OnExit() override;
   bool OnKeyPressed(ConsoleKeyDetails keyDetails) override;
+  void OnResize(int width, int height) override;
+  [[nodiscard]] bool IsCorrectSize(int width, int height) const override;
 
 private:
-  void Draw() const;
+  void ForceRender() override;
   void DrawOptions() const;
   static void DrawOption(size_t index, const char* text, bool selected);
   void HandleSelection() const;

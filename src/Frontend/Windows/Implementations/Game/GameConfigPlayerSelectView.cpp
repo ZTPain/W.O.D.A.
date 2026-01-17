@@ -274,7 +274,12 @@ void GameConfigPlayerSelectView::HandleInputSelectionRight() {
 
 void GameConfigPlayerSelectView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
-bool GameConfigPlayerSelectView::IsCorrectSize(int /*width*/, int /*height*/) const { return true; }
+bool GameConfigPlayerSelectView::IsCorrectSize(int width, int height) const {
+  const auto requiredWidth = 70;
+  const auto requiredHeight = 20;
+  return static_cast<size_t>(width) >= requiredWidth &&
+         static_cast<size_t>(height) >= requiredHeight;
+}
 
 void GameConfigPlayerSelectView::ForceRender() {
   IO::cout << AnsiHelper::ClearScreen() << AnsiHelper::Reset();

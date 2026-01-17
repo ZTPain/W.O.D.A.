@@ -72,7 +72,12 @@ bool UserSelectWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
 void UserSelectWindow::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
-bool UserSelectWindow::IsCorrectSize(int /*width*/, int /*height*/) const { return true; }
+bool UserSelectWindow::IsCorrectSize(int width, int height) const {
+  const auto requiredWidth = 50;
+  const auto requiredHeight = UserManager::GetInstance().Users().size() + 5;
+  return static_cast<size_t>(width) >= requiredWidth &&
+         static_cast<size_t>(height) >= requiredHeight;
+}
 
 void UserSelectWindow::ForceRender() {
   IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset();
