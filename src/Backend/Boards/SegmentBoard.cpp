@@ -1,4 +1,5 @@
 #include "SegmentBoard.h"
+#include "Backend/Computers/ComputerStrategyHelper.h"
 #include "ISegment.h"
 #include <algorithm>
 #include <cstddef>
@@ -20,7 +21,7 @@ SegmentBoard::SegmentBoard(size_t width, size_t height, bool hasLandSegments)
         else if (x >= (width - 10))
           landSegments->at(y)[x] = false;
         else {
-          if (landSegments->at(y)[x - 1] && rand() % 100 < 50)
+          if (landSegments->at(y)[x - 1] && ComputerStrategyHelper::GetRandomFromRange(0, 100) < 50)
             landSegments->at(y)[x] = true;
           else
             landSegments->at(y)[x] = false;
