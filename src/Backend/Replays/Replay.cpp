@@ -13,7 +13,7 @@ Replay::Replay(const Replay& other)
   for (const auto& command : other.history) {
     history.emplace_back(command->Clone());
   }
-};
+}
 
 Replay::Replay(
     unsigned int replayId,
