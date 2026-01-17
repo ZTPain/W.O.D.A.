@@ -15,6 +15,24 @@ Replay::Replay(const Replay& other)
   }
 }
 
+Replay& Replay::operator=(const Replay& other) {
+  if (this == &other)
+    return *this;
+
+  replayId = other.replayId;
+  players = other.players;
+  winnerId = other.winnerId;
+  playtime = other.playtime;
+  timestamp = other.timestamp;
+
+  history.clear();
+  for (const auto& command : other.history) {
+    history.emplace_back(command->Clone());
+  }
+
+  return *this;
+}
+
 Replay::Replay(
     unsigned int replayId,
     std::vector<Player> players,
