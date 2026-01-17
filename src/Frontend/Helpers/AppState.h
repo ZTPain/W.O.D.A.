@@ -2,6 +2,8 @@
 
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Replays/Replay.h"
+#include "Backend/Replays/ReplayPlayback.h"
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -15,6 +17,7 @@ public:
     currentGameMode = nullptr;
     currentGameManager.reset();
     turnCounter.clear();
+    currentReplayPlayback.reset();
   }
 
   static const GameMode& GetCurrentGameMode() { return *currentGameMode; }
@@ -38,8 +41,23 @@ public:
   static void IncrementTurnCounter(size_t key) { turnCounter[key]++; }
   static void ClearTurnCounter() { turnCounter.clear(); }
 
+  static ReplayPlayback& GetCurrentReplayPlayback() {
+    if (!currentReplayPlayback.has_value())
+      throw std::runtime_error("Current ReplayPlayback is not set");
+
+    return currentReplayPlayback.value();
+  }
+
+  static void SetCurrentReplayPlayback(const Replay& replay) {
+    currentReplayPlayback = ReplayPlayback(replay);
+  }
+
+  static bool IsReplayPlaybackSet() { return currentReplayPlayback.has_value(); }
+  static void ClearCurrentReplayPlayback() { currentReplayPlayback.reset(); }
+
 private:
   inline static const GameMode* currentGameMode = nullptr;
   inline static std::optional<std::unique_ptr<GameManager>> currentGameManager;
   inline static std::map<size_t, size_t> turnCounter = {};
+  inline static std::optional<ReplayPlayback> currentReplayPlayback;
 };
