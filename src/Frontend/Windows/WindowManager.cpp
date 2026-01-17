@@ -2,6 +2,7 @@
 
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/PromptHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -101,4 +102,45 @@ void WindowManager::ShowMinimumSizeMessage() {
   IO::cout << AnsiHelper::MoveCursor(3, 3) << "Please resize the terminal to a larger size."
            << '\n';
   IO::cout.flush();
+}
+
+void WindowManager::OnTerminalResize(int width, int height) {
+  if (minSizeShown) {
+    const auto& currentWindow = GetCurrentWindow();
+    if (currentWindow != nullptr && currentWindow->IsCorrectSize(width, height)) {
+      minSizeShown = false;
+      currentWindow->ForceRender();
+    } else {
+      ShowMinimumSizeMessage();
+    }
+  } else {
+    const auto& currentWindow = GetCurrentWindow();
+    if (currentWindow != nullptr) {
+      if (!currentWindow->IsCorrectSize(width, height)) {
+        minSizeShown = true;
+        ShowMinimumSizeMessage();
+      } else {
+        currentWindow->OnResize(width, height);
+      }
+    }
+  }
+}
+
+void WindowManager::OnKeyPressed(ConsoleKeyDetails keyDetails) {
+  if (minSizeShown) {
+    if (keyDetails.key == ConsoleKey::Escape) {
+      if (PromptHelper::ShowYesNoPrompt("Are you sure you want to exit to the main menu?")) {
+        SwitchToWindow(WindowType::MainMenu);
+      } else {
+        ShowMinimumSizeMessage();
+      }
+    }
+
+    return;
+  }
+
+  const auto& currentWindow = GetCurrentWindow();
+  if (currentWindow != nullptr) {
+    currentWindow->OnKeyPressed(keyDetails);
+  }
 }

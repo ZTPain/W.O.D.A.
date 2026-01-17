@@ -28,36 +28,8 @@ public:
   }
 
   void SwitchToWindow(WindowType type);
-  void OnTerminalResize(int width, int height) {
-    if (minSizeShown) {
-      if (!windows[currentWindowType]->IsCorrectSize(width, height)) {
-        return;
-      }
-
-      minSizeShown = false;
-      windows[currentWindowType]->ForceRender();
-    } else {
-      if (currentWindowType != WindowType::None &&
-          !windows[currentWindowType]->IsCorrectSize(width, height)) {
-        minSizeShown = true;
-        ShowMinimumSizeMessage();
-        return;
-      }
-    }
-
-    if (currentWindowType != WindowType::None) {
-      windows[currentWindowType]->OnResize(width, height);
-    }
-  }
-
-  void OnKeyPressed(ConsoleKeyDetails keyDetails) {
-    if (minSizeShown)
-      return;
-
-    if (currentWindowType != WindowType::None) {
-      windows[currentWindowType]->OnKeyPressed(keyDetails);
-    }
-  }
+  void OnTerminalResize(int width, int height);
+  void OnKeyPressed(ConsoleKeyDetails keyDetails);
 
 private:
   std::unordered_map<WindowType, std::unique_ptr<Window>> windows;
