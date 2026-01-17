@@ -17,6 +17,7 @@ public:
 
   bool Execute() override;
   void Undo() override;
+  [[nodiscard]] unsigned int Shots() const override;
   [[nodiscard]] unsigned int ShotsHit() const override;
   [[nodiscard]] unsigned int UnitsDestroyed() const override;
 };
