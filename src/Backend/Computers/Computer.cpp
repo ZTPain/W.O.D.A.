@@ -30,9 +30,9 @@ Computer::Computer(ComputerType type) : computerType(type) {
 }
 
 Coordinates Computer::GetFireCoordinates(
-    const GameBoard& board, const std::vector<Coordinates>& blacklistedCoordinates
+    const GameBoard* board, const std::vector<Coordinates>& blacklistedCoordinates
 ) const {
-  return computerStrategy->CalculateFireCoordinates(board, blacklistedCoordinates);
+  return computerStrategy->CalculateFireCoordinates(*board, blacklistedCoordinates);
 }
 
 ComputerType Computer::GetComputerType() const { return computerType; }

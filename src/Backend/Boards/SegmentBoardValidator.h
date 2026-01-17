@@ -5,7 +5,6 @@
 #include "Backend/Games/GameMode.h"
 #include "ISegment.h"
 #include <cstddef>
-#include <memory>
 #include <vector>
 
 class SegmentBoardValidator : public ISegment {
@@ -22,5 +21,4 @@ public:
   bool ToggleSegment(size_t x, size_t y) override;
   void Clear() override;
   [[nodiscard]] const UnitsMap& GetUnits() const override;
-  [[nodiscard]] std::unique_ptr<ISegment> Clone() const override;
 };

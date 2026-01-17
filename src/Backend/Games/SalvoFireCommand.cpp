@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-SalvoFireCommand::SalvoFireCommand(GameBoard& board, std::vector<Coordinates> coords)
+SalvoFireCommand::SalvoFireCommand(GameBoard* board, std::vector<Coordinates> coords)
     : board(board), coords(std::move(coords)) {}
 
 SalvoFireCommand::SalvoFireCommand(const SalvoFireCommand& other)
@@ -21,7 +21,7 @@ bool SalvoFireCommand::Execute() {
 
   // Make all the shots and count them ...
   for (const auto& c : coords) {
-    if (board.FireAt(c.x, c.y))
+    if (board->FireAt(c.x, c.y))
       succesfulShotCount++;
     else
       break;
@@ -32,14 +32,14 @@ bool SalvoFireCommand::Execute() {
 
   // ... and if some were illegal, undo
   for (auto i = 0; i < succesfulShotCount; ++i)
-    board.FixSegment(coords[i].x, coords[i].y);
+    board->FixSegment(coords[i].x, coords[i].y);
 
   return false;
 }
 
 void SalvoFireCommand::Undo() {
   for (const auto& c : coords)
-    board.FixSegment(c.x, c.y);
+    board->FixSegment(c.x, c.y);
 }
 
 std::unique_ptr<ICommand> SalvoFireCommand::Clone() const {
@@ -52,7 +52,7 @@ unsigned int SalvoFireCommand::ShotsHit() const {
   unsigned int shotsHit = 0;
 
   for (const auto& c : coords)
-    shotsHit += board.Units()[c.y][c.x] != nullptr ? 1 : 0;
+    shotsHit += board->Units()[c.y][c.x] != nullptr ? 1 : 0;
 
   return shotsHit;
 }
@@ -63,11 +63,11 @@ unsigned int SalvoFireCommand::UnitsDestroyed() const {
   unitsChecked.insert(nullptr); // For skipping empty fields
 
   for (const auto& c : coords) {
-    if (unitsChecked.count(board.Units()[c.y][c.x]) != 0)
+    if (unitsChecked.count(board->Units()[c.y][c.x]) != 0)
       continue;
 
-    unitsDestroyed += board.Units()[c.y][c.x]->IsDestroyed() ? 1 : 0;
-    unitsChecked.insert(board.Units()[c.y][c.x]);
+    unitsDestroyed += board->Units()[c.y][c.x]->IsDestroyed() ? 1 : 0;
+    unitsChecked.insert(board->Units()[c.y][c.x]);
   }
 
   return unitsDestroyed;
