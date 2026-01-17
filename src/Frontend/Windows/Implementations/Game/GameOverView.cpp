@@ -21,6 +21,10 @@
 void GameOverView::OnEnter() { ForceRender(); }
 
 void GameOverView::OnExit() {
+
+  const auto& gameManager = AppState::GetCurrentGameManager();
+  gameManager->SaveReplay();
+
   IO::cout << AnsiHelper::Reset();
   AppState::Reset();
 }
