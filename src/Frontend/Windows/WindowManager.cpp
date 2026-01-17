@@ -32,7 +32,9 @@ void WindowManager::Initialize() {
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
     if (keyDetails.key == ConsoleKey::R && keyDetails.modifiers == ConsoleModifiers::Control) {
       // Ctrl+R pressed - force redraw current window
-      if (currentWindowType != WindowType::None) {
+      if (minSizeShown) {
+        ShowMinimumSizeMessage();
+      } else if (currentWindowType != WindowType::None) {
         windows[currentWindowType]->ForceRender();
       }
       return true;
