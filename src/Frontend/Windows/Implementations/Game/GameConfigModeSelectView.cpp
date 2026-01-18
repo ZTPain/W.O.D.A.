@@ -33,6 +33,9 @@ static bool IsContentUnlocked(const size_t index) {
       return currentUser.unlockedContent & UnlockableContent::SalvoMode;
     case 2:
       return currentUser.unlockedContent & UnlockableContent::ExtendedMode;
+    case 3:
+      return (currentUser.unlockedContent & UnlockableContent::ExtendedMode) &&
+             (currentUser.unlockedContent & UnlockableContent::SalvoMode);
     default:
       return true;
   }
