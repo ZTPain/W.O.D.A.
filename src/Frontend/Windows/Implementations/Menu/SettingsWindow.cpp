@@ -302,6 +302,9 @@ void SettingsWindow::ChangeUnitPatternSetting(bool increase) {
     break;
   }
 
+  if (settings.unitPattern != UnitPattern::Default) {
+    currentUser.achievements->Unlock("Get the Cool Shoeshine");
+  }
   settings.unitPattern = static_cast<UnitPattern>(patternValue);
 }
 
@@ -344,6 +347,9 @@ void SettingsWindow::ChangeBorderColorSetting(bool increase) {
   }
 
   settings.borderColor = static_cast<Color>(colorValue);
+  if (settings.borderColor == Color::Black) {
+    currentUser.achievements->Unlock("I Want It Painted Black");
+  }
 }
 
 void SettingsWindow::ChangeBoardColorSetting(bool increase) {
