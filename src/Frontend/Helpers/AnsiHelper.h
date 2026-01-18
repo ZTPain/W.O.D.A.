@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Backend/Users/UserProfile.h"
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -37,6 +38,9 @@ public:
 
   static std::string SetTextColor(AnsiColor color);
   static std::string SetBackgroundColor(AnsiColor color);
+
+  static std::string SetTextColor(Color color);
+  static std::string SetBackgroundColor(Color color);
 
   constexpr static const char* Reset();
   constexpr static const char* Bold();
@@ -97,6 +101,42 @@ inline std::string AnsiHelper::SetTextColor(AnsiColor color) {
 
 inline std::string AnsiHelper::SetBackgroundColor(AnsiColor color) {
   return ANSI_ESCAPE_CODE + std::to_string(static_cast<uint8_t>(color) + 40) + "m";
+}
+
+inline std::string AnsiHelper::SetTextColor(Color color) {
+  switch (color) {
+    case Color::Black:
+      return SetTextColor(AnsiColor::Black);
+    case Color::Red:
+      return SetTextColor(AnsiColor::Red);
+    case Color::Green:
+      return SetTextColor(AnsiColor::Green);
+    case Color::Blue:
+      return SetTextColor(AnsiColor::Blue);
+    case Color::Gold:
+      return SetTextColor(AnsiColor::Yellow);
+    case Color::Default:
+    default:
+      return SetTextColor(AnsiColor::Default);
+  }
+}
+
+inline std::string AnsiHelper::SetBackgroundColor(Color color) {
+  switch (color) {
+    case Color::Black:
+      return SetBackgroundColor(AnsiColor::Black);
+    case Color::Red:
+      return SetBackgroundColor(AnsiColor::Red);
+    case Color::Green:
+      return SetBackgroundColor(AnsiColor::Green);
+    case Color::Blue:
+      return SetBackgroundColor(AnsiColor::Blue);
+    case Color::Gold:
+      return SetBackgroundColor(AnsiColor::Yellow);
+    case Color::Default:
+    default:
+      return SetBackgroundColor(AnsiColor::Default);
+  }
 }
 
 constexpr const char* AnsiHelper::Reset() { return ANSI_RESET; }
