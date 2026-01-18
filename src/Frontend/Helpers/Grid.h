@@ -40,6 +40,8 @@ public:
     this->yOffset = yOffset;
   }
 
+  void SetInvertOnXAxis(bool invert);
+
   void SetCursorPosition(size_t x, size_t y) { MoveCursorTo(x, y); }
 
   [[nodiscard]] size_t GetWidth() const { return width; }
@@ -71,10 +73,31 @@ private:
   size_t cursorX;
   size_t cursorY;
 
+  bool invertOnXAxis = false;
+
+  void HandleAlphaKeyPress(ConsoleKeyDetails keyDetails, bool isNumber, int& lastNumberIndex);
+
   void MoveCursorTo(size_t x, size_t y);
 
   void DrawNumbersLegend(size_t row) const;
   void DrawLettersLegend(size_t cols) const;
   void RenderBorders() const;
+  void RenderBorderPixel(size_t x, size_t y, size_t xPositionOffset) const;
   void InvokeOnRenderCell(size_t x, size_t y, bool isCursor);
+
+  [[nodiscard]] size_t CellXStartNoOff(size_t index) const {
+    if (invertOnXAxis) {
+      return xOffset + ((width - 1 - index) * cellWidthWithBorders);
+    }
+
+    return xOffset + (index * cellWidthWithBorders);
+  }
+
+  [[nodiscard]] size_t CellXStart(size_t index) const {
+    if (invertOnXAxis) {
+      return CellXStartNoOff(index);
+    }
+
+    return CellXStartNoOff(index) + (cellWidthWithBorders / 2);
+  }
 };

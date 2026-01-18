@@ -82,11 +82,17 @@ void Grid::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       return;
 
     case ConsoleKey::LeftArrow:
-      MoveCursorLeft();
+      if (!invertOnXAxis)
+        MoveCursorLeft();
+      else
+        MoveCursorRight();
       return;
 
     case ConsoleKey::RightArrow:
-      MoveCursorRight();
+      if (!invertOnXAxis)
+        MoveCursorRight();
+      else
+        MoveCursorLeft();
       return;
 
     case ConsoleKey::Spacebar:
@@ -94,32 +100,35 @@ void Grid::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       ToggleCellAtCursor();
       return;
 
-    default: {
-      auto isAlpha = (keyDetails.key >= ConsoleKey::A && keyDetails.key <= ConsoleKey::Z);
-
-      if (isAlpha) {
-        size_t const x = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::A);
-        if (x < width) {
-          MoveCursorTo(x, cursorY);
-        }
-      } else if (isNumber) {
-        size_t y = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::D0);
-        if (y == 0)
-          y = 10;
-        if (lastNumberIndex != -1) {
-          y += static_cast<size_t>(lastNumberIndex) * 10;
-          lastNumberIndex = -1;
-        } else {
-          lastNumberIndex = static_cast<int>(y);
-        }
-
-        y--;
-
-        if (y < height) {
-          MoveCursorTo(cursorX, y);
-        }
-      }
+    default:
+      HandleAlphaKeyPress(keyDetails, isNumber, lastNumberIndex);
       return;
+  }
+}
+
+void Grid::HandleAlphaKeyPress(ConsoleKeyDetails keyDetails, bool isNumber, int& lastNumberIndex) {
+  auto isAlpha = (keyDetails.key >= ConsoleKey::A && keyDetails.key <= ConsoleKey::Z);
+
+  if (isAlpha) {
+    size_t const x = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::A);
+    if (x < width) {
+      MoveCursorTo(x, cursorY);
+    }
+  } else if (isNumber) {
+    size_t y = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::D0);
+    if (y == 0)
+      y = 10;
+    if (lastNumberIndex != -1) {
+      y += static_cast<size_t>(lastNumberIndex) * 10;
+      lastNumberIndex = -1;
+    } else {
+      lastNumberIndex = static_cast<int>(y);
+    }
+
+    y--;
+
+    if (y < height) {
+      MoveCursorTo(cursorX, y);
     }
   }
 }
@@ -134,59 +143,86 @@ void Grid::MoveCursorTo(size_t x, size_t y) {
 }
 
 void Grid::InvokeOnRenderCell(size_t x, size_t y, bool isCursor) {
-  renderCellCallback(
-      x,
-      y,
-      ((x)*cellWidthWithBorders) + (cellWidthWithBorders / 2) + xOffset + 1,
-      ((y)*cellHeightWithBorders) + (cellHeightWithBorders / 2) + yOffset + 1,
-      isCursor
-  );
+  auto poxX = CellXStart(x) + 1;
+  const auto posY = yOffset + (y * cellHeightWithBorders) + (cellHeightWithBorders / 2) + 1;
+
+  renderCellCallback(x, y, poxX, posY, isCursor);
 }
 
 void Grid::DrawNumbersLegend(size_t row) const {
   if (row == 0)
     return;
 
-  IO::cout << AnsiHelper::MoveCursor(xOffset, (row * cellHeightWithBorders) + yOffset) << row;
+  IO::cout << AnsiHelper::MoveCursor(
+                  invertOnXAxis ? (GetTotalWidth() + xOffset + (cellWidthWithBorders / 2) - 1)
+                                : xOffset,
+                  yOffset + (row * cellHeightWithBorders)
+              )
+           << (invertOnXAxis && row <= 9 ? " " : "") << row;
 }
 
 void Grid::DrawLettersLegend(size_t cols) const {
   for (size_t col = 0; col < cols; ++col) {
     char const letter = static_cast<char>(static_cast<int>('A') + col);
-    IO::cout << AnsiHelper::MoveCursor(((col + 1) * cellWidthWithBorders) + xOffset - 1, yOffset)
-             << letter;
+    auto posX = CellXStartNoOff(col + (invertOnXAxis ? 0 : 1)) - (invertOnXAxis ? -2 : 1);
+
+    IO::cout << AnsiHelper::MoveCursor(posX, yOffset) << letter;
   }
 }
 
 void Grid::RenderBorders() const {
+  const auto halfCellHeight = cellHeightWithBorders / 2;
+  const auto halfCellWidth = cellWidthWithBorders / 2;
   for (size_t y = 0; y < height + 1; y++) {
-    for (size_t x = 0; x < (width * cellWidthWithBorders) + (cellWidthWithBorders / 2); x++) {
+    for (size_t x = 0; x < (width * cellWidthWithBorders) + halfCellWidth + (invertOnXAxis ? 1 : 0);
+         x++) {
       IO::cout << AnsiHelper::MoveCursor(
-          x + xOffset, (y * cellHeightWithBorders) + (cellHeightWithBorders / 2) + yOffset
+          x + xOffset, yOffset + (y * cellHeightWithBorders) + halfCellHeight
       );
       IO::cout << "─";
     }
   }
 
-  for (size_t x = 0; x < width + 1; x++) {
-    for (size_t y = 0; y < (height + 1) * cellHeightWithBorders; y++) {
-      IO::cout << AnsiHelper::MoveCursor(
-          (x * cellWidthWithBorders) + (cellWidthWithBorders / 2) + xOffset, y + yOffset
-      );
-      if (y % cellHeightWithBorders == cellHeightWithBorders / 2)
-        if (y == 0)
-          IO::cout << "┬";
-        else if (y == (height * cellHeightWithBorders) + (cellHeightWithBorders / 2)) {
-          if (x == width)
-            IO::cout << "┘";
-          else
-            IO::cout << "┴";
-        } else if (x == width)
-          IO::cout << "┤";
-        else
-          IO::cout << "┼";
-      else
-        IO::cout << "│";
-    }
-  }
+  const size_t xPositionOffset = invertOnXAxis ? 0 : halfCellWidth;
+
+  for (size_t x = 0; x < width + 1; x++)
+    for (size_t y = 0; y < (height + 1) * cellHeightWithBorders; y++)
+      RenderBorderPixel(x, y, xPositionOffset);
 }
+
+void Grid::RenderBorderPixel(size_t x, size_t y, size_t xPositionOffset) const {
+  const auto halfCellHeight = cellHeightWithBorders / 2;
+  const auto halfCellWidth = cellWidthWithBorders / 2;
+
+  IO::cout << AnsiHelper::MoveCursor(
+      xOffset + (x * cellWidthWithBorders) + xPositionOffset, y + yOffset
+  );
+  if (y % cellHeightWithBorders != halfCellHeight) {
+    IO::cout << "│";
+    return;
+  }
+
+  if (y == 0) {
+    IO::cout << "┬";
+    return;
+  }
+
+  if (y == (height * cellHeightWithBorders) + halfCellHeight) {
+    if (x == width - (invertOnXAxis ? halfCellWidth : 0))
+      IO::cout << "┘";
+    else if (x == 0)
+      IO::cout << "└";
+    else
+      IO::cout << "┴";
+    return;
+  }
+
+  if (x == width - (invertOnXAxis ? halfCellWidth : 0))
+    IO::cout << "┤";
+  else if (x == 0)
+    IO::cout << "├";
+  else
+    IO::cout << "┼";
+}
+
+void Grid::SetInvertOnXAxis(bool invert) { invertOnXAxis = invert; }
