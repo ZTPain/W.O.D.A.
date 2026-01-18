@@ -25,11 +25,12 @@ private:
   void RenderOptions() const;
   void RenderOption(size_t index) const;
 
-  static constexpr const std::array<const char*, 5> OPTION_NAMES = {
-      "Unit Color",
-      "Board Color",
+  static constexpr const std::array<const char*, 4> OPTION_NAMES = {
+      // "Unit Color",
+      // "Board Color",
       "Border Color",
       "Border Pattern",
+      "Unit Pattern",
       "Auto Mark Empty Fields",
   };
 
@@ -42,4 +43,9 @@ private:
   void RenderOptionValueChangeMenu(size_t index) const;
 
   void ChangeSelectedSetting(bool increase);
+  static void ChangeUnitPatternSetting(bool increase);
+  static void ChangeBorderPatternSetting(bool increase);
+  static void ChangeBorderColorSetting(bool increase);
+  static void ChangeBoardColorSetting(bool increase);
+  static void ChangeUnitColorSetting(bool increase);
 };

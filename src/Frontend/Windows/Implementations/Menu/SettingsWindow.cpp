@@ -1,6 +1,7 @@
 #include "SettingsWindow.h"
 
 #include "Backend/Main/Battleships.h"
+#include "Backend/Users/AchievementPool.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers/AnsiHelper.h"
@@ -112,23 +113,28 @@ void SettingsWindow::RenderOptionValue(size_t index) {
   const auto& settings = currentUser.settings;
 
   switch (index) {
-    case 0:
-      RenderOptionColor(settings.unitColor);
-      break;
+      // case 0:
+      //   RenderOptionColor(settings.unitColor);
+      //   break;
 
-    case 1:
-      RenderOptionColor(settings.boardColor);
-      break;
+      // case 1:
+      //   RenderOptionColor(settings.boardColor);
+      //   break;
 
-    case 2:
+    // NOLINTNEXTLINE
+    case 2 - 2:
       RenderOptionColor(settings.borderColor);
       break;
 
-    case 3:
+    case 3 - 2:
       RenderOptionBorderPattern(settings.borderPattern);
       break;
 
-    case 4:
+    case 4 - 2:
+      RenderOptionUnitPattern(settings.unitPattern);
+      break;
+
+    case 5 - 2:
       RenderOptionBoolean(settings.autoMarkEmptyFields);
       break;
 
@@ -225,60 +231,28 @@ void SettingsWindow::ChangeSelectedSetting(bool increase) {
   auto& settings = currentUser.settings;
 
   switch (selectedIndex) {
-    case 0: // Unit Color
-    {
-      int colorValue = static_cast<int>(settings.unitColor);
-      colorValue += increase ? 1 : -1;
-      if (colorValue < static_cast<int>(Color::Default)) {
-        colorValue = static_cast<int>(Color::Gold);
-      } else if (colorValue > static_cast<int>(Color::Gold)) {
-        colorValue = static_cast<int>(Color::Default);
-      }
-      settings.unitColor = static_cast<Color>(colorValue);
+      // case 0: // Unit Color
+      //   ChangeUnitColorSetting(increase);
+      //   break;
+
+      // case 1: // Board Color
+      //   ChangeBoardColorSetting(increase);
+      //   break;
+
+    // NOLINTNEXTLINE
+    case 2 - 2: // Border Color
+      ChangeBorderColorSetting(increase);
       break;
-    }
 
-    case 1: // Board Color
-    {
-      int colorValue = static_cast<int>(settings.boardColor);
-      colorValue += increase ? 1 : -1;
-      if (colorValue < static_cast<int>(Color::Default)) {
-        colorValue = static_cast<int>(Color::Gold);
-      } else if (colorValue > static_cast<int>(Color::Gold)) {
-        colorValue = static_cast<int>(Color::Default);
-      }
-      settings.boardColor = static_cast<Color>(colorValue);
-
+    case 3 - 2: // Border Pattern
+      ChangeBorderPatternSetting(increase);
       break;
-    }
 
-    case 2: // Border Color
-    {
-      int colorValue = static_cast<int>(settings.borderColor);
-      colorValue += increase ? 1 : -1;
-      if (colorValue < static_cast<int>(Color::Default)) {
-        colorValue = static_cast<int>(Color::Gold);
-      } else if (colorValue > static_cast<int>(Color::Gold)) {
-        colorValue = static_cast<int>(Color::Default);
-      }
-      settings.borderColor = static_cast<Color>(colorValue);
+    case 4 - 2: // Unit Pattern
+      ChangeUnitPatternSetting(increase);
       break;
-    }
 
-    case 3: // Border Pattern
-    {
-      int patternValue = static_cast<int>(settings.borderPattern);
-      patternValue += increase ? 1 : -1;
-      if (patternValue < static_cast<int>(BorderPattern::Default)) {
-        patternValue = static_cast<int>(BorderPattern::Rounded);
-      } else if (patternValue > static_cast<int>(BorderPattern::Rounded)) {
-        patternValue = static_cast<int>(BorderPattern::Default);
-      }
-      settings.borderPattern = static_cast<BorderPattern>(patternValue);
-      break;
-    }
-
-    case 4: // Auto Mark Empty Fields
+    case 5 - 2: // Auto Mark Empty Fields
       settings.autoMarkEmptyFields = !settings.autoMarkEmptyFields;
       break;
 
@@ -290,3 +264,107 @@ void SettingsWindow::ChangeSelectedSetting(bool increase) {
   Battleships::GetInstance().WriteToSave();
   IO::cout.flush();
 }
+
+void SettingsWindow::ChangeUnitPatternSetting(bool increase) {
+  auto& currentUser = UserManager::GetInstance().GetCurrentUser();
+  auto& settings = currentUser.settings;
+
+  int patternValue = static_cast<int>(settings.unitPattern);
+  patternValue += increase ? 1 : -1;
+  patternValue = (patternValue + static_cast<int>(UnitPattern::ValueCount)) %
+                 static_cast<int>(UnitPattern::ValueCount);
+
+  while (true) {
+    const auto flowerSelectedButNotUnlocked =
+        (patternValue == static_cast<int>(UnitPattern::FlowerShipIcon)) &&
+        (!(currentUser.unlockedContent & UnlockableContent::FlowerShipIcon));
+
+    const auto crosshairSelectedButNotUnlocked =
+        (patternValue == static_cast<int>(UnitPattern::CrosshairShipIcon)) &&
+        (!(currentUser.unlockedContent & UnlockableContent::CrosshairShipIcon));
+
+    const auto starSelectedButNotUnlocked =
+        (patternValue == static_cast<int>(UnitPattern::StarShipIcon)) &&
+        (!(currentUser.unlockedContent & UnlockableContent::StarShipIcon));
+
+    const auto stoneSelectedButNotUnlocked =
+        (patternValue == static_cast<int>(UnitPattern::StoneShipIcon)) &&
+        (!(currentUser.unlockedContent & UnlockableContent::StoneShipIcon));
+
+    if (flowerSelectedButNotUnlocked || crosshairSelectedButNotUnlocked ||
+        starSelectedButNotUnlocked || stoneSelectedButNotUnlocked) {
+      patternValue += increase ? 1 : -1;
+      patternValue = (patternValue + static_cast<int>(UnitPattern::ValueCount)) %
+                     static_cast<int>(UnitPattern::ValueCount);
+      continue;
+    }
+
+    break;
+  }
+
+  settings.unitPattern = static_cast<UnitPattern>(patternValue);
+}
+
+void SettingsWindow::ChangeBorderPatternSetting(bool increase) {
+  auto& currentUser = UserManager::GetInstance().GetCurrentUser();
+  auto& settings = currentUser.settings;
+
+  int patternValue = static_cast<int>(settings.borderPattern);
+  patternValue += increase ? 1 : -1;
+  patternValue = (patternValue + static_cast<int>(BorderPattern::ValueCount)) %
+                 static_cast<int>(BorderPattern::ValueCount);
+  settings.borderPattern = static_cast<BorderPattern>(patternValue);
+}
+
+void SettingsWindow::ChangeBorderColorSetting(bool increase) {
+  auto& currentUser = UserManager::GetInstance().GetCurrentUser();
+  auto& settings = currentUser.settings;
+
+  int colorValue = static_cast<int>(settings.borderColor);
+  colorValue += increase ? 1 : -1;
+  colorValue =
+      (colorValue + static_cast<int>(Color::ValueCount)) % static_cast<int>(Color::ValueCount);
+
+  while (true) {
+    const auto redSelectedButNotUnlocked =
+        (colorValue == static_cast<int>(Color::Red)) &&
+        (!(currentUser.unlockedContent & UnlockableContent::RedBorderColor));
+    const auto blueSelectedButNotUnlocked =
+        (colorValue == static_cast<int>(Color::Blue)) &&
+        (!(currentUser.unlockedContent & UnlockableContent::BlueBorderColor));
+
+    if (redSelectedButNotUnlocked || blueSelectedButNotUnlocked) {
+      colorValue += increase ? 1 : -1;
+      colorValue =
+          (colorValue + static_cast<int>(Color::ValueCount)) % static_cast<int>(Color::ValueCount);
+      continue;
+    }
+
+    break;
+  }
+
+  settings.borderColor = static_cast<Color>(colorValue);
+}
+
+void SettingsWindow::ChangeBoardColorSetting(bool increase) {
+  auto& currentUser = UserManager::GetInstance().GetCurrentUser();
+  auto& settings = currentUser.settings;
+
+  int colorValue = static_cast<int>(settings.boardColor);
+  colorValue += increase ? 1 : -1;
+  colorValue =
+      (colorValue + static_cast<int>(Color::ValueCount)) % static_cast<int>(Color::ValueCount);
+  settings.boardColor = static_cast<Color>(colorValue);
+}
+
+void SettingsWindow::ChangeUnitColorSetting(bool increase) {
+  auto& currentUser = UserManager::GetInstance().GetCurrentUser();
+  auto& settings = currentUser.settings;
+
+  int colorValue = static_cast<int>(settings.unitColor);
+  colorValue += increase ? 1 : -1;
+  colorValue =
+      (colorValue + static_cast<int>(Color::ValueCount)) % static_cast<int>(Color::ValueCount);
+  settings.unitColor = static_cast<Color>(colorValue);
+}
+
