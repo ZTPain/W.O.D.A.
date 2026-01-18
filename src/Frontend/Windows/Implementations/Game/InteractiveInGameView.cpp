@@ -15,6 +15,7 @@
 #include "Frontend/Input/InputManager.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
@@ -240,6 +241,59 @@ bool InteractiveInGameView::HandleFireAtCoordinate(const Coordinates& coord) {
   enemyGrid.SetCursorPosition(coord.x, coord.y);
   HandleAfterFireAtCoordinate();
   return true;
+}
+
+void InteractiveInGameView::UpdateRenderCellState(
+    size_t x,
+    size_t y,
+    size_t /*posX*/,
+    size_t /*posY*/,
+    bool /*isCursor*/,
+    size_t playerIndex,
+    bool& isHit,
+    bool& hasUnit
+) const {
+  if (isHit)
+    return;
+
+  if (hasUnit)
+    return;
+
+  const auto& currentPlayer = GetCurrentPlayer();
+  if (!currentPlayer.profile.settings.autoMarkEmptyFields)
+    return;
+
+  static constexpr std::array<std::pair<int, int>, 4> DIRECTIONS = {
+      {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
+  };
+
+  const auto& enemyPlayer = GetPlayerAtIndex(playerIndex);
+  const auto& enemyBoard = enemyPlayer.board;
+  const auto& unitsPlacement = enemyBoard->Units();
+  const auto& segmentBoard = enemyBoard->GetSegmentBoard();
+
+  bool shouldMark = false;
+  for (const auto& offset : DIRECTIONS) {
+    const int neighborX = static_cast<int>(x) + offset.first;
+    const int neighborY = static_cast<int>(y) + offset.second;
+
+    if (neighborX < 0 || neighborX >= static_cast<int>(segmentBoard.Width()) || neighborY < 0 ||
+        neighborY >= static_cast<int>(segmentBoard.Height())) {
+      continue;
+    }
+
+    if (unitsPlacement[neighborY][neighborX] == nullptr)
+      continue;
+
+    if (!unitsPlacement[neighborY][neighborX]->IsDestroyed())
+      continue;
+
+    shouldMark = true;
+    break;
+  }
+
+  if (shouldMark)
+    isHit = true;
 }
 
 const GameMode& InteractiveInGameView::GetGameMode() const {

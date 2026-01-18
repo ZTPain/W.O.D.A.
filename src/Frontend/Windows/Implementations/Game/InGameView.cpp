@@ -5,8 +5,10 @@
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/Player.h"
+#include "Backend/Units/BattleUnit.h"
 #include "Backend/Units/BattleUnitHelper.h"
 #include "Backend/Units/BattleUnitType.h"
+#include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers//PromptHelper.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
@@ -28,8 +30,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <tuple>
 #include <utility>
@@ -42,10 +46,16 @@ void InGameView::SetGridOffsets() {
 
   if (invertGridPositions) {
     enemyGrid.SetOffset(2 + 2, 8);
-    currentGrid.SetOffset(width - enemyGrid.GetTotalWidth() - enemyGrid.GetXOffset(), 8);
+    enemyGrid.SetInvertOnXAxis(false);
+
+    currentGrid.SetOffset(width - enemyGrid.GetTotalWidth() - enemyGrid.GetXOffset() - 1, 8);
+    currentGrid.SetInvertOnXAxis(true);
   } else {
     currentGrid.SetOffset(2 + 2, 8);
-    enemyGrid.SetOffset(width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset(), 8);
+    currentGrid.SetInvertOnXAxis(false);
+
+    enemyGrid.SetOffset(width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset() - 1, 8);
+    enemyGrid.SetInvertOnXAxis(true);
   }
 }
 
@@ -84,7 +94,7 @@ void InGameView::OnEnter() {
   );
 
   enemyGrid = Grid(
-      width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset(),
+      width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset() - 1,
       8,
       mode.boardWidth,
       mode.boardHeight,
@@ -95,6 +105,9 @@ void InGameView::OnEnter() {
       },
       [this](size_t x, size_t y, size_t posX, size_t posY) { OnToggleEnemyCell(x, y, posX, posY); }
   );
+
+  currentGrid.SetInvertOnXAxis(false);
+  enemyGrid.SetInvertOnXAxis(true);
 
   OnChangeTurn();
 
@@ -174,7 +187,7 @@ void InGameView::ForceRender() {
   );
 
   BoxDrawing::DrawBox(
-      currentGrid.GetXOffset() - 1,
+      currentGrid.GetXOffset() - 1 + (invertGridPositions ? 1 : 0),
       currentGrid.GetYOffset() - 1,
       ((mode.boardWidth + 1) * currentGrid.GetCellWidthWithBorders()) - 1,
       ((mode.boardHeight + 1) * currentGrid.GetCellHeightWithBorders()) + 1,
@@ -194,7 +207,7 @@ void InGameView::ForceRender() {
   );
 
   BoxDrawing::DrawBox(
-      enemyGrid.GetXOffset() - 1,
+      enemyGrid.GetXOffset() - 1 + (!invertGridPositions ? 1 : 0),
       enemyGrid.GetYOffset() - 1,
       ((mode.boardWidth + 1) * enemyGrid.GetCellWidthWithBorders()) - 1,
       ((mode.boardHeight + 1) * enemyGrid.GetCellHeightWithBorders()) + 1,
@@ -256,30 +269,55 @@ void InGameView::RenderCell(
   const auto& unitsPlacement = board->Units();
 
   const Coordinates coord(static_cast<int>(x), static_cast<int>(y));
-  const bool isHit = segmentBoard.Segments()[y][x];
-  const bool hasUnit = unitsPlacement[y][x] != nullptr;
+  bool isHit = segmentBoard.Segments()[y][x];
+  bool hasUnit = unitsPlacement[y][x] != nullptr;
+
+  UpdateRenderCellState(x, y, posX, posY, isCursor, playerIndex, isHit, hasUnit);
 
   IO::cout << AnsiHelper::MoveCursor(posX, posY);
 
-  std::array<char, 4> symbol = {' ', '.', ' ', '\0'};
-
   bool updateColor = true;
-  if (isCursor) {
-    symbol[0] = '[';
-    symbol[1] = ' ';
-    symbol[2] = ']';
-  }
+  const auto* const symbol =
+      GetCellSymbol(x, y, playerIndex, isHit, hasUnit, isCursor, unitsPlacement, updateColor);
 
-  if (isHit && hasUnit) {
-    if (unitsPlacement[y][x]->IsDestroyed()) {
-      symbol[1] = 'D';
+  const auto& mode = GetGameMode();
+  if (mode.isExtended) {
+    const auto& landSegments = segmentBoard.LandSegments();
+
+    if (landSegments[y][x]) {
+      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Green);
     } else {
-      symbol[1] = 'X';
+      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue);
     }
-  } else if (isHit && !hasUnit) {
-    symbol[1] = 'o';
   }
 
+  if (updateColor) {
+    if (isHit && hasUnit) {
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
+    } else if (isHit && !hasUnit) {
+      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue);
+    }
+
+    IO::cout << symbol;
+  }
+
+  IO::cout << AnsiHelper::Reset();
+  IO::cout.flush();
+}
+
+const char* InGameView::GetCellSymbol(
+    size_t x,
+    size_t y,
+    size_t playerIndex,
+    bool isHit,
+    bool hasUnit,
+    bool isCursor,
+    std::vector<std::vector<std::shared_ptr<BattleUnit>>> unitsPlacement,
+    bool& updateColor
+) const {
+  const auto& player = GetPlayerAtIndex(playerIndex);
+
+  updateColor = true;
   if (!salvoSelectionCoordinates.empty()) {
     const auto isSelected = std::any_of(
         salvoSelectionCoordinates.begin(),
@@ -288,31 +326,73 @@ void InGameView::RenderCell(
     );
 
     if (isSelected) {
-      symbol[0] = '{';
-      symbol[1] = ' ';
-      symbol[2] = '}';
       if (inAnimation) {
         updateColor = false;
         IO::cout << AnsiHelper::SetTextColor(AnsiColor::White);
       }
+
+      return "{ }";
     }
   }
 
-  IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Default);
+  const char* symbolChar = " ";
 
-  if (updateColor) {
-    if (isHit && hasUnit) {
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << symbol.data() << AnsiHelper::Reset();
-    } else if (isHit && !hasUnit) {
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue) << symbol.data() << AnsiHelper::Reset();
+  if (isHit && hasUnit) {
+    if (unitsPlacement[y][x]->IsDestroyed()) {
+      switch (player.profile.settings.unitPattern) {
+        case UnitPattern::Default:
+          symbolChar = "D";
+          break;
+
+        case UnitPattern::FlowerShipIcon:
+          symbolChar = "✿";
+          break;
+
+        case UnitPattern::CrosshairShipIcon:
+          symbolChar = "⌖";
+          break;
+
+        case UnitPattern::StarShipIcon:
+          symbolChar = "★";
+          break;
+
+        case UnitPattern::StoneShipIcon:
+          symbolChar = "■";
+          break;
+
+        default:
+          symbolChar = "@";
+          break;
+      }
     } else {
-      IO::cout << symbol.data();
+      symbolChar = "X";
     }
+  } else if (isHit && !hasUnit) {
+    symbolChar = "o";
+  } else if (!isCursor) {
+    symbolChar = ".";
   }
 
-  IO::cout << AnsiHelper::SetTextColor(AnsiColor::Default);
-  IO::cout.flush();
+  static std::array<char, 10> buffer{};
+  if (isCursor) {
+    snprintf(buffer.data(), buffer.size(), "[%s]", symbolChar);
+  } else {
+    snprintf(buffer.data(), buffer.size(), " %s ", symbolChar);
+  }
+
+  return buffer.data();
 }
+
+void InGameView::UpdateRenderCellState(
+    size_t /*x*/,
+    size_t /*y*/,
+    size_t /*posX*/,
+    size_t /*posY*/,
+    bool /*isCursor*/,
+    size_t /*playerIndex*/,
+    bool& /*isHit*/,
+    bool& /*hasUnit*/
+) const {}
 
 size_t InGameView::CalculateSegmentsLeftForPlayer(size_t playerIndex, size_t* outMax) const {
   const auto& mode = GetGameMode();
@@ -468,11 +548,16 @@ void InGameView::CalculateAnimationCoordinates(
   outTargetY = enemyGrid.GetYOffset() + (coord.y * enemyGrid.GetCellHeightWithBorders()) +
                (enemyGrid.GetCellHeightWithBorders() / 2) + 1;
 
-  outTargetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
-               (enemyGrid.GetCellWidthWithBorders() / 2) + 2 + 1;
+  auto coordX = coord.x;
+  if (!invertGridPositions) {
+    coordX = (enemyGrid.GetWidth() - 1) - coord.x;
+  }
+
+  outTargetX = enemyGrid.GetXOffset() + (coordX * enemyGrid.GetCellWidthWithBorders()) +
+               (enemyGrid.GetCellWidthWithBorders() / 2) + 2;
 
   if (invertGridPositions) {
-    outTargetX = enemyGrid.GetXOffset() + (coord.x * enemyGrid.GetCellWidthWithBorders()) +
+    outTargetX = enemyGrid.GetXOffset() + (coordX * enemyGrid.GetCellWidthWithBorders()) +
                  (enemyGrid.GetCellWidthWithBorders() / 2) + 2 - 1;
   }
 }
@@ -526,9 +611,9 @@ void InGameView::ShowPlayerFireAnimation() {
 
   assert(!salvoSelectionCoordinates.empty());
 
-  auto bulletX = currentGrid.GetTotalWidth() + currentGrid.GetXOffset() + 2;
+  auto bulletX = currentGrid.GetTotalWidth() + currentGrid.GetXOffset() + 3;
   if (invertGridPositions)
-    bulletX = currentGrid.GetXOffset() - 2;
+    bulletX = currentGrid.GetXOffset() - 1;
 
   size_t maxDistance = 0;
   const auto bulletPaths = CalculateBulletPaths(

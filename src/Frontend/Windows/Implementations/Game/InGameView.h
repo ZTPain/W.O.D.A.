@@ -4,11 +4,13 @@
 #include "Backend/Games/GameManager.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/Player.h"
+#include "Backend/Units/BattleUnit.h"
 #include "Frontend/Helpers/Grid.h"
 #include "Frontend/Windows/Api/Window.h"
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -53,6 +55,28 @@ protected:
 
   void RenderCell(
       size_t x, size_t y, size_t posX, size_t posY, bool isCursor, size_t playerIndex
+  ) const;
+
+  [[nodiscard]] const char* GetCellSymbol(
+      size_t x,
+      size_t y,
+      size_t playerIndex,
+      bool isHit,
+      bool hasUnit,
+      bool isCursor,
+      std::vector<std::vector<std::shared_ptr<BattleUnit>>> unitsPlacement,
+      bool& updateColor
+  ) const;
+
+  virtual void UpdateRenderCellState(
+      size_t x,
+      size_t y,
+      size_t posX,
+      size_t posY,
+      bool isCursor,
+      size_t playerIndex,
+      bool& isHit,
+      bool& hasUnit
   ) const;
 
   virtual void OnToggleEnemyCell(size_t x, size_t y, size_t posX, size_t posY) = 0;

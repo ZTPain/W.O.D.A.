@@ -29,4 +29,14 @@ private:
   void HandleAITurn();
   void OnToggleEnemyCell(size_t x, size_t y, size_t posX, size_t posY) override;
   bool HandleFireAtCoordinate(const Coordinates& coord);
+  void UpdateRenderCellState(
+      size_t x,
+      size_t y,
+      size_t posX,
+      size_t posY,
+      bool isCursor,
+      size_t playerIndex,
+      bool& isHit,
+      bool& hasUnit
+  ) const override;
 };
