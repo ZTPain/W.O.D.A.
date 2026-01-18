@@ -20,6 +20,7 @@
 #include "Implementations/Menu/MainMenuWindow.h"
 #include "Implementations/Menu/MatchHistoryWindow.h"
 #include "Implementations/Menu/SettingsWindow.h"
+#include "Implementations/Menu/UserProfileWindow.h"
 #include "Implementations/Menu/UserSelectWindow.h"
 
 void WindowManager::Initialize() {
@@ -33,6 +34,7 @@ void WindowManager::Initialize() {
   windows[WindowType::Settings] = std::make_unique<SettingsWindow>();
   windows[WindowType::MatchHistory] = std::make_unique<MatchHistoryWindow>();
   windows[WindowType::GameReplay] = std::make_unique<ReplayInGameView>();
+  windows[WindowType::UserProfile] = std::make_unique<UserProfileWindow>();
 
   InputManager::onKeyPressedProvider.Subscribe([this](ConsoleKeyDetails keyDetails) {
     if (keyDetails.key == ConsoleKey::R && keyDetails.modifiers == ConsoleModifiers::Control) {
