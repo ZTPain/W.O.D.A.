@@ -3,9 +3,12 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
+#include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <ostream>
 
 void TextHelper::DrawCenteredText(int y, const char* text) {
   int width = 0;
@@ -18,7 +21,35 @@ void TextHelper::DrawCenteredText(int y, const char* text) {
   IO::cout << AnsiHelper::MoveCursor(x, y) << text;
 }
 
-void TextHelper::DrawWrappedText(int x, int y, int maxWidth, const char* text) {
+size_t TextHelper::DrawWrappedText(int x, int y, int maxWidth, const char* text) {
+  size_t usedWidth = 0;
+  return InternalDrawWrappedText(IO::cout, x, y, maxWidth, text, usedWidth);
+}
+
+size_t TextHelper::CalculateWrappedText(
+    int x, int y, int maxWidth, const char* text, size_t& usedWidth
+) {
+  std::ostream os(nullptr);
+  return InternalDrawWrappedText(os, x, y, maxWidth, text, usedWidth);
+}
+
+void TextHelper::FormatDuration(char* buffer, size_t bufferSize, std::chrono::seconds duration) {
+  const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
+  duration -= minutes;
+  const auto seconds = duration;
+
+  std::snprintf(
+      buffer,
+      bufferSize,
+      "%02lld:%02lld",
+      static_cast<long long>(minutes.count()),
+      static_cast<long long>(seconds.count())
+  );
+}
+
+size_t TextHelper::InternalDrawWrappedText(
+    std::ostream& os, int x, int y, int maxWidth, const char* text, size_t& usedWidth
+) {
   int currentX = x;
   int currentY = y;
 
@@ -29,15 +60,17 @@ void TextHelper::DrawWrappedText(int x, int y, int maxWidth, const char* text) {
     if (*ptr == ' ' || *ptr == '\n') {
       const auto wordLength = static_cast<int>(ptr - wordStart);
       if (currentX + wordLength > x + maxWidth) {
+        usedWidth = static_cast<size_t>(std::max(usedWidth, static_cast<size_t>(currentX - x)));
         currentX = x;
         currentY++;
       }
 
-      IO::cout << AnsiHelper::MoveCursor(currentX, currentY);
-      IO::cout.write(wordStart, wordLength);
+      os << AnsiHelper::MoveCursor(currentX, currentY);
+      os.write(wordStart, wordLength);
       currentX += wordLength + 1;
 
       if (*ptr == '\n') {
+        usedWidth = static_cast<size_t>(std::max(usedWidth, static_cast<size_t>(currentX - x)));
         currentX = x;
         currentY++;
       }
@@ -56,21 +89,10 @@ void TextHelper::DrawWrappedText(int x, int y, int maxWidth, const char* text) {
       currentY++;
     }
 
-    IO::cout << AnsiHelper::MoveCursor(currentX, currentY);
-    IO::cout.write(wordStart, wordLength);
+    os << AnsiHelper::MoveCursor(currentX, currentY);
+    os.write(wordStart, wordLength);
+    usedWidth = static_cast<size_t>(std::max(usedWidth, static_cast<size_t>(currentX - x)));
   }
-}
 
-void TextHelper::FormatDuration(char* buffer, size_t bufferSize, std::chrono::seconds duration) {
-  const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
-  duration -= minutes;
-  const auto seconds = duration;
-
-  std::snprintf(
-      buffer,
-      bufferSize,
-      "%02lld:%02lld",
-      static_cast<long long>(minutes.count()),
-      static_cast<long long>(seconds.count())
-  );
+  return currentY - y + 1;
 }
