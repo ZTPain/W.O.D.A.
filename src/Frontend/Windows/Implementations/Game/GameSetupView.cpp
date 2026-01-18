@@ -322,11 +322,13 @@ bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     const auto& gameManager = AppState::GetCurrentGameManager();
     const auto& currentPlayer = gameManager->GetPlayerAtIndex(currentPlayerIndex);
 
-    GenerateRandomSetup(
-        &currentPlayer.board->GetSegmentBoard(),
-        currentPlayer.profile.AI() != nullptr ? currentPlayer.profile.AI()->GetComputerType()
-                                              : ComputerType::Easy
-    );
+    while (!AllUnitsPlaced()) {
+      GenerateRandomSetup(
+          &currentPlayer.board->GetSegmentBoard(),
+          currentPlayer.profile.AI() != nullptr ? currentPlayer.profile.AI()->GetComputerType()
+                                                : ComputerType::Easy
+      );
+    }
 
     ForceRender();
     return true;
