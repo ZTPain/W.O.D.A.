@@ -72,7 +72,7 @@ bool MatchHistoryWindow::IsCorrectSize(int width, int height) const {
 void MatchHistoryWindow::ForceRender() {
   IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset();
 
-  BoxDrawing::DrawWindowFrame(true, "Match History", false);
+  BoxDrawing::DrawWindowFrame(true, "Match History");
   DrawOptions();
 
   IO::cout.flush();
@@ -87,7 +87,6 @@ void MatchHistoryWindow::DrawOptions() {
   if (replays.empty()) {
     IO::cout << AnsiHelper::MoveCursor(4, 4);
     IO::cout << "No replays available.";
-    IO::cout.flush();
     return;
   }
 

@@ -12,6 +12,7 @@
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/Grid.h"
 #include "Frontend/Input/ConsoleKey.h"
+#include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
 
 #include <algorithm>
@@ -233,6 +234,7 @@ bool InteractiveInGameView::HandleFireAtCoordinate(const Coordinates& coord) {
         }
       } else {
         enemyGrid.Render();
+        IO::cout.flush();
         return false;
       }
     }

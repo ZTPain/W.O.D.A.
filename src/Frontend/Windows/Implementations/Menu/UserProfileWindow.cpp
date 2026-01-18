@@ -61,7 +61,7 @@ bool UserProfileWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 void UserProfileWindow::ForceRender() {
   IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset();
 
-  BoxDrawing::DrawWindowFrame(true, "User Profile", false);
+  BoxDrawing::DrawWindowFrame(true, "User Profile");
 
   const auto& currentUser = UserManager::GetInstance().GetCurrentUser();
 
@@ -248,7 +248,7 @@ void UserProfileWindow::RenderDetails(const std::string& title, const std::strin
       TextHelper::CalculateWrappedText(0, 0, width - 60 - 8, content.c_str(), tmp);
 
   BoxDrawing::DrawBox(
-      60, 9, width - 60 - 4, contentLines + 2, BoxStyle::Rounded, true, title.c_str(), false
+      60, 9, width - 60 - 4, contentLines + 2, BoxStyle::Rounded, true, title.c_str()
   );
 
   TextHelper::DrawWrappedText(62, 10, width - 60 - 8, content.c_str());

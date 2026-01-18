@@ -5,8 +5,6 @@
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
 #include <cstddef>
-#include <iostream>
-#include <ostream>
 #include <string>
 #include <unordered_map>
 
@@ -17,7 +15,7 @@ std::unordered_map<BoxStyle, BoxStyleDefinition> BoxDrawing::boxStyles = {
     {BoxStyle::Rounded, {"╭", "╮", "╰", "╯", "─", "│", "├", "┤"}},
 };
 
-void BoxDrawing::DrawWindowFrame(bool filled, const char* title, bool flush) {
+void BoxDrawing::DrawWindowFrame(bool filled, const char* title) {
   int width = 0;
   int height = 0;
   InputManager::GetTerminalSize(width, height);
@@ -26,31 +24,7 @@ void BoxDrawing::DrawWindowFrame(bool filled, const char* title, bool flush) {
 
   const auto& settings = currentUser.settings;
 
-  switch (settings.borderColor) {
-    case Color::Default:
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Default);
-      break;
-
-    case Color::Red:
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
-      break;
-
-    case Color::Black:
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Black);
-      break;
-
-    case Color::Green:
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Green);
-      break;
-
-    case Color::Blue:
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue);
-      break;
-
-    case Color::Gold:
-      IO::cout << AnsiHelper::SetTextColor(255, 215, 0);
-      break;
-  }
+  IO::cout << AnsiHelper::SetTextColor(settings.borderColor);
 
   const auto style = [&settings]() -> BoxStyle {
     switch (settings.borderPattern) {
@@ -65,33 +39,29 @@ void BoxDrawing::DrawWindowFrame(bool filled, const char* title, bool flush) {
 
       case BorderPattern::Rounded:
         return BoxStyle::Rounded;
+
+      default:
+        break;
     }
+
     return BoxStyle::Single;
   }();
 
-  DrawBox(1, 1, width, height, style, filled, title, flush);
+  DrawBox(1, 1, width, height, style, filled, title);
 
   IO::cout << AnsiHelper::SetTextColor(AnsiColor::Default);
 }
 
 void BoxDrawing::DrawBox(
-    size_t x,
-    size_t y,
-    size_t width,
-    size_t height,
-    BoxStyle style,
-    bool filled,
-    const char* title,
-    bool flush
+    size_t x, size_t y, size_t width, size_t height, BoxStyle style, bool filled, const char* title
 ) {
   const auto styleDef = boxStyles[style];
 
-  DrawHorizontalLine(x + 1, y, width - 2, style, false);              // Top edge
-  DrawHorizontalLine(x + 1, y + height - 1, width - 2, style, false); // Bottom edge
+  DrawHorizontalLine(x + 1, y, width - 2, style);              // Top edge
+  DrawHorizontalLine(x + 1, y + height - 1, width - 2, style); // Bottom edge
 
-  DrawVerticalLine(x, y + 1, height - 2, style, false);             // Left edge
-  DrawVerticalLine(x + width - 1, y + 1, height - 2, style, false); // Right edge
-
+  DrawVerticalLine(x, y + 1, height - 2, style);             // Left edge
+  DrawVerticalLine(x + width - 1, y + 1, height - 2, style); // Right edge
   // Draw corners
   IO::cout << AnsiHelper::MoveCursor(x, y) << styleDef.topLeft;
   IO::cout << AnsiHelper::MoveCursor(x + width - 1, y) << styleDef.topRight;
@@ -118,14 +88,9 @@ void BoxDrawing::DrawBox(
       }
     }
   }
-
-  if (flush)
-    IO::cout.flush();
 }
 
-void BoxDrawing::ClearBox(
-    size_t x, size_t y, size_t width, size_t height, bool filled, bool flush
-) {
+void BoxDrawing::ClearBox(size_t x, size_t y, size_t width, size_t height, bool filled) {
   if (filled) {
     IO::cout << AnsiHelper::MoveCursor(x + 1, y + 1);
     for (size_t row = y + 1; row < y + height - 1; ++row) {
@@ -145,25 +110,16 @@ void BoxDrawing::ClearBox(
       IO::cout << AnsiHelper::MoveCursor(x + width - 1, row) << ' '; // Right edge
     }
   }
-
-  if (flush)
-    IO::cout.flush();
 }
 
-void BoxDrawing::DrawHorizontalLine(size_t x, size_t y, size_t length, BoxStyle style, bool flush) {
+void BoxDrawing::DrawHorizontalLine(size_t x, size_t y, size_t length, BoxStyle style) {
   for (size_t col = x; col < x + length; ++col) {
     IO::cout << AnsiHelper::MoveCursor(col, y) << boxStyles[style].horizontal;
   }
-
-  if (flush)
-    IO::cout.flush();
 }
 
-void BoxDrawing::DrawVerticalLine(size_t x, size_t y, size_t length, BoxStyle style, bool flush) {
+void BoxDrawing::DrawVerticalLine(size_t x, size_t y, size_t length, BoxStyle style) {
   for (size_t row = y; row < y + length; ++row) {
     IO::cout << AnsiHelper::MoveCursor(x, row) << boxStyles[style].vertical;
   }
-
-  if (flush)
-    IO::cout.flush();
 }

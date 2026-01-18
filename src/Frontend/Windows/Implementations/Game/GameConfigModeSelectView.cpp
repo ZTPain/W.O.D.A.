@@ -191,7 +191,6 @@ void GameConfigModeSelectView::DrawOption(size_t index) {
   }
 
   IO::cout << AnsiHelper::MoveCursor(5, static_cast<int>(4 + index)) << text << '\n';
-  IO::cout.flush();
 
   if (selectedIndex == index) {
     DrawDescription(index);
@@ -235,5 +234,4 @@ void GameConfigModeSelectView::DrawDescription(size_t index) {
   }
 
   TextHelper::DrawWrappedText(startX, 4, width - startX - borderOffset, description.c_str());
-  IO::cout.flush();
 }

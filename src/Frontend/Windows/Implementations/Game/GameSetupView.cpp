@@ -67,7 +67,8 @@ void GameSetupView::RenderEmptyCell(
   }
 
   IO::cout << AnsiHelper::Reset();
-  IO::cout.flush();
+  if (!grid.IsInGridRender())
+    IO::cout.flush();
 }
 
 AnsiColor GameSetupView::GetColorForUnitType(BattleUnitType type) {
@@ -202,7 +203,8 @@ void GameSetupView::RenderFilledCell(
 
   IO::cout << AnsiHelper::Reset();
   IO::cout << " ";
-  IO::cout.flush();
+  if (!grid.IsInGridRender())
+    IO::cout.flush();
 }
 
 void GameSetupView::RenderCell(size_t x, size_t y, size_t posX, size_t posY, bool isCursor) const {

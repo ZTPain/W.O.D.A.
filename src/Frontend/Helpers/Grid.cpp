@@ -27,6 +27,7 @@ Grid::Grid(
 Grid::~Grid() = default;
 
 void Grid::Render() {
+  inGridRender = true;
   RenderBorders();
   for (size_t y = 0; y < height + 1; ++y) {
     if (y == 0) {
@@ -42,6 +43,7 @@ void Grid::Render() {
       InvokeOnRenderCell(x - 1, y - 1, cursorX == x - 1 && cursorY == y - 1);
     }
   }
+  inGridRender = false;
 }
 
 void Grid::MoveCursorUp() { MoveCursorTo(cursorX, (cursorY > 0) ? cursorY - 1 : cursorY); }

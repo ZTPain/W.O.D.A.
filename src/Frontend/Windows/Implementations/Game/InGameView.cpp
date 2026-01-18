@@ -44,17 +44,21 @@ void InGameView::SetGridOffsets() {
   int height = 0;
   InputManager::GetTerminalSize(width, height);
 
+  const auto& mode = GetGameMode();
+
+  const auto yStart = mode.isExtended ? 12 : 8;
+
   if (invertGridPositions) {
-    enemyGrid.SetOffset(2 + 2, 8);
+    enemyGrid.SetOffset(2 + 2, yStart);
     enemyGrid.SetInvertOnXAxis(false);
 
-    currentGrid.SetOffset(width - enemyGrid.GetTotalWidth() - enemyGrid.GetXOffset() - 1, 8);
+    currentGrid.SetOffset(width - enemyGrid.GetTotalWidth() - enemyGrid.GetXOffset() - 1, yStart);
     currentGrid.SetInvertOnXAxis(true);
   } else {
-    currentGrid.SetOffset(2 + 2, 8);
+    currentGrid.SetOffset(2 + 2, yStart);
     currentGrid.SetInvertOnXAxis(false);
 
-    enemyGrid.SetOffset(width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset() - 1, 8);
+    enemyGrid.SetOffset(width - currentGrid.GetTotalWidth() - currentGrid.GetXOffset() - 1, yStart);
     enemyGrid.SetInvertOnXAxis(true);
   }
 }
@@ -302,7 +306,8 @@ void InGameView::RenderCell(
   }
 
   IO::cout << AnsiHelper::Reset();
-  IO::cout.flush();
+  if (!enemyGrid.IsInGridRender() && !currentGrid.IsInGridRender())
+    IO::cout.flush();
 }
 
 const char* InGameView::GetCellSymbol(
@@ -440,13 +445,15 @@ void InGameView::RenderUnitsLeftForPlayer(size_t playerIndex, size_t startX, siz
   size_t maxCount = 0;
   const auto segmentsLeft = CalculateSegmentsLeftForPlayer(playerIndex, &maxCount);
 
+  const auto columnSize = mode.isExtended ? 30 : 20;
+
   size_t i = 0;
   size_t j = 0;
-  IO::cout << AnsiHelper::MoveCursor(startX + 20, startY);
+  IO::cout << AnsiHelper::MoveCursor(startX + columnSize, startY);
   IO::cout << "Total segments: " << segmentsLeft << "/" << maxCount << " ";
   for (const auto& [unitType, count] : unitCount) {
     const auto maxCount = mode.unitPool.at(unitType);
-    IO::cout << AnsiHelper::MoveCursor(startX + (j * 20), startY + i + 1);
+    IO::cout << AnsiHelper::MoveCursor(startX + (j * columnSize), startY + i + 1);
     if (count == 0) {
       IO::cout << AnsiHelper::SetTextColor(AnsiColor::BrightBlack);
     } else {
@@ -621,6 +628,7 @@ void InGameView::ShowPlayerFireAnimation() {
   );
 
   enemyGrid.Render();
+  IO::cout.flush();
 
   const auto stepDelay = std::max(5, static_cast<int>(1500 / maxDistance));
 
@@ -641,8 +649,9 @@ void InGameView::ShowPlayerFireAnimation() {
       IO::cout << AnsiHelper::MoveCursor(coord.x, coord.y);
       IO::cout << AnsiHelper::SetTextColor(AnsiColor::Yellow) << (invertGridPositions ? "←" : "→")
                << AnsiHelper::Reset();
-      IO::cout.flush();
     }
+
+    IO::cout.flush();
 
     if (!fastForwardEnabled)
       std::this_thread::sleep_for(std::chrono::milliseconds(stepDelay));
@@ -671,8 +680,9 @@ void InGameView::ShowPlayerFireAnimation() {
     // Final position
     IO::cout << AnsiHelper::MoveCursor(coord.x, coord.y);
     IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << "*" << AnsiHelper::Reset();
-    IO::cout.flush();
   }
+
+  IO::cout.flush();
 
   inAnimation = false;
 
@@ -767,7 +777,7 @@ void InGameView::RenderLeaderboard() const {
 }
 
 void InGameView::RenderHistory() const {
-  const size_t startX = 4 + ((enemyGrid.GetTotalWidth() + 4) * 2) - 10;
+  const size_t startX = 4 + ((enemyGrid.GetTotalWidth() + 4) * 2) - 25;
   const size_t startY = currentGrid.GetYOffset() + currentGrid.GetTotalHeight() + 2;
 
   IO::cout << AnsiHelper::MoveCursor(startX, startY) << "Action History:";

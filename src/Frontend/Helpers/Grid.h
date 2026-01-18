@@ -59,6 +59,8 @@ public:
   [[nodiscard]] size_t GetTotalWidth() const { return width * cellWidthWithBorders; }
   [[nodiscard]] size_t GetTotalHeight() const { return height * cellHeightWithBorders; }
 
+  [[nodiscard]] bool IsInGridRender() const { return inGridRender; }
+
 private:
   size_t xOffset;
   size_t yOffset;
@@ -74,6 +76,7 @@ private:
   size_t cursorY;
 
   bool invertOnXAxis = false;
+  bool inGridRender = false;
 
   void HandleAlphaKeyPress(ConsoleKeyDetails keyDetails, bool isNumber, int& lastNumberIndex);
 

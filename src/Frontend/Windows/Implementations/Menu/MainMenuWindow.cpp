@@ -57,7 +57,7 @@ bool MainMenuWindow::IsCorrectSize(int width, int height) const {
 }
 
 void MainMenuWindow::ForceRender() {
-  BoxDrawing::DrawWindowFrame(true, "Main Menu", false);
+  BoxDrawing::DrawWindowFrame(true, "Main Menu");
 
   DrawOptions();
 }

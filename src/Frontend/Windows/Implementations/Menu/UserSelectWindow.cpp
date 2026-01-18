@@ -226,8 +226,7 @@ void UserSelectWindow::DrawCreateNewUserDialog() {
       USER_NAME_BOX_HEIGHT,
       BoxStyle::Rounded,
       true,
-      "Creating New User",
-      false
+      "Creating New User"
   );
 
   IO::cout << AnsiHelper::MoveCursor(createNewUserBoxStartX + 2, createNewUserBoxStartY + 2)
