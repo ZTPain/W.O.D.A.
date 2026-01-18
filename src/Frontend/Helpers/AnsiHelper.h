@@ -114,7 +114,7 @@ inline std::string AnsiHelper::SetTextColor(Color color) {
     case Color::Blue:
       return SetTextColor(AnsiColor::Blue);
     case Color::Gold:
-      return SetTextColor(AnsiColor::Yellow);
+      return SetTextColor(255, 215, 0);
     case Color::Default:
     default:
       return SetTextColor(AnsiColor::Default);
@@ -132,7 +132,7 @@ inline std::string AnsiHelper::SetBackgroundColor(Color color) {
     case Color::Blue:
       return SetBackgroundColor(AnsiColor::Blue);
     case Color::Gold:
-      return SetBackgroundColor(AnsiColor::Yellow);
+      return SetBackgroundColor(255, 215, 0);
     case Color::Default:
     default:
       return SetBackgroundColor(AnsiColor::Default);
