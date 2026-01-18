@@ -15,11 +15,13 @@
 
 void UserSelectWindow::OnEnter() { ForceRender(); }
 
-void UserSelectWindow::OnExit() { IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset(); }
+void UserSelectWindow::OnExit() {
+  IO::cout << AnsiHelper::HideCursor();
+  IO::cout << ANSI_CLEAR_SCREEN << AnsiHelper::Reset();
+}
 
 bool UserSelectWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   if (keyDetails.key == ConsoleKey::Escape) {
-    IO::cout << AnsiHelper::HideCursor();
     if (UserManager::GetInstance().GetCurrentUser().UserId() != 0) {
       WindowManager::GetInstance().SwitchToWindow(WindowType::MainMenu);
       return true;
