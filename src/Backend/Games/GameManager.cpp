@@ -6,7 +6,7 @@
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
-#include "Backend/Main/Battleships.h"
+#include "Backend/Main/SaveManager.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Replays/ReplayManager.h"
 #include "Backend/Users/UserProfile.h"
@@ -203,7 +203,7 @@ void GameManager::HandleGameOver() {
   state = GameState::Over;
 
   // Save post game end
-  Battleships::GetInstance().WriteToSave();
+  SaveManager::SaveGame();
 }
 
 void GameManager::SaveReplay() {

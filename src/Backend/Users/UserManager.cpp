@@ -1,7 +1,7 @@
 #include "UserManager.h"
 #include "Backend/Computers/Computer.h"
 #include "Backend/Games/GameManager.h"
-#include "Backend/Main/Battleships.h"
+#include "Backend/Main/SaveManager.h"
 #include "Backend/Users/UserProfile.h"
 #include <cassert>
 #include <map>
@@ -32,7 +32,7 @@ void UserManager::CreateUser(const std::string& name) {
   currentUserId = nextUserId++;
   users[currentUserId] = UserProfile(currentUserId, name, initialAchievementPool.Clone());
 
-  Battleships::GetInstance().WriteToSave();
+  SaveManager::SaveGame();
 }
 
 UserProfile& UserManager::GetCurrentUser() {
