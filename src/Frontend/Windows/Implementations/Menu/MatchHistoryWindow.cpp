@@ -45,6 +45,10 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
     case ConsoleKey::Enter:
     case ConsoleKey::Spacebar: {
+      if (replays.empty()) {
+        return true;
+      }
+
       if (AppState::IsReplayPlaybackSet()) {
         AppState::ClearCurrentReplayPlayback();
       }
