@@ -168,28 +168,19 @@ uint16_t SaveManager::CreateOrGetGameModeIndex(
 
 uint16_t SaveManager::CreateReplayPlayerIndex(
     const Player& player,
-    const std::vector<GameBoard*>& gameBoards,
+    std::vector<GameBoard*>& gameBoards,
     std::vector<ReplayPlayerEntry>& replayPlayers
 ) {
   ReplayPlayerEntry entry{};
   entry.playerId = player.profile.UserId();
   assert(player.profile.name.size() < entry.name.size());
   std::strncpy(entry.name.data(), player.profile.name.c_str(), entry.name.size());
-  entry.unlockedContent = player.profile.unlockedContent;
-  entry.settings = player.profile.settings;
   entry.ai =
       player.profile.AI() != nullptr ? player.profile.AI()->GetComputerType() : ComputerType::None;
-  entry.gameBoardIndex = UINT16_MAX;
 
   // Find the index of the player's game board
-  for (size_t i = 0; i < gameBoards.size(); ++i) {
-    if (gameBoards[i] == player.board) {
-      entry.gameBoardIndex = static_cast<uint16_t>(i);
-      break;
-    }
-  }
-
-  assert(entry.gameBoardIndex != UINT16_MAX);
+  gameBoards.push_back(player.board);
+  entry.gameBoardIndex = static_cast<uint16_t>(gameBoards.size() - 1);
 
   replayPlayers.push_back(entry);
   return static_cast<uint16_t>(replayPlayers.size() - 1);
@@ -208,6 +199,7 @@ uint16_t SaveManager::CreateAndAddReplayAction(
     // Serialize FireCommand data
     size_t offset = 0;
     Coordinates coords = fireCommand->GetCoordinates().front();
+    entry.commandData.resize(sizeof(Coordinates));
     WriteBytes(entry.commandData.data(), offset, entry.commandData.size(), &coords, sizeof(coords));
 
     replayActions.push_back(entry);
@@ -367,7 +359,7 @@ GameBoard* SaveManager::CreateRegisteredBoard(const SaveState& saveState, size_t
   const auto& replayGameModeIndex = boardEntry.gameModeIndex;
   const auto& modeEntry = saveState.gameModes.at(replayGameModeIndex);
 
-  const auto gameMode = GameManager::GetGameModeByName(modeEntry.gameModeName.data());
+  const auto& gameMode = GameManager::GetGameModeByName(modeEntry.gameModeName.data());
 
   if (gameMode.name.empty())
     return nullptr;
@@ -387,7 +379,7 @@ GameBoard* SaveManager::CreateRegisteredBoard(const SaveState& saveState, size_t
   for (size_t y = 0; y < gameMode.boardHeight; y++) {
     for (size_t x = 0; x < gameMode.boardWidth; x++) {
       const size_t index = (y * gameMode.boardWidth) + x;
-      assert(index < boardEntry.boardData.size());
+      assert(index < boardEntry.boardData.size() * 4);
 
       const uint8_t segmentValue =
           (boardEntry.boardData[index / 4] & (3 << ((index % 4) * 2))) >> ((index % 4) * 2);
@@ -423,27 +415,18 @@ GameBoard* SaveManager::CreateRegisteredBoard(const SaveState& saveState, size_t
 Player SaveManager::CreatePlayer(
     const std::vector<GameBoard*>& gameBoards, const ReplayPlayerEntry& replayPlayerEntry
 ) {
-  static PlayerId nextPlayerId = 501;
-  static PlayerId nextComputerPlayerId = 1501;
+  UserProfile* userProfilePtr = nullptr;
+  if (replayPlayerEntry.ai == ComputerType::None) {
+    userProfilePtr = &UserManager::GetInstance().GetUserById(replayPlayerEntry.playerId);
+  } else {
+    userProfilePtr = &UserManager::GetInstance().CreateComputer(
+        replayPlayerEntry.name.data(), replayPlayerEntry.ai
+    );
+  }
 
-  const auto userId =
-      replayPlayerEntry.ai == ComputerType::None ? nextPlayerId++ : nextComputerPlayerId++;
-
-  UserProfile userProfile(
-      userId,
-      std::string(replayPlayerEntry.name.data()),
-      std::make_unique<AchievementPool>(),
-      GameManager::GetComputerByType(replayPlayerEntry.ai)
-  );
-
-  userProfile.unlockedContent = replayPlayerEntry.unlockedContent;
-  userProfile.settings = replayPlayerEntry.settings;
-  UserManager::GetInstance().AddUserProfile(userProfile);
-
-  auto& userProfileRef = UserManager::GetInstance().GetUserById(userId);
   auto* gameBoard = gameBoards.at(replayPlayerEntry.gameBoardIndex);
 
-  const Player player(userProfileRef, gameBoard);
+  const Player player(*userProfilePtr, gameBoard);
   return player;
 }
 
@@ -515,7 +498,8 @@ void SaveManager::CreateReplayBoardEntry(
   outEntry.gameModeIndex = gameModeIndex;
 
   const auto& segmentBoard = board.GetSegmentBoard();
-  const auto& landSegments = segmentBoard.LandSegments();
+  const auto& landSegments =
+      mode.isExtended ? segmentBoard.LandSegments() : std::vector<std::vector<bool>>{};
   const auto& unitSegments = board.Units();
 
   for (size_t y = 0; y < mode.boardHeight; y++) {
@@ -624,6 +608,11 @@ void SaveManager::LoadGameBoards(
     // Deserialize entry
     GameBoardEntry entry{};
     ReadBytes(data, offset, length, &entry.gameModeIndex, sizeof(entry.gameModeIndex));
+
+    size_t boardDataSize = 0;
+    ReadBytes(data, offset, length, &boardDataSize, sizeof(boardDataSize));
+    entry.boardData.resize(boardDataSize);
+
     ReadBytes(data, offset, length, entry.boardData.data(), entry.boardData.size());
     outBoards.push_back(entry);
     count--;
@@ -737,8 +726,6 @@ void SaveManager::LoadReplayPlayers(
     ReplayPlayerEntry entry{};
     ReadBytes(data, offset, length, &entry.playerId, sizeof(entry.playerId));
     ReadBytes(data, offset, length, &entry.name, sizeof(entry.name));
-    ReadBytes(data, offset, length, &entry.unlockedContent, sizeof(entry.unlockedContent));
-    ReadBytes(data, offset, length, &entry.settings, sizeof(entry.settings));
     ReadBytes(data, offset, length, &entry.ai, sizeof(entry.ai));
     ReadBytes(data, offset, length, &entry.gameBoardIndex, sizeof(entry.gameBoardIndex));
     outReplayPlayers.push_back(entry);
@@ -825,6 +812,8 @@ void SaveManager::SaveGameBoards(
 
   for (const auto& board : boards) {
     WriteBytes(data, offset, length, &board.gameModeIndex, sizeof(board.gameModeIndex));
+    const size_t boardDataSize = board.boardData.size();
+    WriteBytes(data, offset, length, &boardDataSize, sizeof(boardDataSize));
     WriteBytes(data, offset, length, board.boardData.data(), board.boardData.size());
   }
 }

@@ -55,8 +55,6 @@ private:
   struct [[gnu::packed]] ReplayPlayerEntry {
     PlayerId playerId{};
     std::array<char, 32> name{};
-    uint64_t unlockedContent{};
-    [[gnu::packed]] UserSettings settings{};
     ComputerType ai{};
     uint16_t gameBoardIndex{};
   };
@@ -147,7 +145,7 @@ private:
 
   static uint16_t CreateReplayPlayerIndex(
       const Player& player,
-      const std::vector<GameBoard*>& gameBoards,
+      std::vector<GameBoard*>& gameBoards,
       std::vector<ReplayPlayerEntry>& replayPlayers
   );
 
