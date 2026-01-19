@@ -1,6 +1,10 @@
 #pragma once
 
+#include "Backend/Boards/GameBoard.h"
 #include "Backend/Computers/Computer.h"
+#include "Backend/Games/GameMode.h"
+#include "Backend/Games/Player.h"
+#include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
 #include <array>
 #include <cstddef>
@@ -51,11 +55,14 @@ private:
   struct [[gnu::packed]] ReplayPlayerEntry {
     PlayerId playerId{};
     std::array<char, 32> name{};
+    uint64_t unlockedContent{};
+    [[gnu::packed]] UserSettings settings{};
     ComputerType ai{};
+    uint16_t gameBoardIndex{};
   };
 
   struct GameBoardEntry {
-    uint16_t playerIndex{};
+    uint16_t gameModeIndex{};
     std::vector<uint8_t> boardData;
   };
 
@@ -88,6 +95,17 @@ private:
   };
 
   static void LoadData(const uint8_t* data, size_t offset, size_t length);
+
+  static GameBoard* CreateRegisteredBoard(const SaveState& saveState, size_t gameBoardIndex);
+  static Player CreatePlayer(
+      const std::vector<GameBoard*>& gameBoards, const ReplayPlayerEntry& replayPlayerEntry
+  );
+
+  static void CreateAndAddReplayAction(
+      const ReplayActionEntry& actionEntry,
+      const std::vector<Player>& players,
+      std::vector<ReplayAction>& actions
+  );
 
   static bool IsVersionSupported(uint16_t version);
   static void LoadUserProfiles(
@@ -122,6 +140,25 @@ private:
   );
 
   static void SaveData(uint8_t* data, size_t offset, size_t length, const SaveState& saveState);
+
+  static uint16_t CreateOrGetGameModeIndex(
+      const GameMode& gameMode, std::vector<GameModeEntry>& gameModes
+  );
+
+  static uint16_t CreateReplayPlayerIndex(
+      const Player& player,
+      const std::vector<GameBoard*>& gameBoards,
+      std::vector<ReplayPlayerEntry>& replayPlayers
+  );
+
+  static uint16_t CreateAndAddReplayAction(
+      const ReplayAction& action, std::vector<ReplayActionEntry>& replayActions
+  );
+
+  static void CreateReplayBoardEntry(
+      const GameBoard& board, const GameMode& mode, GameBoardEntry& outEntry, uint16_t gameModeIndex
+  );
+
   static void SaveUserProfiles(
       uint8_t* data, size_t& offset, size_t length, const std::vector<UserProfileEntry>& profiles
   );
