@@ -339,10 +339,22 @@ void SaveManager::LoadData(const uint8_t* data, size_t offset, size_t length) {
   for (const auto& replayEntry : saveState.replays) {
     const auto& gameModeEntry = saveState.gameModes.at(replayEntry.gameModeId);
     auto gameMode = GameManager::GetGameModeByName(gameModeEntry.gameModeName.data());
+    std::vector<Player> localPlayers;
+    localPlayers.reserve(replayEntry.replayPlayerIndices.size());
+    for (const auto& playerIndex : replayEntry.replayPlayerIndices) {
+      localPlayers.push_back(players.at(playerIndex));
+    }
+
+    std::vector<ReplayAction> localActions;
+    localActions.reserve(replayEntry.replayActionIndices.size());
+    for (const auto& actionIndex : replayEntry.replayActionIndices) {
+      localActions.push_back(actions.at(actionIndex));
+    }
+
     ReplayManager::GetInstance().SaveReplay({
         replayEntry.replayId,
-        std::move(players),
-        std::move(actions),
+        localPlayers,
+        localActions,
         replayEntry.winnerId,
         std::chrono::seconds(replayEntry.playtimeSeconds),
         time_t(replayEntry.timestamp),
