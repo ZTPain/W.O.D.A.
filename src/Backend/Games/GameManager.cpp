@@ -247,7 +247,7 @@ Computer* GameManager::GetComputerByType(ComputerType computerType) {
 
 void GameManager::RegisterGameBoard(GameBoard* board) { gameBoards.push_back(board); }
 
-GameMode GameManager::GetGameModeByName(const char* name) {
+const GameMode& GameManager::GetGameModeByName(const char* name) {
   if (name == Battleships::STANDARD_GAME_MODE.name)
     return Battleships::STANDARD_GAME_MODE;
 

@@ -58,5 +58,5 @@ public:
   static Computer* GetComputerByType(ComputerType computerType);
 
   static void RegisterGameBoard(GameBoard* board);
-  static GameMode GetGameModeByName(const char* modeName);
+  static const GameMode& GetGameModeByName(const char* modeName);
 };
