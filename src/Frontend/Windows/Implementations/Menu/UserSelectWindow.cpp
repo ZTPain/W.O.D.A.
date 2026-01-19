@@ -156,18 +156,7 @@ void UserSelectWindow::HandleCreateNewUser() {
     if (keyDetails.key == ConsoleKey::Backspace) {
       if (!newUserNameBuffer.empty()) {
         newUserNameBuffer.pop_back();
-        IO::cout << AnsiHelper::MoveCursor(
-                        createNewUserBoxStartX + 2 + (USER_NAME_BOX_WIDTH / 2) +
-                            newUserNameBuffer.size(),
-                        createNewUserBoxStartY + 2
-                    )
-                 << ' '
-                 << AnsiHelper::MoveCursor(
-                        createNewUserBoxStartX + 2 + (USER_NAME_BOX_WIDTH / 2) +
-                            newUserNameBuffer.size(),
-                        createNewUserBoxStartY + 2
-                    );
-        IO::cout.flush();
+        DrawCreateNewUserDialog();
       }
 
       continue;
@@ -231,6 +220,6 @@ void UserSelectWindow::DrawCreateNewUserDialog() {
 
   IO::cout << AnsiHelper::MoveCursor(createNewUserBoxStartX + 2, createNewUserBoxStartY + 2)
            << "Enter new user name: " << newUserNameBuffer;
-  IO::cout.flush();
   IO::cout << AnsiHelper::ShowCursor();
+  IO::cout.flush();
 }
