@@ -56,4 +56,7 @@ public:
   void HandleGameOver();
   void SaveReplay();
   static Computer* GetComputerByType(ComputerType computerType);
+
+  static void RegisterGameBoard(GameBoard* board);
+  static GameMode GetGameModeByName(const char* modeName);
 };

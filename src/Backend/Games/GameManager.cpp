@@ -6,6 +6,7 @@
 #include "Backend/Games/GameMode.h"
 #include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
+#include "Backend/Main/Battleships.h"
 #include "Backend/Main/SaveManager.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Replays/ReplayManager.h"
@@ -242,4 +243,22 @@ Computer* GameManager::GetComputerByType(ComputerType computerType) {
       throw std::invalid_argument("Invalid ComputerType");
       break;
   }
+}
+
+void GameManager::RegisterGameBoard(GameBoard* board) { gameBoards.push_back(board); }
+
+GameMode GameManager::GetGameModeByName(const char* name) {
+  if (name == Battleships::STANDARD_GAME_MODE.name)
+    return Battleships::STANDARD_GAME_MODE;
+
+  if (name == Battleships::SALVO_GAME_MODE.name)
+    return Battleships::SALVO_GAME_MODE;
+
+  if (name == Battleships::EXTENDED_GAME_MODE.name)
+    return Battleships::EXTENDED_GAME_MODE;
+
+  if (name == Battleships::EXTENDED_SALVO_GAME_MODE.name)
+    return Battleships::EXTENDED_SALVO_GAME_MODE;
+
+  throw std::invalid_argument("Game mode with the specified name does not exist!");
 }
