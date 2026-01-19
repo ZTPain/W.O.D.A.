@@ -58,8 +58,8 @@ jobs:
         with:
           name: linux-clang-build
           path: | 
-            - bin/libWODA.so
-            - bin/ConsoleWODAProxy
+            bin/libWODA.so
+            bin/ConsoleWODAProxy
 
   build-windows-gcc:
     runs-on:
@@ -97,9 +97,9 @@ jobs:
         with:
           name: windows-gcc-build
           path: | 
-            - bin/libWODA.dll
-            - bin/libWODA.dll.a
-            - bin/ConsoleWODAProxy.exe
+            bin/libWODA.dll
+            bin/libWODA.dll.a
+            bin/ConsoleWODAProxy.exe
 
   # build-windows-clang:
   #   runs-on:
