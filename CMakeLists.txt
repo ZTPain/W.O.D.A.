@@ -22,3 +22,5 @@ file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/**.cpp")
 add_library(${CMAKE_PROJECT_NAME} SHARED
   ${SOURCES}
 )
+
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -static-libgcc -static-libstdc++)
