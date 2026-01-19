@@ -58,7 +58,36 @@ void SaveManager::SaveGame() {
   saveState.header.version = 1;
   saveState.header.dataSize = 0; // Will be updated later
 
-  // Populate user profiles
+  SaveGameUserProfiles(saveState);
+  SaveGameReplays(saveState);
+
+  // Calculate total data size
+  size_t totalSize = sizeof(Header) + sizeof(TableOfContent);
+  totalSize += (saveState.userProfiles.size() * sizeof(UserProfileEntry)) + sizeof(int);
+  totalSize += (saveState.achievements.size() * sizeof(AchievementEntry)) + sizeof(int);
+  totalSize += (saveState.gameModes.size() * sizeof(GameModeEntry)) + sizeof(int);
+  totalSize += (saveState.replayPlayers.size() * sizeof(ReplayPlayerEntry)) + sizeof(int);
+  totalSize += (saveState.gameBoards.size() * sizeof(GameBoardEntry)) + sizeof(int);
+  totalSize += (saveState.replays.size() * sizeof(ReplayEntry)) + sizeof(int);
+  totalSize += (saveState.replayActions.size() * sizeof(ReplayActionEntry)) + sizeof(int);
+  saveState.header.dataSize = static_cast<uint32_t>(totalSize);
+
+  // Allocate buffer
+  std::vector<uint8_t> buffer(totalSize);
+
+  // Serialize save state into buffer
+  size_t offset = 0;
+  SaveData(buffer.data(), offset, totalSize, saveState);
+
+  assert(offset <= buffer.size());
+
+  // Write buffer to file
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+  file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<int64_t>(offset));
+  file.close();
+}
+
+void SaveManager::SaveGameUserProfiles(SaveState& saveState) {
   const auto& users = UserManager::GetInstance().Users();
   if (!users.empty()) {
     const auto& user = users.begin()->second;
@@ -94,7 +123,9 @@ void SaveManager::SaveGame() {
 
     saveState.userProfiles.push_back(entry);
   }
+}
 
+void SaveManager::SaveGameReplays(SaveState& saveState) {
   for (const auto& replay : ReplayManager::GetInstance().Replays()) {
     ReplayEntry entry{};
     entry.replayId = replay.replayId;
@@ -126,31 +157,6 @@ void SaveManager::SaveGame() {
       saveState.gameBoards.push_back(entry);
     }
   }
-
-  // Calculate total data size
-  size_t totalSize = sizeof(Header) + sizeof(TableOfContent);
-  totalSize += (saveState.userProfiles.size() * sizeof(UserProfileEntry)) + sizeof(int);
-  totalSize += (saveState.achievements.size() * sizeof(AchievementEntry)) + sizeof(int);
-  totalSize += (saveState.gameModes.size() * sizeof(GameModeEntry)) + sizeof(int);
-  totalSize += (saveState.replayPlayers.size() * sizeof(ReplayPlayerEntry)) + sizeof(int);
-  totalSize += (saveState.gameBoards.size() * sizeof(GameBoardEntry)) + sizeof(int);
-  totalSize += (saveState.replays.size() * sizeof(ReplayEntry)) + sizeof(int);
-  totalSize += (saveState.replayActions.size() * sizeof(ReplayActionEntry)) + sizeof(int);
-  saveState.header.dataSize = static_cast<uint32_t>(totalSize);
-
-  // Allocate buffer
-  std::vector<uint8_t> buffer(totalSize);
-
-  // Serialize save state into buffer
-  size_t offset = 0;
-  SaveData(buffer.data(), offset, totalSize, saveState);
-
-  assert(offset <= buffer.size());
-
-  // Write buffer to file
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-  file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<int64_t>(offset));
-  file.close();
 }
 
 uint16_t SaveManager::CreateOrGetGameModeIndex(
