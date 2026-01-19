@@ -137,7 +137,7 @@ private:
       std::vector<ReplayActionEntry>& outReplayActions
   );
 
-  static void SaveData(uint8_t* data, size_t offset, size_t length, const SaveState& saveState);
+  static void SaveData(uint8_t* data, size_t& offset, size_t length, const SaveState& saveState);
 
   static uint16_t CreateOrGetGameModeIndex(
       const GameMode& gameMode, std::vector<GameModeEntry>& gameModes

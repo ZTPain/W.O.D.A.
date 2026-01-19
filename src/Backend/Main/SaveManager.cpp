@@ -142,11 +142,14 @@ void SaveManager::SaveGame() {
   std::vector<uint8_t> buffer(totalSize);
 
   // Serialize save state into buffer
-  SaveData(buffer.data(), 0, totalSize, saveState);
+  size_t offset = 0;
+  SaveData(buffer.data(), offset, totalSize, saveState);
+
+  assert(offset <= buffer.size());
 
   // Write buffer to file
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-  file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<int64_t>(buffer.size()));
+  file.write(reinterpret_cast<const char*>(buffer.data()), static_cast<int64_t>(offset));
   file.close();
 }
 
@@ -265,19 +268,16 @@ void SaveManager::LoadData(const uint8_t* data, size_t offset, size_t length) {
   }
 
   // Deserialize Header
-  std::memcpy(&saveState.header, data + offset, sizeof(Header));
-  offset += sizeof(Header);
+  ReadBytes(data, offset, length, &saveState.header, sizeof(Header));
 
   if (!IsVersionSupported(saveState.header.version)) {
     // Unsupported version
     return;
   }
 
-  TableOfContent toc{};
-
   // Deserialize Table of Content
-  std::memcpy(&toc, data + offset, sizeof(TableOfContent));
-  offset += sizeof(TableOfContent);
+  TableOfContent toc{};
+  ReadBytes(data, offset, length, &toc, sizeof(TableOfContent));
 
   LoadAchievements(data, toc.offsetToAchievements, length, saveState.achievements);
   LoadUserProfiles(data, toc.offsetToUserProfiles, length, saveState.userProfiles);
@@ -736,7 +736,7 @@ void SaveManager::LoadReplayPlayers(
 }
 
 void SaveManager::SaveData(
-    uint8_t* data, size_t offset, size_t length, const SaveState& saveState
+    uint8_t* data, size_t& offset, size_t length, const SaveState& saveState
 ) {
   assert(length >= sizeof(Header) + sizeof(TableOfContent));
 
