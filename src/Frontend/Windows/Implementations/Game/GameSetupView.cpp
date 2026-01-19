@@ -672,6 +672,8 @@ void GameSetupView::PlaceUnitAt(
     return;
   }
 
+  orientation = orientation % 2; // 0 = horizontal, 1 = vertical
+
   for (size_t j = 0; j < unitSize; ++j) {
     size_t x = startX;
     size_t y = startY;
