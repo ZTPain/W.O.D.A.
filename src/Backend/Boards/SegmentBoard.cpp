@@ -64,3 +64,17 @@ const std::vector<std::vector<bool>>& SegmentBoard::LandSegments() const {
 
   return landSegments.value();
 }
+
+void SegmentBoard::LoadLandSegments(const std::vector<std::vector<bool>>& landSegments) {
+  if (!this->landSegments.has_value()) {
+    throw std::runtime_error("Land segments not available in this SegmentBoard!");
+  }
+
+  if (landSegments.size() != height || landSegments[0].size() != width) {
+    throw std::invalid_argument(
+        "Provided land segments dimensions do not match the board dimensions!"
+    );
+  }
+
+  this->landSegments = landSegments;
+}

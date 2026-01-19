@@ -273,3 +273,7 @@ const std::vector<std::vector<bool>>& SegmentBoardValidator::Segments() const {
 const std::vector<std::vector<bool>>& SegmentBoardValidator::LandSegments() const {
   return segmentBoard.LandSegments();
 }
+
+void SegmentBoardValidator::LoadLandSegments(const std::vector<std::vector<bool>>& landSegments) {
+  segmentBoard.LoadLandSegments(landSegments);
+}

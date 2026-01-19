@@ -21,4 +21,5 @@ public:
   virtual void Clear() = 0;
   // Array[UnitType][UnitNumber] of Coordinates[]
   [[nodiscard]] virtual const UnitsMap& GetUnits() const = 0;
+  virtual void LoadLandSegments(const std::vector<std::vector<bool>>& landSegments) = 0;
 };
