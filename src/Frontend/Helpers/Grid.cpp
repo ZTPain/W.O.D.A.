@@ -118,12 +118,13 @@ void Grid::HandleAlphaKeyPress(ConsoleKeyDetails keyDetails, bool isNumber, int&
     }
   } else if (isNumber) {
     size_t y = static_cast<size_t>(keyDetails.key) - static_cast<size_t>(ConsoleKey::D0);
-    if (y == 0)
-      y = 10;
     if (lastNumberIndex != -1) {
       y += static_cast<size_t>(lastNumberIndex) * 10;
       lastNumberIndex = -1;
     } else {
+      if (y == 0)
+        y = 10;
+
       lastNumberIndex = static_cast<int>(y);
     }
 
