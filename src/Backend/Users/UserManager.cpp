@@ -30,7 +30,8 @@ std::map<PlayerId, const UserProfile*> UserManager::UsersAndComputers() const {
 
 void UserManager::CreateUser(const std::string& name) {
   currentUserId = nextUserId++;
-  users[currentUserId] = UserProfile(currentUserId, name, initialAchievementPool.Clone());
+  users[currentUserId] =
+      UserProfile(currentUserId, name, initialAchievementPool.Clone(currentUserId));
 
   Battleships::GetInstance().WriteToSave();
 }
@@ -68,7 +69,7 @@ UserProfile& UserManager::CreateComputer(const std::string& name, ComputerType c
   computers[computerUserId] = UserProfile(
       computerUserId,
       name,
-      initialAchievementPool.Clone(),
+      initialAchievementPool.Clone(computerUserId),
       GameManager::GetComputerByType(computerType)
   );
 

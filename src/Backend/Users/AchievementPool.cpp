@@ -1,5 +1,7 @@
 #include "AchievementPool.h"
 #include "Backend/Main/SerializationHelper.h"
+#include "Backend/Users/UserManager.h"
+#include "Backend/Users/UserProfile.h"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -12,7 +14,12 @@ Achievement::Achievement(
 )
     : name(name), description(description), content(content), unlocked(unlocked) {}
 
-AchievementPool::AchievementPool() {
+AchievementPool::AchievementPool(const AchievementPool& other, PlayerId playerId)
+    : nameToAchievementMap(other.nameToAchievementMap), playerId(playerId) {}
+
+AchievementPool::AchievementPool() : AchievementPool(0) {}
+
+AchievementPool::AchievementPool(PlayerId playerId) : playerId(playerId) {
   InitMapElement(
       "The Fastest Hand in the West", "Win a game in under 5 minutes.", UnlockableContent::SalvoMode
   );
@@ -61,11 +68,17 @@ const std::unordered_map<std::string, Achievement>& AchievementPool::NameToAchie
 }
 
 void AchievementPool::Unlock(const std::string& name) {
+  const auto& achiv = nameToAchievementMap.at(name);
+
+  auto& user = UserManager::GetInstance().GetUserById(playerId);
+
+  user.unlockedContent |= achiv.content;
+
   nameToAchievementMap.at(name).unlocked = true;
 }
 
-std::unique_ptr<AchievementPool> AchievementPool::Clone() {
-  return std::make_unique<AchievementPool>(*this);
+std::unique_ptr<AchievementPool> AchievementPool::Clone(PlayerId playerId) {
+  return std::make_unique<AchievementPool>(*this, playerId);
 }
 
 void AchievementPool::Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const {
