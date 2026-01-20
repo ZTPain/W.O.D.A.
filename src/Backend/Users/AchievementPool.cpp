@@ -1,7 +1,6 @@
 #include "AchievementPool.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
