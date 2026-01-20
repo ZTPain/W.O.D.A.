@@ -131,7 +131,10 @@ void InGameView::HandleEscape() {
   }
 }
 
-void InGameView::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
+void InGameView::OnResize(int /*width*/, int /*height*/) {
+  SetGridOffsets();
+  ForceRender();
+}
 
 bool InGameView::IsCorrectSize(int width, int height) const {
   const auto& mode = GetGameMode();
