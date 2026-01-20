@@ -32,6 +32,7 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       if (selectedReplayIndex > 0) {
         --selectedReplayIndex;
         DrawOptions();
+        IO::cout.flush();
       }
       return true;
 
@@ -40,6 +41,7 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
       if (selectedReplayIndex + 1 < replays.size()) {
         ++selectedReplayIndex;
         DrawOptions();
+        IO::cout.flush();
       }
       return true;
 
