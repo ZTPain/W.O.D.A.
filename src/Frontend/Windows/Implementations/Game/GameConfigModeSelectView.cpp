@@ -59,6 +59,7 @@ bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
         DrawOption(prevIndex);
         DrawOption(selectedIndex);
+        IO::cout.flush();
       }
       return true;
 
@@ -72,6 +73,7 @@ bool GameConfigModeSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 
         DrawOption(prevIndex);
         DrawOption(selectedIndex);
+        IO::cout.flush();
       }
       return true;
 
