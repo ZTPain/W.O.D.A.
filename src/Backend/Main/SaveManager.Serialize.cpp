@@ -34,7 +34,7 @@ void SaveManager::WriteBytes(
     size_t& offset,
     size_t length,
     const std::vector<T>& inBuffer,
-    std::function<void(const T& item)> writer
+    const std::function<void(const T& item)>& writer
 ) {
   size_t bufferSize = inBuffer.size();
   WriteBytes(data, offset, length, &bufferSize, sizeof(bufferSize));

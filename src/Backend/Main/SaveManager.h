@@ -209,7 +209,7 @@ private:
       size_t& offset,
       size_t length,
       std::vector<T>& outBuffer,
-      std::function<void(T& item)> reader
+      const std::function<void(T& item)>& reader
   );
 
   static void WriteBytes(
@@ -227,6 +227,6 @@ private:
       size_t& offset,
       size_t length,
       const std::vector<T>& inBuffer,
-      std::function<void(const T& item)> writer
+      const std::function<void(const T& item)>& writer
   );
 };

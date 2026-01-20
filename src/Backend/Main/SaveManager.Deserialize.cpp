@@ -54,7 +54,7 @@ void SaveManager::ReadBytes(
     size_t& offset,
     size_t length,
     std::vector<T>& outBuffer,
-    std::function<void(T& item)> reader
+    const std::function<void(T& item)>& reader
 ) {
   size_t bufferSize = 0;
   ReadBytes(data, offset, length, &bufferSize, sizeof(bufferSize));
