@@ -28,6 +28,10 @@ static inline uint64_t operator|(uint64_t a, UnlockableContent b) {
   return (a | static_cast<uint64_t>(b));
 }
 
+static inline uint64_t operator|=(uint64_t a, UnlockableContent b) {
+  return (a | static_cast<uint64_t>(b));
+}
+
 inline static bool operator&(uint64_t a, UnlockableContent b) {
   return (a & static_cast<uint64_t>(b)) != 0;
 }
@@ -45,8 +49,11 @@ struct Achievement {
   );
 };
 
-class AchievementPool : IClone<AchievementPool> {
+using PlayerId = uint32_t;
+
+class AchievementPool : IClone<AchievementPool, PlayerId> {
   std::unordered_map<std::string, Achievement> nameToAchievementMap;
+  PlayerId playerId;
 
   // Use for const initialization (hence std::string_view). It is not constexpr initialization,
   // due to compile-time unordered_maps being a C++20 feature.
@@ -56,9 +63,11 @@ class AchievementPool : IClone<AchievementPool> {
 
 public:
   AchievementPool();
+  AchievementPool(PlayerId playerId);
+  AchievementPool(const AchievementPool& other, PlayerId playerId);
   [[nodiscard]] const std::unordered_map<std::string, Achievement>& NameToAchievementMap() const;
   void Unlock(const std::string& name);
-  std::unique_ptr<AchievementPool> Clone() override;
+  std::unique_ptr<AchievementPool> Clone(PlayerId playerId) override;
 
   void Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
 

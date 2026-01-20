@@ -103,18 +103,7 @@ public:
   [[nodiscard]] PlayerId UserId() const;
   [[nodiscard]] Computer* AI() const;
 
-  UserProfile& operator=(const UserProfile& other) {
-    if (this != &other) {
-      userId = other.userId;
-      ai = other.ai;
-      name = other.name;
-      statistics = other.statistics;
-      achievements = other.achievements->Clone();
-      unlockedContent = other.unlockedContent;
-      settings = other.settings;
-    }
-    return *this;
-  }
+  UserProfile& operator=(const UserProfile& other);
 
   void Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
   static UserProfile Deserialize(const uint8_t* buffer, size_t& offset, size_t bufferSize);
