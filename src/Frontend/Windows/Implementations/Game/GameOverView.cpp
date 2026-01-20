@@ -1,5 +1,6 @@
 #include "GameOverView.h"
 
+#include "Backend/Main/SaveManager.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
@@ -24,6 +25,8 @@ void GameOverView::OnExit() {
 
   const auto& gameManager = AppState::GetCurrentGameManager();
   gameManager->SaveReplay();
+
+  SaveManager::SaveGame();
 
   IO::cout << AnsiHelper::Reset();
   AppState::Reset();
