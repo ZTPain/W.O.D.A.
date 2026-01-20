@@ -12,6 +12,7 @@
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstddef>
@@ -20,6 +21,7 @@
 #include <cstring>
 #include <ctime>
 #include <memory>
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -63,12 +65,14 @@ void SaveManager::LoadData(const uint8_t* data, size_t offset, size_t length) {
     UserProfile userProfile(
         user.userId,
         std::string(user.name.data()),
-        std::make_unique<AchievementPool>(),
+        std::make_unique<AchievementPool>(user.userId),
         GameManager::GetComputerByType(user.ai)
     );
     userProfile.unlockedContent = user.unlockedContent;
     userProfile.statistics = user.statistics;
     userProfile.settings = user.settings;
+
+    UserManager::GetInstance().AddUserProfile(userProfile);
 
     // Load unlocked achievements
     for (size_t i = 0; i < saveState.achievements.size(); ++i) {
@@ -78,8 +82,6 @@ void SaveManager::LoadData(const uint8_t* data, size_t offset, size_t length) {
       if ((user.unlockedAchievements & (1ULL << i)) != 0U)
         userProfile.achievements->Unlock(achievementId);
     }
-
-    UserManager::GetInstance().AddUserProfile(userProfile);
   }
 
   std::vector<GameBoard*> registeredBoards;
@@ -102,8 +104,27 @@ void SaveManager::LoadData(const uint8_t* data, size_t offset, size_t length) {
   // Load Actions
   std::vector<ReplayAction> actions;
   actions.reserve(saveState.replayActions.size());
+  size_t i = 0;
   for (const auto& actionEntry : saveState.replayActions) {
-    CreateAndAddReplayAction(actionEntry, players, actions);
+    bool end = false;
+    const size_t playersOffset = std::accumulate(
+        saveState.replays.begin(),
+        saveState.replays.end(),
+        0U,
+        [&end, &i](size_t sum, const ReplayEntry& replay) {
+          if (end)
+            return 0ULL;
+          if (std::find(replay.replayActionIndices.begin(), replay.replayActionIndices.end(), i) !=
+              replay.replayActionIndices.end()) {
+            end = true;
+            return sum;
+          }
+
+          return sum + replay.replayPlayerIndices.size();
+        }
+    );
+    CreateAndAddReplayAction(actionEntry, players, playersOffset, actions);
+    i++;
   }
 
   // Load Replays
@@ -216,16 +237,20 @@ Player SaveManager::CreatePlayer(
 void SaveManager::CreateAndAddReplayAction(
     const ReplayActionEntry& actionEntry,
     const std::vector<Player>& players,
+    size_t playersOffset,
     std::vector<ReplayAction>& actions
 ) {
   std::unique_ptr<ICommand> command = nullptr;
   switch (static_cast<FireCommandType>(actionEntry.commandType)) {
     case FireCommandType::FireCommand:
-      command = CreateFireCommand(actionEntry, players.at(actionEntry.enemyIndex).board);
+      command =
+          CreateFireCommand(actionEntry, players.at(actionEntry.enemyIndex + playersOffset).board);
       break;
 
     case FireCommandType::SalvoFireCommand:
-      command = CreateSalvoFireCommand(actionEntry, players.at(actionEntry.enemyIndex).board);
+      command = CreateSalvoFireCommand(
+          actionEntry, players.at(actionEntry.enemyIndex + playersOffset).board
+      );
       break;
 
     default:

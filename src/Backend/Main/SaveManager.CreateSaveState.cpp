@@ -36,13 +36,13 @@ SaveManager::SaveState SaveManager::CreateSaveState() {
 
   // Calculate total data size
   size_t totalSize = sizeof(Header) + sizeof(TableOfContent);
-  totalSize += (saveState.userProfiles.size() * sizeof(UserProfileEntry)) + sizeof(int);
-  totalSize += (saveState.achievements.size() * sizeof(AchievementEntry)) + sizeof(int);
-  totalSize += (saveState.gameModes.size() * sizeof(GameModeEntry)) + sizeof(int);
-  totalSize += (saveState.replayPlayers.size() * sizeof(ReplayPlayerEntry)) + sizeof(int);
-  totalSize += (saveState.gameBoards.size() * sizeof(GameBoardEntry)) + sizeof(int);
-  totalSize += (saveState.replays.size() * sizeof(ReplayEntry)) + sizeof(int);
-  totalSize += (saveState.replayActions.size() * sizeof(ReplayActionEntry)) + sizeof(int);
+  totalSize += (saveState.userProfiles.size() * sizeof(UserProfileEntry)) + sizeof(size_t);
+  totalSize += (saveState.achievements.size() * sizeof(AchievementEntry)) + sizeof(size_t);
+  totalSize += (saveState.gameModes.size() * sizeof(GameModeEntry)) + sizeof(size_t);
+  totalSize += (saveState.replayPlayers.size() * sizeof(ReplayPlayerEntry)) + sizeof(size_t);
+  totalSize += (saveState.gameBoards.size() * sizeof(GameBoardEntry)) + sizeof(size_t);
+  totalSize += (saveState.replays.size() * sizeof(ReplayEntry)) + sizeof(size_t);
+  totalSize += (saveState.replayActions.size() * sizeof(ReplayActionEntry)) + sizeof(size_t);
   saveState.header.dataSize = static_cast<uint32_t>(totalSize);
 
   return saveState;
@@ -87,6 +87,8 @@ void SaveManager::SaveGameUserProfiles(SaveState& saveState) {
 }
 
 void SaveManager::SaveGameReplays(SaveState& saveState) {
+  std::vector<std::pair<GameBoard*, uint32_t>> gameBoards;
+  size_t gameBoardsOffset = 0;
   for (const auto& replay : ReplayManager::GetInstance().Replays()) {
     ReplayEntry entry{};
     entry.replayId = replay.replayId;
@@ -96,10 +98,10 @@ void SaveManager::SaveGameReplays(SaveState& saveState) {
     const auto gameModeIndex = entry.gameModeId =
         CreateOrGetGameModeIndex(replay.mode, saveState.gameModes);
 
-    std::vector<GameBoard*> gameBoards;
-    gameBoards.reserve(replay.players.size());
+    gameBoards.reserve(gameBoards.size() + replay.players.size());
     for (const auto& player : replay.players) {
-      const auto index = CreateReplayPlayerIndex(player, gameBoards, saveState.replayPlayers);
+      const auto index =
+          CreateReplayPlayerIndex(player, gameBoards, gameModeIndex, saveState.replayPlayers);
       entry.replayPlayerIndices.push_back(index);
     }
 
@@ -110,14 +112,23 @@ void SaveManager::SaveGameReplays(SaveState& saveState) {
 
     saveState.replays.push_back(entry);
 
-    assert(saveState.gameBoards.empty());
-    saveState.gameBoards.reserve(gameBoards.size());
+    size_t i = 0;
     for (const auto& gameBoard : gameBoards) {
+      if (i < gameBoardsOffset) {
+        i++;
+        continue;
+      }
       GameBoardEntry entry{};
-      CreateReplayBoardEntry(*gameBoard, gameBoard->GetGameMode(), entry, gameModeIndex);
+      CreateReplayBoardEntry(
+          *gameBoard.first, gameBoard.first->GetGameMode(), entry, gameBoard.second
+      );
       saveState.gameBoards.push_back(entry);
+      i++;
     }
+    gameBoardsOffset = i;
   }
+
+  assert(gameBoards.size() == saveState.gameBoards.size());
 }
 
 uint16_t SaveManager::CreateOrGetGameModeIndex(
@@ -138,7 +149,8 @@ uint16_t SaveManager::CreateOrGetGameModeIndex(
 
 uint16_t SaveManager::CreateReplayPlayerIndex(
     const Player& player,
-    std::vector<GameBoard*>& gameBoards,
+    std::vector<std::pair<GameBoard*, uint32_t>>& gameBoards,
+    uint32_t gameModeIndex,
     std::vector<ReplayPlayerEntry>& replayPlayers
 ) {
   ReplayPlayerEntry entry{};
@@ -149,7 +161,7 @@ uint16_t SaveManager::CreateReplayPlayerIndex(
       player.profile.AI() != nullptr ? player.profile.AI()->GetComputerType() : ComputerType::None;
 
   // Find the index of the player's game board
-  gameBoards.push_back(player.board);
+  gameBoards.emplace_back(player.board, gameModeIndex);
   entry.gameBoardIndex = static_cast<uint16_t>(gameBoards.size() - 1);
 
   replayPlayers.push_back(entry);

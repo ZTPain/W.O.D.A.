@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 class SaveManager {
@@ -136,6 +137,7 @@ private:
   static void CreateAndAddReplayAction(
       const ReplayActionEntry& actionEntry,
       const std::vector<Player>& players,
+      size_t playersOffset,
       std::vector<ReplayAction>& actions
   );
 
@@ -160,7 +162,8 @@ private:
 
   static uint16_t CreateReplayPlayerIndex(
       const Player& player,
-      std::vector<GameBoard*>& gameBoards,
+      std::vector<std::pair<GameBoard*, uint32_t>>& gameBoards,
+      uint32_t gameModeIndex,
       std::vector<ReplayPlayerEntry>& replayPlayers
   );
 

@@ -73,8 +73,19 @@ void SaveManager::SaveData(
   toc.offsetToReplayPlayers = static_cast<uint32_t>(offset);
   SaveReplayPlayers(data, offset, length, saveState.replayPlayers);
 
+  const auto currentOffset = offset;
+
   offset = tocOffset;
   WriteBytes(data, offset, length, &toc, sizeof(toc));
+
+  offset = currentOffset;
+  const Header header = {
+      saveState.header.version,
+      static_cast<uint32_t>(offset),
+  };
+  offset = 0;
+  WriteBytes(data, offset, length, &header, sizeof(header));
+  offset = currentOffset;
 }
 
 void SaveManager::SaveUserProfiles(
