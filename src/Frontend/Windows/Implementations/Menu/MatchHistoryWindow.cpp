@@ -32,8 +32,7 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     case ConsoleKey::UpArrow:
       if (selectedReplayIndex > 0) {
         --selectedReplayIndex;
-        DrawOptions();
-        IO::cout.flush();
+        ForceRender();
       }
       return true;
 
@@ -41,8 +40,7 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     case ConsoleKey::DownArrow:
       if (selectedReplayIndex + 1 < replays.size()) {
         ++selectedReplayIndex;
-        DrawOptions();
-        IO::cout.flush();
+        ForceRender();
       }
       return true;
 
@@ -73,7 +71,7 @@ bool MatchHistoryWindow::OnKeyPressed(ConsoleKeyDetails keyDetails) {
 void MatchHistoryWindow::OnResize(int /*width*/, int /*height*/) { ForceRender(); }
 
 bool MatchHistoryWindow::IsCorrectSize(int width, int height) const {
-  return width >= 60 && height >= 20;
+  return width >= 80 && height >= 20;
 }
 
 void MatchHistoryWindow::ForceRender() {
@@ -124,25 +122,25 @@ void MatchHistoryWindow::DrawReplay(size_t index, const Replay& replay) const {
 }
 
 void MatchHistoryWindow::DrawReplayDetails(const Replay& replay) {
-  IO::cout << AnsiHelper::MoveCursor(40, 2);
+  IO::cout << AnsiHelper::MoveCursor(60, 2);
   IO::cout << "Replay Details:";
 
-  IO::cout << AnsiHelper::MoveCursor(40, 4);
+  IO::cout << AnsiHelper::MoveCursor(60, 4);
   IO::cout << "Replay ID: " << replay.replayId;
-  IO::cout << AnsiHelper::MoveCursor(40, 5);
+  IO::cout << AnsiHelper::MoveCursor(60, 5);
   IO::cout << "Players:";
   size_t i = 0;
   for (const auto& player : replay.players) {
-    IO::cout << AnsiHelper::MoveCursor(40, 6 + static_cast<int>(i));
+    IO::cout << AnsiHelper::MoveCursor(60, 6 + static_cast<int>(i));
     IO::cout << " - " << player.profile.name;
     if (i == replay.winnerId)
       IO::cout << "   (🥇)";
     i++;
   }
-  IO::cout << AnsiHelper::MoveCursor(40, 6 + static_cast<int>(i));
+  IO::cout << AnsiHelper::MoveCursor(60, 6 + static_cast<int>(i));
   IO::cout << "Winner: " << replay.players[replay.winnerId].profile.name;
-  IO::cout << AnsiHelper::MoveCursor(40, 7 + static_cast<int>(i));
+  IO::cout << AnsiHelper::MoveCursor(60, 7 + static_cast<int>(i));
   IO::cout << "Playtime: " << replay.playtime.count() << " seconds";
-  IO::cout << AnsiHelper::MoveCursor(40, 8 + static_cast<int>(i));
+  IO::cout << AnsiHelper::MoveCursor(60, 8 + static_cast<int>(i));
   IO::cout << "Timestamp: " << std::ctime(&replay.timestamp);
 }
