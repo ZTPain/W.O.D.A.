@@ -11,8 +11,8 @@ constexpr auto SELECTED_COLOR_TEXT = AnsiColor::Black;
 constexpr auto SELECTED_COLOR_BACKGROUND = AnsiColor::White;
 constexpr auto SELECTED_COLOR = std::make_pair(SELECTED_COLOR_TEXT, SELECTED_COLOR_BACKGROUND);
 
-constexpr auto ERROR_COLOR_TEXT = AnsiColor::BrightWhite;
-constexpr auto ERROR_COLOR_BACKGROUND = AnsiColor::Red;
+constexpr auto ERROR_COLOR_TEXT = AnsiColor::Red;
+constexpr auto ERROR_COLOR_BACKGROUND = AnsiColor::Black;
 constexpr auto ERROR_COLOR = std::make_pair(ERROR_COLOR_TEXT, ERROR_COLOR_BACKGROUND);
 
 constexpr auto WATER_COLOR_BACKGROUND = AnsiColor::Blue;
