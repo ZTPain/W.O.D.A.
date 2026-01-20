@@ -131,7 +131,7 @@ void SaveManager::SaveReplayActions(
         WriteBytes(data, offset, length, &action.playerIndex, sizeof(action.playerIndex));
         WriteBytes(data, offset, length, &action.enemyIndex, sizeof(action.enemyIndex));
         WriteBytes(data, offset, length, &action.commandType, sizeof(action.commandType));
-        WriteBytes(data, offset, length, action.commandData.data(), action.commandData.size());
+        WriteBytes(data, offset, length, action.commandData);
       };
 
   WriteBytes(data, offset, length, actions, writer);
