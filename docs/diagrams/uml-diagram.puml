@@ -3,14 +3,23 @@
 package Units {
     enum BattleUnitType {
         None,
+
         PatrolBoat,
         Interceptor,
         Cruiser,
         Dreadnought,
-        ...
+
+        InfantrySquadron,
+        GrenadeLauncher,
+        MobileArtillery,
+        ArmoredTrain,
+        OperationsHeadquarter,
+
+        FighterJet,
     }
 
     enum BattleUnitCategory {
+        None,
         Land,
         Marine,
         Aerial,
@@ -18,90 +27,127 @@ package Units {
 
     abstract class BattleUnit {
         - unsigned int destroyedSegments = 0;
-        # unsigned int segments;
-        # BattleUnitCategory category;
+        # unsigned int segments = 0;
+        # BattleUnitType type = None;
+        # BattleUnitCategory category = None;
 
-        + BattleUnit();
         + virtual ~BattleUnit() = default;
-        + virtual BattleUnitType GetType() const = 0;
+        + BattleUnitType GetType() const;
         + BattleUnitCategory GetCategory() const;
+        + unsigned int GetTotalSegments() const;
+        + unsigned int GetDestroyedSegments() const;
         + void DestroySegment();
         + void FixSegment();
+        + void Reset();
         + bool IsDestroyed() const;
     }
 
-    ' Size: 1
     class PatrolBoat {
         + PatrolBoat();
-        + BattleUnitType GetType() const override;
     }
 
-    ' Size: 2 
     class Interceptor {
         + Interceptor();
-        + BattleUnitType GetType() const override;
     }
 
-    ' Size: 3
     class Cruiser {
         + Cruiser();
-        + BattleUnitType GetType() const override;
     }
 
-    ' Size: 4
     class Dreadnought {
         + Dreadnought();
-        + BattleUnitType GetType() const override;
+    }
+
+    class InfantrySquadron {
+        + InfantrySquadron();
+    }
+
+    class GrenadeLauncher {
+        + GrenadeLauncher();
+    }
+
+    class MobileArtillery {
+        + MobileArtillery();
+    }
+
+    class ArmoredTrain {
+        + ArmoredTrain();
+        + {static} bool IsValidUnitShape(const vector<Coordinates>& segments);
+    }
+
+    class OperationsHeadquarter {
+        + OperationsHeadquarter();
+        + {static} bool IsValidUnitShape(const vector<Coordinates>& segments);
+    }
+
+    class FighterJet {
+        + FighterJet();
+        + {static} bool IsValidUnitShape(const vector<Coordinates>& segments);
     }
 
     BattleUnit --> BattleUnitType
     BattleUnit --> BattleUnitCategory
 
-    PatrolBoat -|> BattleUnit
+    BattleUnit <|-- PatrolBoat
     BattleUnit <|-- Interceptor
     BattleUnit <|-- Cruiser
-    BattleUnit <|- Dreadnought
+    BattleUnit <|-- Dreadnought
+
+    BattleUnit <|-- InfantrySquadron
+    BattleUnit <|-- GrenadeLauncher
+    BattleUnit <|-- MobileArtillery
+    ArmoredTrain -|> BattleUnit
+    BattleUnit <|- OperationsHeadquarter
+
+    BattleUnit <|- FighterJet
 }
 
 package Boards {
     ' Implements Protection Proxy design pattern
     interface ISegment {
-        + ISegment(size_t width, size_t height);
         + virtual ~ISegment() = default;
         + virtual size_t Width() const = 0;
         + virtual size_t Height() const = 0;
         + virtual const vector<vector<bool>>& Segments() const = 0;
+        + virtual const vector<vector<bool>>& LandSegments() const = 0;
         + virtual bool ToggleSegment(size_t x, size_t y) = 0;
         + virtual void Clear() = 0;
         ' Array[UnitType][UnitNumber] of Coordinates[]
-        + virtual const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const = 0;
+        + virtual const UnitsMap& GetUnits() const = 0;
+        + virtual void LoadLandSegments(const vector<vector<bool>>& landSegments) = 0;
     }
 
     class SegmentBoard {
         - size_t width;
         - size_t height;
         - vector<vector<bool>> segments;
+        - optional<vector<vector<bool>>> landSegments;
 
-        + SegmentBoard(size_t width, size_t height);
+        + SegmentBoard(size_t width, size_t height, bool hasLandSegments = false);
         + size_t Width() const override;
         + size_t Height() const override;
         + const vector<vector<bool>>& Segments() const override;
+        + const vector<vector<bool>>& LandSegments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
+        + const UnitsMap& GetUnits() const override;
+        + void LoadLandSegments(const vector<vector<bool>>& landSegments) override;
     }
 
     class SegmentBoardValidator {
         - ISegment& segmentBoard;
-        - GameMode mode;
+        - const GameMode& mode;
+        - UnitsMap lastUnits;
 
-        + SegmentBoardValidator(size_t width, size_t height);
+        + SegmentBoardValidator(ISegment& segmentBoard, const GameMode& mode);
         + size_t Width() const override;
         + size_t Height() const override;
         + const vector<vector<bool>>& Segments() const override;
+        + const vector<vector<bool>>& LandSegments() const override;
         + bool ToggleSegment(size_t x, size_t y) override;
         + void Clear() override;
-        + const unordered_map<BattleUnitType, vector<vector<Coordinates>>>& GetUnits() const override;
+        + const UnitsMap& GetUnits() const override;
+        + void LoadLandSegments(const vector<vector<bool>>& landSegments) override;
     }
 
     SegmentBoard ..|> ISegment
@@ -109,21 +155,23 @@ package Boards {
     ISegment -* SegmentBoardValidator
 
     class GameBoard {
-        - size_t width;
-        - size_t height;
-        - ISegment& segmentBoard;
+        - const GameMode& mode;
+        - unique_ptr<ISegment> segmentBoard;
+        - unique_ptr<ISegment> segmentValidator;
         - vector<vector<shared_ptr<BattleUnit>>> units;
+        - vector<shared_ptr<BattleUnit>> allUnits;
 
-        + GameBoard(size_t width, size_t height);
-        + ~GameBoard();
+        + GameBoard(const GameMode& mode);
         + size_t Width() const;
         + size_t Height() const;
-        + ISegment SegmentBoard();
+        + ISegment& GetSegmentBoard();
         + const vector<vector<shared_ptr<BattleUnit>>>& Units() const;
         + void ParseSegments();
         + bool FireAt(size_t x, size_t y);
         + void FixSegment(size_t x, size_t y);
-        + bool IsGameOver();
+        + bool IsGameOver() const;
+        + const vector<shared_ptr<BattleUnit>>& GetAllUnits() const;
+        + const GameMode& GetGameMode() const;
     }
 
     GameBoard --> BattleUnit
@@ -134,19 +182,23 @@ package Computers {
     ' Implements Strategy design pattern
     interface IComputerStrategy {
         + virtual ~IComputerStrategy() = default;
-        + virtual Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const = 0;
+        + virtual Coordinates CalculateFireCoordinates(
+        const GameBoard& board, const vector<Coordinates>& blacklistedCoordinates) const = 0;
     }
 
     class EasyComputerStrategy {
-        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& board, const vector<Coordinates>& blacklistedCoordinates) const override;
     }
 
     class MediumComputerStrategy {
-        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& board, const vector<Coordinates>& blacklistedCoordinates) const override;
     }
 
     class HardComputerStrategy {
-        + Coordinates CalculateFireCoordinates(ISegment& segmentBoard) const override;
+        + Coordinates CalculateFireCoordinates(
+        const GameBoard& board, const vector<Coordinates>& blacklistedCoordinates) const override;
     }
 
     EasyComputerStrategy .|> IComputerStrategy
@@ -161,10 +213,13 @@ package Computers {
     }
 
     class Computer {
-        - IComputerStrategy& computerStrategy;
+        - IComputerStrategy* computerStrategy;
+        - ComputerType computerType;
 
         + Computer(ComputerType type);
-        + Coordinates GetFireCoordinates(ISegment& segmentBoard) const;
+        + Coordinates GetFireCoordinates(
+        const GameBoard* board, const vector<Coordinates>& blacklistedCoordinates) const;
+        + ComputerType GetComputerType() const;
     }
 
     ComputerType <- Computer
@@ -173,8 +228,8 @@ package Computers {
 
 package Users {
     struct Statistics {
-        chrono::seconds fastestWonGame = 0;
-        chrono::seconds totalPlaytime = 0;
+        chrono::seconds fastestWonGame = 0s;
+        chrono::seconds totalPlaytime = 0s;
         unsigned int longestHitStreak = 0;
         unsigned int gamesPlayed = 0;
         unsigned int gamesWon = 0;
@@ -186,12 +241,17 @@ package Users {
     }
 
     enum UnlockableContent <<flags : uint64_t>> {
-        None = 0,
-        MediumComputer = 1,
-        HardComputer = 2,
-        SalvoMode = 4,
-        ExtendedMode = 8,
-        ...
+        None = 0x0,
+        MediumComputer = 0x1,
+        HardComputer = 0x1 << 1,
+        SalvoMode = 0x1 << 2,
+        ExtendedMode = 0x1 << 3,
+        FlowerShipIcon = 0x1 << 4,
+        CrosshairShipIcon = 0x1 << 5,
+        StarShipIcon = 0x1 << 6,
+        StoneShipIcon = 0x1 << 7,
+        RedBorderColor = 0x1 << 8,
+        BlueBorderColor = 0x1 << 9,
     }
 
     struct Achievement {
@@ -203,17 +263,22 @@ package Users {
 
     ' Implements Prototype design pattern
     ' Look up CRTP for Clone() implementation
-    interface IClone <<template <class Derived>>> {
+    interface IClone <<template <class Derived, typename Arg>>> {
         + virtual ~IClone() = default;
-        + virtual unique_ptr<Derived> Clone() = 0;
+        + virtual unique_ptr<Derived> Clone(Arg) = 0;
     }
 
     class AchievementPool {
         - unordered_map<string, Achievement> nameToAchievementMap;
+        - PlayerId playerId;
 
+        - void InitMapElement(string_view name, string_view description, UnlockableContent content);
         + AchievementPool();
+        + AchievementPool(PlayerId playerId);
+        + AchievementPool(const AchievementPool& other, PlayerId playerId);
         + const unordered_map<string, Achievement>& NameToAchievementMap() const;
-        + bool Unlock(string name);
+        + void Unlock(const string& name);
+        + unique_ptr<AchievementPool> Clone(PlayerId playerId) override;
     }
 
     IClone <|.. AchievementPool
@@ -221,15 +286,29 @@ package Users {
 
     enum Color {
         Default,
-        ...
+        Red,
+        Black,
+        Green,
+        Blue,
+        Gold,
+        ValueCount,
     }
+
     enum BorderPattern {
         Default,
-        ...
+        Double,
+        Bold,
+        Rounded,
+        ValueCount,
     }
+
     enum UnitPattern {
         Default,
-        ...
+        FlowerShipIcon,
+        CrosshairShipIcon,
+        StarShipIcon,
+        StoneShipIcon,
+        ValueCount,
     }
 
     struct UserSettings {
@@ -247,20 +326,23 @@ package Users {
 
     class UserProfile {
         - unsigned int userId;
-        - Computer* computer;
+        - Computer* ai;
         + string name;
         + Statistics statistics;
         + unique_ptr<AchievementPool> achievements;
         + uint64_t unlockedContent;
         + UserSettings settings;
 
-        + UserProfile(unsigned int userId, string name,
-        unique_ptr<AchievementPool> achievements);
-        + UserProfile(unsigned int userId, string name,
-        unique_ptr<AchievementPool> achievements, Computer& computer);
+        - UserProfile(PlayerId userId, string name, Statistics statistics, unique_ptr<AchievementPool> achievements,
+        uint64_t unlockedContent, UserSettings settings, Computer* ai);
+        + UserProfile();
+        + UserProfile(const UserProfile& other);
+        + UserProfile(PlayerId userId, const string& name, unique_ptr<AchievementPool> achievements);
+        + UserProfile(PlayerId userId, const string& name,
+        unique_ptr<AchievementPool> achievements, Computer* ai);
         + ~UserProfile();
-        + unsigned int UserId();
-        + Computer* Computer();
+        + PlayerId UserId() const;
+        + Computer* AI() const;
     }
 
     UserProfile *-- Statistics
@@ -270,20 +352,25 @@ package Users {
     UserProfile *.. Computer
 
     class UserManager {
-        - {static} UserManager instance;
-        - {static} unsigned int nextUserId;
-        - vector<UserProfile> users;
-        - unsigned int currentUserId;
+        - unsigned int nextUserId;
+        - unsigned int nextComputerUserId;
+        - map<PlayerId, UserProfile> users;
+        - map<PlayerId, UserProfile> computers;
+        - PlayerId currentUserId;
         - AchievementPool initialAchievementPool;
 
         - UserManager();
         + {static} UserManager& GetInstance();
         + ~UserManager();
-        + const vector<UserProfile>& Users() const;
-        + void CreateUser(string name);
+        + const map<PlayerId, UserProfile>& Users() const;
+        + map<PlayerId, const UserProfile*> UsersAndComputers() const;
+        + void CreateUser(const string& name);
         + UserProfile& GetCurrentUser();
-        + bool ChangeCurrentUser(unsigned int userId);
-        + UserProfile CreateComputer(string name, ComputerType computerType);
+        + bool ChangeCurrentUser(PlayerId userId);
+        + UserProfile& GetUserById(PlayerId userId);
+        + UserProfile& CreateComputer(const string& name, ComputerType computerType);
+        + void AddUserProfile(const UserProfile& userProfile);
+        + void DestroyComputer(PlayerId computerId);
     }
 
     UserManager *-- AchievementPool
@@ -292,33 +379,52 @@ package Users {
 
 package Games {
     struct Coordinates {
-        size_t x;
-        size_t y;
+        + size_t x;
+        + size_t y;
+
+        + Coordinates(size_t x, size_t y);
+        + Coordinates();
     }
 
     ' Implements Command design pattern
     interface ICommand {
+        + virtual unique_ptr<ICommand> Clone() const = 0;
         + virtual ~ICommand() = default;
         + virtual bool Execute() = 0;
         + virtual void Undo() = 0;
+        + virtual unsigned int Shots() const = 0;
+        + virtual unsigned int ShotsHit() const = 0;
+        + virtual unsigned int UnitsDestroyed() const = 0;
+        + virtual vector<Coordinates> GetCoordinates() const = 0;
     }
 
     class FireCommand {
-        - GameBoard& board;
+        - GameBoard* board;
         - Coordinates coords;
 
-        + FireCommand(GameBoard& board, Coordinates coords);
+        + FireCommand(GameBoard* board, Coordinates coords);
+        + unique_ptr<ICommand> Clone() const override;
         + bool Execute() override;
         + void Undo() override;
+        + unsigned int Shots() const override;
+        + unsigned int ShotsHit() const override;
+        + unsigned int UnitsDestroyed() const override;
+        + vector<Coordinates> GetCoordinates() const override;
     }
 
     class SalvoFireCommand {
-        - GameBoard& board;
+        - GameBoard* board;
         - vector<Coordinates> coords;
 
-        + SalvoFireCommand(GameBoard& board, vector<Coordinates> coords);
+        + SalvoFireCommand(const SalvoFireCommand& other);
+        + SalvoFireCommand(GameBoard* board, vector<Coordinates> coords);
+        + unique_ptr<ICommand> Clone() const override;
         + bool Execute() override;
         + void Undo() override;
+        + unsigned int Shots() const override;
+        + unsigned int ShotsHit() const override;
+        + unsigned int UnitsDestroyed() const override;
+        + vector<Coordinates> GetCoordinates() const override;
     }
 
     ICommand <|.. FireCommand
@@ -344,50 +450,61 @@ package Games {
     GameMode --> FireCommandType
 
     enum GameState {
-        Started,
         Setting,
         Playing,
         Over,
     }
 
     struct Player {
-        UserProfile& profile;
-        GameBoard board;
-        unsigned int hitStreak = 0;
-        unsigned int longestHitStreak = 0;
-        unsigned int score = 0;
-        unsigned int shotsFired = 0;
-        unsigned int shotsHit = 0;
-        unsigned int unitsDestroyed = 0;
+        + UserProfile& profile;
+        + GameBoard* board;
+        + unsigned int shotsFired = 0;
+        + unsigned int shotsHit = 0;
+        + unsigned int score = 0;
+        + unsigned int unitsDestroyed = 0;
+
+        + Player(UserProfile& profile, GameBoard* gameBoard);
+        + Player(const Player& other) = default;
     }
 
     Player *.. UserProfile
     Player *-- GameBoard
 
     class GameManager {
-        - {static} unsigned int nextGameId;
-        - {static} Computer easyComputer;
-        - {static} Computer mediumComputer;
-        - {static} Computer hardComputer;
+        - {static} unsigned int nextGameId = 1;
+        - {static} Computer easyComputer = Computer(Easy);
+        - {static} Computer mediumComputer = Computer(Medium);
+        - {static} Computer hardComputer = Computer(Hard);
+        - {static} vector<GameBoard*> gameBoards;
         - unsigned int gameId;
         - GameMode mode;
-        - GameState state = Started;
+        - GameState state;
         - vector<Player> players;
         - unsigned int currentTurn;
-        - vector<Player> initialPlayerState;
         - vector<unique_ptr<ICommand>> history;
         - unsigned int winnerId;
+        - chrono::time_point<chrono::steady_clock> gameStartPoint;
         - chrono::seconds playtime;
 
-        + GameManager(GameMode mode, vector<UserProfile&> profiles);
-        + ~GameManager();
-        + const GameMode Mode() const;
-        + const vector<Player> Players() const;
+        - void UpdatePlayerStatistics();
+        - void UpdatePlayerAchievements();
+        + GameManager(const GameMode& mode, vector<UserProfile*>& profiles);
+        + const GameMode& Mode() const;
+        + const vector<Player>& Players();
         + unsigned int CurrentTurn() const;
+        + Player& GetCurrentPlayer();
+        + Player& GetPlayerAtIndex(unsigned int playerIndex);
+        + GameState State() const;
+        + unsigned int WinnerId() const;
+        + chrono::seconds Playtime() const;
         + void StartGame();
-        + bool ExecuteCommand(unique_ptr<ICommand> command);
+        + bool ExecuteCommand(unique_ptr<ICommand> command, size_t enemyIndex);
         + void HandleGameOver();
-        + Replay GetReplay();
+        + void SaveReplay();
+        + {static} Computer* GetComputerByType(ComputerType computerType);
+        + {static} void RegisterGameBoard(GameBoard* board);
+        + {static} const GameMode& GetGameModeByName(const char* modeName);
+        + {static} void InitialzieNextGameId(unsigned int startingId);
     }
 
     GameManager *-- GameMode
@@ -398,25 +515,41 @@ package Games {
 }
 
 package Replays {
+    struct ReplayAction {
+        + size_t playerIndex;
+        + size_t enemyIndex;
+        + unique_ptr<ICommand> command;
+
+        + ReplayAction(size_t playerIndex, size_t enemyIndex, unique_ptr<ICommand> command);
+        + ReplayAction(const ReplayAction& other);
+    }
+
     struct Replay {
-        unsigned int replayId;
-        vector<Player> players;
-        vector<unique_ptr<ICommand>> history;
-        unsigned int winnerId;
-        chrono::seconds playtime;
-        time_t timestamp;
+        + unsigned int replayId;
+        + vector<Player> players;
+        + vector<ReplayAction> history;
+        + unsigned int winnerId;
+        + chrono::seconds playtime;
+        + time_t timestamp;
+        + GameMode mode;
+
+        + Replay(const Replay& other);
+        + Replay(unsigned int replayId, vector<Player> players, vector<ReplayAction> history,
+        unsigned int winnerId, chrono::seconds playtime, time_t timestamp, GameMode& mode);
     }
 
     Replay <. GameManager
+    Replay -> ReplayAction
 
     class ReplayPlayback {
         - Replay replay;
-        - int currentStep = -1;
+        - int currentStep = 0;
 
-        + ReplayPlayback(Replay replay);
-        + ~ReplayPlayback();
+        + ReplayPlayback(const Replay& replay);
         + const Replay& Replay() const;
         + int CurrentStep() const;
+        + int CurrentPlayerIndex() const;
+        + int CurrentEnemyIndex() const;
         + bool StepForward();
         + bool StepBackward();
     }
@@ -425,12 +558,10 @@ package Replays {
 
     ' Implements Singleton design pattern
     class ReplayManager {
-        - {static} ReplayManager instance;
         - vector<Replay> replays;
 
         - ReplayManager();
         + {static} ReplayManager& GetInstance();
-        + ~ReplayManager();
         + const vector<Replay>& Replays() const;
         + void SaveReplay(Replay replay);
         + ReplayPlayback Play(unsigned int replayId);
@@ -442,19 +573,16 @@ package Replays {
 
 package Main {
     class Battleships {
-        - {static} Battleships instance;
-        - {static} GameMode standardGameMode;
-        - {static} GameMode salvoGameMode;
-        - {static} GameMode extendedGameMode;
-        + UserManager userManager;
-        + ReplayManager replayManager;
+        + UserManager& userManager;
+        + ReplayManager& replayManager;
+        + {static} const GameMode STANDARD_GAME_MODE;
+        + {static} const GameMode SALVO_GAME_MODE;
+        + {static} const GameMode EXTENDED_GAME_MODE;
+        + {static} const GameMode EXTENDED_SALVO_GAME_MODE;
 
-        - void ReadSave();
         - Battleships();
         + {static} Battleships& GetInstance();
-        + ~Battleships();
-        + GameManager NewGame(GameMode mode, vector<UserProfile&> profiles);
-        + void WriteToSave();
+        + {static} unique_ptr<GameManager> NewGame(GameMode& mode, vector<UserProfile*>& profiles);
     }
 
     Battleships *-- UserManager
