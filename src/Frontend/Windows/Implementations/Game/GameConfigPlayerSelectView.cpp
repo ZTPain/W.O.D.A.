@@ -91,7 +91,7 @@ bool GameConfigPlayerSelectView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
     return true;
 
   // Key is temporiary untill a "Continue" button is added
-  if (keyDetails.key == ConsoleKey::H && selectedPlayerOptions.size() >= 2) {
+  if (keyDetails.key == ConsoleKey::Y && selectedPlayerOptions.size() >= 2) {
     std::vector<UserProfile*> profiles{};
     profiles.reserve(selectedPlayerOptions.size());
     for (const auto& playerId : selectedPlayerOptions) {

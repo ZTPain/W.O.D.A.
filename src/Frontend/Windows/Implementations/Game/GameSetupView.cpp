@@ -315,7 +315,7 @@ bool GameSetupView::OnKeyPressed(ConsoleKeyDetails keyDetails) {
   redX = -1;
   redY = -1;
 
-  if (keyDetails.key == ConsoleKey::H) {
+  if (keyDetails.key == ConsoleKey::Y) {
     ConfirmGridSetup();
     return true;
   }

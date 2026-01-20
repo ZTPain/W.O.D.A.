@@ -139,7 +139,7 @@ void InGameView::OnResize(int /*width*/, int /*height*/) {
 bool InGameView::IsCorrectSize(int width, int height) const {
   const auto& mode = GetGameMode();
   const auto requiredWidth = (((mode.boardWidth + 1) * (5) * 2) + 6);
-  const auto requiredHeight = currentGrid.GetTotalHeight() + 10;
+  const auto requiredHeight = currentGrid.GetTotalHeight() + 15;
   return static_cast<size_t>(width) >= requiredWidth &&
          static_cast<size_t>(height) >= requiredHeight;
 }
