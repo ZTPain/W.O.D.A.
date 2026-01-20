@@ -66,11 +66,11 @@ const std::unordered_map<std::string, Achievement>& AchievementPool::NameToAchie
 }
 
 void AchievementPool::Unlock(const std::string& name) {
-  auto& achiv = nameToAchievementMap.at(name);
+  const auto& achiv = nameToAchievementMap.at(name);
 
   auto& user = UserManager::GetInstance().GetUserById(playerId);
 
-  user.unlockedContent |= static_cast<uint32_t>(achiv.content);
+  user.unlockedContent |= achiv.content;
 
   nameToAchievementMap.at(name).unlocked = true;
 }
