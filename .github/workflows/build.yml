@@ -57,7 +57,9 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: linux-clang-build
-          path: bin/*
+          path: | 
+            bin/libWODA.so
+            bin/ConsoleWODAProxy
 
   build-windows-gcc:
     runs-on:
@@ -94,7 +96,10 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: windows-gcc-build
-          path: bin/*.exe
+          path: | 
+            bin/libWODA.dll
+            bin/libWODA.dll.a
+            bin/ConsoleWODAProxy.exe
 
   # build-windows-clang:
   #   runs-on:
@@ -120,4 +125,7 @@ jobs:
   #       uses: actions/upload-artifact@v5
   #       with:
   #         name: windows-clang-build
-  #         path: bin/*.exe
+  #         path: | 
+  #           - bin/libWODA.dll
+  #           - bin/libWODA.dll.a
+  #           - bin/ConsoleWODAProxy.exe
