@@ -1,4 +1,5 @@
 #include "Backend/Main/Battleships.h"
+#include "Backend/Main/SaveManager.h"
 #include "Frontend/ConsoleManager.h"
 #include "Frontend/Input/IO.h"
 #include "Helpers/AnsiHelper.h"
@@ -30,5 +31,5 @@ extern "C" void EntryPoint() {
 
   AppHelper::AwaitExit();
 
-  Battleships::GetInstance().WriteToSave();
+  SaveManager::SaveGame();
 }

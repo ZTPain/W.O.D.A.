@@ -1,6 +1,6 @@
 #include "SettingsWindow.h"
 
-#include "Backend/Main/Battleships.h"
+#include "Backend/Main/SaveManager.h"
 #include "Backend/Users/AchievementPool.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
@@ -261,7 +261,7 @@ void SettingsWindow::ChangeSelectedSetting(bool increase) {
   }
 
   ForceRender(); // To refresh border
-  Battleships::GetInstance().WriteToSave();
+  SaveManager::SaveGame();
   IO::cout.flush();
 }
 
