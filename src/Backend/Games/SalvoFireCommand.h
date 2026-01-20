@@ -22,4 +22,5 @@ public:
   [[nodiscard]] unsigned int Shots() const override;
   [[nodiscard]] unsigned int ShotsHit() const override;
   [[nodiscard]] unsigned int UnitsDestroyed() const override;
+  [[nodiscard]] std::vector<Coordinates> GetCoordinates() const override;
 };

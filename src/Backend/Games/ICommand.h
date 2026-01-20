@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include "Backend/Games/Coordinates.h"
 #include <memory>
+#include <vector>
 
 class ICommand {
 public:
@@ -13,4 +15,5 @@ public:
   [[nodiscard]] virtual unsigned int Shots() const = 0;
   [[nodiscard]] virtual unsigned int ShotsHit() const = 0;
   [[nodiscard]] virtual unsigned int UnitsDestroyed() const = 0;
+  [[nodiscard]] virtual std::vector<Coordinates> GetCoordinates() const = 0;
 };

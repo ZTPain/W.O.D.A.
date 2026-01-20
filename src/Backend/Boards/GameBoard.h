@@ -27,4 +27,5 @@ public:
   void FixSegment(size_t x, size_t y);
   [[nodiscard]] bool IsGameOver() const;
   [[nodiscard]] const std::vector<std::shared_ptr<BattleUnit>>& GetAllUnits() const;
+  [[nodiscard]] const GameMode& GetGameMode() const;
 };

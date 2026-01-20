@@ -3,7 +3,6 @@
 #pragma once
 
 #include "IClone.h"
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -28,8 +27,8 @@ static inline uint64_t operator|(uint64_t a, UnlockableContent b) {
   return (a | static_cast<uint64_t>(b));
 }
 
-static inline uint64_t operator|=(uint64_t a, UnlockableContent b) {
-  return (a | static_cast<uint64_t>(b));
+static inline uint64_t operator|=(uint64_t& a, UnlockableContent b) {
+  return a = (a | static_cast<uint64_t>(b));
 }
 
 inline static bool operator&(uint64_t a, UnlockableContent b) {
@@ -68,19 +67,4 @@ public:
   [[nodiscard]] const std::unordered_map<std::string, Achievement>& NameToAchievementMap() const;
   void Unlock(const std::string& name);
   std::unique_ptr<AchievementPool> Clone(PlayerId playerId) override;
-
-  void Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
-
-  static std::unique_ptr<AchievementPool> Deserialize(
-      const uint8_t* buffer, size_t& offset, size_t bufferSize
-  );
-
-private:
-  static void SerializeAchievement(
-      const Achievement& achievement, uint8_t* buffer, size_t& offset, size_t bufferSize
-  );
-
-  static void DeserializeAchievement(
-      Achievement& achievement, const uint8_t* buffer, size_t& offset, size_t bufferSize
-  );
 };

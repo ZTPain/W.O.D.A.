@@ -21,4 +21,5 @@ public:
   bool ToggleSegment(size_t x, size_t y) override;
   void Clear() override;
   [[nodiscard]] const UnitsMap& GetUnits() const override;
+  void LoadLandSegments(const std::vector<std::vector<bool>>& landSegments) override;
 };

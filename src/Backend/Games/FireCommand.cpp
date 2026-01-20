@@ -5,6 +5,7 @@
 #include "Backend/Games/Coordinates.h"
 #include "Backend/Games/ICommand.h"
 #include <memory>
+#include <vector>
 
 FireCommand::FireCommand(GameBoard* board, Coordinates coords) : board(board), coords(coords) {}
 
@@ -27,3 +28,5 @@ unsigned int FireCommand::UnitsDestroyed() const {
     return 0;
   return board->Units()[coords.y][coords.x]->IsDestroyed() ? 1 : 0;
 }
+
+std::vector<Coordinates> FireCommand::GetCoordinates() const { return {coords}; }

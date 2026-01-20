@@ -95,3 +95,5 @@ const std::vector<std::shared_ptr<BattleUnit>>& GameBoard::GetAllUnits() const {
 const std::vector<std::vector<std::shared_ptr<BattleUnit>>>& GameBoard::Units() const {
   return units;
 }
+
+const GameMode& GameBoard::GetGameMode() const { return mode; }
