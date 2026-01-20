@@ -44,8 +44,11 @@ struct Achievement {
   );
 };
 
-class AchievementPool : IClone<AchievementPool> {
+using PlayerId = uint32_t;
+
+class AchievementPool : IClone<AchievementPool, PlayerId> {
   std::unordered_map<std::string, Achievement> nameToAchievementMap;
+  PlayerId playerId;
 
   // Use for const initialization (hence std::string_view). It is not constexpr initialization,
   // due to compile-time unordered_maps being a C++20 feature.
@@ -55,7 +58,9 @@ class AchievementPool : IClone<AchievementPool> {
 
 public:
   AchievementPool();
+  AchievementPool(PlayerId playerId);
+  AchievementPool(const AchievementPool& other, PlayerId playerId);
   [[nodiscard]] const std::unordered_map<std::string, Achievement>& NameToAchievementMap() const;
   void Unlock(const std::string& name);
-  std::unique_ptr<AchievementPool> Clone() override;
+  std::unique_ptr<AchievementPool> Clone(PlayerId playerId) override;
 };
