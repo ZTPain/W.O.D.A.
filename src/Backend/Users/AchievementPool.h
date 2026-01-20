@@ -28,6 +28,10 @@ static inline uint64_t operator|(uint64_t a, UnlockableContent b) {
   return (a | static_cast<uint64_t>(b));
 }
 
+static inline uint64_t operator|=(uint64_t a, UnlockableContent b) {
+  return (a | static_cast<uint64_t>(b));
+}
+
 inline static bool operator&(uint64_t a, UnlockableContent b) {
   return (a & static_cast<uint64_t>(b)) != 0;
 }
