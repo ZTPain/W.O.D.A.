@@ -13,6 +13,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Helpers/Grid.h"
 #include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
@@ -292,17 +293,20 @@ void InGameView::RenderCell(
     const auto& landSegments = segmentBoard.LandSegments();
 
     if (landSegments[y][x]) {
-      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Green);
+      IO::cout << AnsiHelper::SetBackgroundColor(LAND_COLOR_BACKGROUND);
     } else {
-      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue);
+      IO::cout << AnsiHelper::SetBackgroundColor(WATER_COLOR_BACKGROUND);
     }
   }
 
   if (updateColor) {
-    if (isHit && hasUnit) {
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
+    const bool hasDestroyedUnit = hasUnit && unitsPlacement[y][x]->IsDestroyed();
+    if (isHit && hasDestroyedUnit) {
+      IO::cout << AnsiHelper::SetTextColor(DESTROYED_COLOR_TEXT);
+    } else if (isHit && hasUnit) {
+      IO::cout << AnsiHelper::SetTextColor(HIT_COLOR_TEXT);
     } else if (isHit && !hasUnit) {
-      IO::cout << AnsiHelper::SetTextColor(AnsiColor::Blue);
+      IO::cout << AnsiHelper::SetTextColor(MISS_COLOR_TEXT);
     }
 
     IO::cout << symbol;
@@ -682,7 +686,7 @@ void InGameView::ShowPlayerFireAnimation() {
 
     // Final position
     IO::cout << AnsiHelper::MoveCursor(coord.x, coord.y);
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red) << "*" << AnsiHelper::Reset();
+    IO::cout << AnsiHelper::SetTextColor(HIT_COLOR_TEXT) << "*" << AnsiHelper::Reset();
   }
 
   IO::cout.flush();

@@ -4,6 +4,7 @@
 #include "Backend/Users/UserManager.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
@@ -116,8 +117,7 @@ void UserProfileWindow::RenderStatistic(size_t index, const std::string& value) 
   IO::cout << AnsiHelper::MoveCursor(7, 7 + index);
 
   if (selectedIndex == index) {
-    IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue)
-             << AnsiHelper::SetTextColor(AnsiColor::White);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   }
 
   IO::cout << STATISTIC_LABELS.at(index) << ": " << value;
@@ -160,8 +160,7 @@ void UserProfileWindow::RenderUnlockedContent(size_t index, bool isUnlocked) con
   IO::cout << AnsiHelper::MoveCursor(7, 8 + index);
 
   if (selectedIndex == STATISTICS_COUNT + index) {
-    IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue)
-             << AnsiHelper::SetTextColor(AnsiColor::Default);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   }
 
   const std::string contentStatus =
@@ -215,8 +214,7 @@ void UserProfileWindow::RenderAchievement(size_t index, const Achievement& achie
   IO::cout << AnsiHelper::MoveCursor(7, 9 + index);
 
   if (selectedIndex == STATISTICS_COUNT + UNLOCKED_CONTENT_COUNT + index) {
-    IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue)
-             << AnsiHelper::SetTextColor(AnsiColor::Default);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   }
 
   const std::string achievementStatus =

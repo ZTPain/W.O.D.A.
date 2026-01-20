@@ -5,6 +5,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -108,8 +109,7 @@ void MatchHistoryWindow::DrawOptions() {
 void MatchHistoryWindow::DrawReplay(size_t index, const Replay& replay) const {
   IO::cout << AnsiHelper::MoveCursor(4, static_cast<int>(4 + (index * 2)));
   if (selectedReplayIndex == index) {
-    IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue)
-             << AnsiHelper::SetTextColor(AnsiColor::White);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   }
 
   const auto& players = replay.players;

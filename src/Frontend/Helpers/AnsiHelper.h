@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <utility>
 
 #define USE_ANSI_CODES
 // #define USE_WODA_CODES
@@ -41,6 +42,8 @@ public:
 
   static std::string SetTextColor(Color color);
   static std::string SetBackgroundColor(Color color);
+
+  static std::string SetColor(const std::pair<AnsiColor, AnsiColor>& colorPair);
 
   constexpr static const char* Reset();
   constexpr static const char* Bold();
@@ -137,6 +140,10 @@ inline std::string AnsiHelper::SetBackgroundColor(Color color) {
     default:
       return SetBackgroundColor(AnsiColor::Default);
   }
+}
+
+inline std::string AnsiHelper::SetColor(const std::pair<AnsiColor, AnsiColor>& colorPair) {
+  return SetTextColor(colorPair.first) + SetBackgroundColor(colorPair.second);
 }
 
 constexpr const char* AnsiHelper::Reset() { return ANSI_RESET; }

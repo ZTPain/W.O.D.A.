@@ -6,6 +6,7 @@
 #include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -89,17 +90,16 @@ void SettingsWindow::RenderOption(size_t index) const {
   const auto y = 3 + (index * 2);
   IO::cout << AnsiHelper::MoveCursor(x, y);
   if (selectedIndex == index) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Black)
-             << AnsiHelper::SetBackgroundColor(AnsiColor::White);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   }
   IO::cout << OPTION_NAMES.at(index) << ": ";
   IO::cout << AnsiHelper::MoveCursor(x + 40, y);
   IO::cout << "<< ";
   RenderOptionValue(index);
   if (selectedIndex == index)
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Black);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   else
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Default);
+    IO::cout << AnsiHelper::SetColor(DEFAULT_COLOR);
   IO::cout << " >>";
   if (selectedIndex == index) {
     IO::cout << AnsiHelper::Reset();

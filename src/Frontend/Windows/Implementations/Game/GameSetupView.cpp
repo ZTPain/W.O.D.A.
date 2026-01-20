@@ -14,6 +14,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Helpers/Grid.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
@@ -50,14 +51,14 @@ void GameSetupView::RenderEmptyCell(
     const auto& landSegments = segmentBoard.LandSegments();
 
     if (landSegments[y][x]) {
-      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Green);
+      IO::cout << AnsiHelper::SetBackgroundColor(LAND_COLOR_BACKGROUND);
     } else {
-      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue);
+      IO::cout << AnsiHelper::SetBackgroundColor(WATER_COLOR_BACKGROUND);
     }
   }
 
   if (redX == static_cast<int>(x) && redY == static_cast<int>(y)) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
+    IO::cout << AnsiHelper::SetColor(ERROR_COLOR);
   }
 
   if (isCursor) {
@@ -179,15 +180,15 @@ void GameSetupView::RenderFilledCell(
     const auto& landSegments = segmentBoard.LandSegments();
 
     if (landSegments[y][x]) {
-      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Green);
+      IO::cout << AnsiHelper::SetBackgroundColor(LAND_COLOR_BACKGROUND);
     } else {
-      IO::cout << AnsiHelper::SetBackgroundColor(AnsiColor::Blue);
+      IO::cout << AnsiHelper::SetBackgroundColor(WATER_COLOR_BACKGROUND);
     }
   }
 
   const bool red = redX == static_cast<int>(x) && redY == static_cast<int>(y);
   if (red) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red);
+    IO::cout << AnsiHelper::SetColor(ERROR_COLOR);
   }
 
   if (isCursor)
@@ -195,7 +196,7 @@ void GameSetupView::RenderFilledCell(
   else
     IO::cout << " ";
   IO::cout << AnsiHelper::SetTextColor(color) << symbol
-           << AnsiHelper::SetTextColor(red ? AnsiColor::Red : AnsiColor::Default);
+           << AnsiHelper::SetTextColor(red ? ERROR_COLOR_TEXT : AnsiColor::Default);
   if (isCursor)
     IO::cout << "]";
   else
@@ -758,7 +759,7 @@ void GameSetupView::ShowErrorMessage(const std::string& message) {
     return;
 
   lastMessageLength = message.length();
-  IO::cout << AnsiHelper::MoveCursor(1, 3) << AnsiHelper::SetTextColor(AnsiColor::Red) << message
+  IO::cout << AnsiHelper::MoveCursor(1, 3) << AnsiHelper::SetColor(ERROR_COLOR) << message
            << AnsiHelper::Reset();
   IO::cout.flush();
 }

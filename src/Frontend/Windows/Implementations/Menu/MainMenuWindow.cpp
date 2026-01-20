@@ -3,6 +3,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -77,8 +78,7 @@ void MainMenuWindow::DrawOption(size_t index, const char* text, bool selected) {
   auto y = 3 + (index * 2);
   IO::cout << AnsiHelper::MoveCursor(x, y);
   if (selected) {
-    IO::cout << AnsiHelper::SetTextColor(255, 128, 128) << "> " << text
-             << AnsiHelper::SetTextColor(AnsiColor::Default);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR) << "> " << text << AnsiHelper::Reset();
   } else {
     IO::cout << "  " << text;
   }

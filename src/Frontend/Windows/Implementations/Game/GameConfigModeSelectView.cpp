@@ -8,6 +8,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Helpers/TextHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
@@ -188,9 +189,9 @@ void GameConfigModeSelectView::DrawOption(size_t index) {
   }
 
   if (!IsContentUnlocked(index)) {
-    text = "[ ⨂ ] " + text;
+    text = AnsiHelper::SetColor(ERROR_COLOR) + "[ ⨂ ] " + text + AnsiHelper::Reset();
   } else if (selectedIndex == index) {
-    text = "[ X ] " + text;
+    text = AnsiHelper::SetColor(SELECTED_COLOR) + "[ X ] " + text + AnsiHelper::Reset();
   } else {
     text = "[   ] " + text;
   }

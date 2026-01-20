@@ -5,6 +5,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppHelper.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -110,8 +111,7 @@ void UserSelectWindow::DrawOption(size_t index, const UserProfile& user) const {
   const size_t posY = 4 + index;
 
   if (selectedIndex == index) {
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Black)
-             << AnsiHelper::SetBackgroundColor(AnsiColor::White);
+    IO::cout << AnsiHelper::SetColor(SELECTED_COLOR);
   }
 
   if (index == 0) {

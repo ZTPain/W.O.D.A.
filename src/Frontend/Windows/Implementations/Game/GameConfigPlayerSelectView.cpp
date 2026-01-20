@@ -11,6 +11,7 @@
 #include "Frontend/Helpers/AnsiHelper.h"
 #include "Frontend/Helpers/AppState.h"
 #include "Frontend/Helpers/BoxDrawing.h"
+#include "Frontend/Helpers/ColorHelper.h"
 #include "Frontend/Input/ConsoleKey.h"
 #include "Frontend/Input/IO.h"
 #include "Frontend/Input/InputManager.h"
@@ -311,7 +312,7 @@ void GameConfigPlayerSelectView::ForceRender() {
     } else {
       IO::cout << AnsiHelper::MoveCursor(3, 5);
     }
-    IO::cout << AnsiHelper::SetTextColor(AnsiColor::Red)
+    IO::cout << AnsiHelper::SetColor(ERROR_COLOR)
              << "Warning: You cannot remove yourself from the game!" << AnsiHelper::Reset();
   }
 
@@ -360,8 +361,8 @@ void GameConfigPlayerSelectView::RenderSelectedPlayerOption(
   }
 
   if (highlightedOptionIndex == index + 100) {
-    IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::Reversed() << "[X] " << name
-             << AnsiHelper::Reset();
+    IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::SetColor(SELECTED_COLOR) << "[X] "
+             << name << AnsiHelper::Reset();
     return;
   }
 
@@ -375,7 +376,7 @@ void GameConfigPlayerSelectView::RenderUnselectedPlayerOption(
   const size_t y = (compactModeEnabled ? 4 : 7) + (index * (compactModeEnabled ? 1 : 2));
 
   if (highlightedOptionIndex == index) {
-    IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::Reversed() << "[X] "
+    IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::SetColor(SELECTED_COLOR) << "[X] "
              << playerProfile->name << AnsiHelper::Reset();
     return;
   }
@@ -402,8 +403,9 @@ void GameConfigPlayerSelectView::RenderAIAddOption(size_t index, ComputerType ty
   const size_t y = (compactModeEnabled ? 4 : 7) + (index * (compactModeEnabled ? 1 : 2));
 
   if (highlightedOptionIndex == index) {
-    IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::Reversed() << "[+] Add AI Player ("
-             << ComputerHelper::GetComputerTypeString(type) << ")" << AnsiHelper::Reset();
+    IO::cout << AnsiHelper::MoveCursor(x, y) << AnsiHelper::SetColor(SELECTED_COLOR)
+             << "[+] Add AI Player (" << ComputerHelper::GetComputerTypeString(type) << ")"
+             << AnsiHelper::Reset();
     return;
   }
 
