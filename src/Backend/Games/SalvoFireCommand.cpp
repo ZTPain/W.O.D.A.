@@ -72,3 +72,5 @@ unsigned int SalvoFireCommand::UnitsDestroyed() const {
 
   return unitsDestroyed;
 }
+
+std::vector<Coordinates> SalvoFireCommand::GetCoordinates() const { return coords; }

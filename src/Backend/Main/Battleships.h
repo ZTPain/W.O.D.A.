@@ -21,7 +21,6 @@ public:
   static const GameMode EXTENDED_SALVO_GAME_MODE;
 
 private:
-  void ReadSave();
   Battleships();
 
 public:
@@ -29,5 +28,4 @@ public:
   static std::unique_ptr<GameManager> NewGame(
       const GameMode& mode, std::vector<UserProfile*>& profiles
   );
-  void WriteToSave() const;
 };

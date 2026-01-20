@@ -6,6 +6,7 @@
 #include "Coordinates.h"
 #include "ICommand.h"
 #include <memory>
+#include <vector>
 
 class FireCommand : public ICommand {
   GameBoard* board;
@@ -20,4 +21,5 @@ public:
   [[nodiscard]] unsigned int Shots() const override;
   [[nodiscard]] unsigned int ShotsHit() const override;
   [[nodiscard]] unsigned int UnitsDestroyed() const override;
+  [[nodiscard]] std::vector<Coordinates> GetCoordinates() const override;
 };
