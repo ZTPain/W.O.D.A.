@@ -5,7 +5,6 @@
 #include "AchievementPool.h"
 #include "Backend/Computers/Computer.h"
 #include <chrono>
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -98,17 +97,4 @@ public:
   [[nodiscard]] Computer* AI() const;
 
   UserProfile& operator=(const UserProfile& other);
-
-  void Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
-  static UserProfile Deserialize(const uint8_t* buffer, size_t& offset, size_t bufferSize);
-
-private:
-  void SerializeStatistics(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
-  void SerializeSettings(uint8_t* buffer, size_t& offset, size_t bufferSize) const;
-  static void DeserializeStatistics(
-      const uint8_t* buffer, size_t& offset, size_t bufferSize, Statistics& statistics
-  );
-  static void DeserializeSettings(
-      const uint8_t* buffer, size_t& offset, size_t bufferSize, UserSettings& settings
-  );
 };
