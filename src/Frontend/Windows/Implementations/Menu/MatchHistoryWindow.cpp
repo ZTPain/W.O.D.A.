@@ -87,7 +87,7 @@ void MatchHistoryWindow::DrawOptions() {
   const auto& replays = ReplayManager::GetInstance().Replays();
 
   IO::cout << AnsiHelper::MoveCursor(2, 2);
-  IO::cout << "Total Matchs: " << replays.size() << "\n\n";
+  IO::cout << "Total Matches: " << replays.size() << "\n\n";
 
   if (replays.empty()) {
     IO::cout << AnsiHelper::MoveCursor(4, 4);
