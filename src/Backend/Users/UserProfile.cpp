@@ -16,7 +16,7 @@ UserProfile::UserProfile(const UserProfile& other)
           other.userId,
           other.name,
           other.statistics,
-          other.achievements->Clone(),
+          other.achievements->Clone(other.userId),
           other.unlockedContent,
           other.settings,
           other.ai
@@ -52,6 +52,19 @@ UserProfile::~UserProfile() = default;
 unsigned int UserProfile::UserId() const { return userId; }
 
 Computer* UserProfile::AI() const { return ai; }
+
+UserProfile& UserProfile::operator=(const UserProfile& other) {
+  if (this != &other) {
+    userId = other.userId;
+    ai = other.ai;
+    name = other.name;
+    statistics = other.statistics;
+    achievements = other.achievements->Clone(other.userId);
+    unlockedContent = other.unlockedContent;
+    settings = other.settings;
+  }
+  return *this;
+}
 
 void UserProfile::Serialize(uint8_t* buffer, size_t& offset, size_t bufferSize) const {
   // Serializee userId
