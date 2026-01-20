@@ -9,6 +9,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 class SaveManager {
@@ -92,20 +93,6 @@ private:
     std::vector<ReplayActionEntry> replayActions;
   };
 
-  static void LoadData(const uint8_t* data, size_t offset, size_t length);
-
-  static GameBoard* CreateRegisteredBoard(const SaveState& saveState, size_t gameBoardIndex);
-  static Player CreatePlayer(
-      const std::vector<GameBoard*>& gameBoards, const ReplayPlayerEntry& replayPlayerEntry
-  );
-
-  static void CreateAndAddReplayAction(
-      const ReplayActionEntry& actionEntry,
-      const std::vector<Player>& players,
-      std::vector<ReplayAction>& actions
-  );
-
-  static bool IsVersionSupported(uint16_t version);
   static void LoadUserProfiles(
       const uint8_t* data, size_t offset, size_t length, std::vector<UserProfileEntry>& outProfiles
   );
@@ -137,6 +124,22 @@ private:
       std::vector<ReplayActionEntry>& outReplayActions
   );
 
+  static void LoadData(const uint8_t* data, size_t offset, size_t length);
+
+  static GameBoard* CreateRegisteredBoard(const SaveState& saveState, size_t gameBoardIndex);
+  static Player CreatePlayer(
+      const std::vector<GameBoard*>& gameBoards, const ReplayPlayerEntry& replayPlayerEntry
+  );
+
+  static void CreateAndAddReplayAction(
+      const ReplayActionEntry& actionEntry,
+      const std::vector<Player>& players,
+      std::vector<ReplayAction>& actions
+  );
+
+  static bool IsVersionSupported(uint16_t version);
+
+  static SaveState CreateSaveState();
   static void SaveGameUserProfiles(SaveState& saveState);
   static void SaveGameReplays(SaveState& saveState);
 
@@ -195,7 +198,35 @@ private:
       const uint8_t* data, size_t& offset, size_t length, void* outBuffer, size_t outBufferSize
   );
 
+  template <typename T>
+  static void ReadBytes(
+      const uint8_t* data, size_t& offset, size_t length, std::vector<T>& outBuffer
+  );
+
+  template <typename T>
+  static void ReadBytes(
+      const uint8_t* data,
+      size_t& offset,
+      size_t length,
+      std::vector<T>& outBuffer,
+      std::function<void(T& item)> reader
+  );
+
   static void WriteBytes(
       uint8_t* data, size_t& offset, size_t length, const void* inBuffer, size_t inBufferSize
+  );
+
+  template <typename T>
+  static void WriteBytes(
+      uint8_t* data, size_t& offset, size_t length, const std::vector<T>& inBuffer
+  );
+
+  template <typename T>
+  static void WriteBytes(
+      uint8_t* data,
+      size_t& offset,
+      size_t length,
+      const std::vector<T>& inBuffer,
+      std::function<void(const T& item)> writer
   );
 };
