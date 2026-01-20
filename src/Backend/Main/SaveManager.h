@@ -3,6 +3,7 @@
 #include "Backend/Boards/GameBoard.h"
 #include "Backend/Computers/Computer.h"
 #include "Backend/Games/GameMode.h"
+#include "Backend/Games/ICommand.h"
 #include "Backend/Games/Player.h"
 #include "Backend/Replays/Replay.h"
 #include "Backend/Users/UserProfile.h"
@@ -10,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <vector>
 
 class SaveManager {
@@ -135,6 +137,13 @@ private:
       const ReplayActionEntry& actionEntry,
       const std::vector<Player>& players,
       std::vector<ReplayAction>& actions
+  );
+
+  [[nodiscard]] static std::unique_ptr<ICommand> CreateFireCommand(
+      const ReplayActionEntry& entry, GameBoard* board
+  );
+  [[nodiscard]] static std::unique_ptr<ICommand> CreateSalvoFireCommand(
+      const ReplayActionEntry& entry, GameBoard* board
   );
 
   static bool IsVersionSupported(uint16_t version);
