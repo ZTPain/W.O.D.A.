@@ -111,9 +111,10 @@ void SaveManager::LoadData(const uint8_t* data, size_t offset, size_t length) {
         saveState.replays.begin(),
         saveState.replays.end(),
         0U,
-        [&end, &i](size_t sum, const ReplayEntry& replay) {
+        [&end, &i](size_t sum, const ReplayEntry& replay) -> size_t {
           if (end)
             return 0ULL;
+
           if (std::find(replay.replayActionIndices.begin(), replay.replayActionIndices.end(), i) !=
               replay.replayActionIndices.end()) {
             end = true;
