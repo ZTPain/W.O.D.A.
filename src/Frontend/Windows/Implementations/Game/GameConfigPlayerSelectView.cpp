@@ -5,6 +5,7 @@
 #include "Backend/Computers/ComputerStrategyHelper.h"
 #include "Backend/Games/GameMode.h"
 #include "Backend/Main/Battleships.h"
+#include "Backend/Users/AchievementPool.h"
 #include "Backend/Users/UserManager.h"
 #include "Backend/Users/UserProfile.h"
 #include "Frontend/Helpers/AnsiHelper.h"
@@ -114,6 +115,11 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
         return profile.AI() == nullptr;
       });
 
+  const auto& currentUser = UserManager::GetInstance().GetCurrentUser();
+  const auto unlockedAICount =
+      1 + (currentUser.unlockedContent & UnlockableContent::MediumComputer ? 1 : 0) +
+      (currentUser.unlockedContent & UnlockableContent::HardComputer ? 1 : 0);
+
   switch (keyDetails.key) {
     case ConsoleKey::W:
     case ConsoleKey::UpArrow:
@@ -127,7 +133,7 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
     case ConsoleKey::DownArrow:
       if ((highlightedOptionIndex < 100 &&
            highlightedOptionIndex + 1 < UserManager::GetInstance().Users().size() +
-                                            3 /* AI add options */ -
+                                            unlockedAICount /* AI add options */ -
                                             selectedPlayerOptionsOnlyPlayers) ||
           (highlightedOptionIndex >= 100 &&
            highlightedOptionIndex + 1 < selectedPlayerOptions.size() + 100))
@@ -140,9 +146,9 @@ bool GameConfigPlayerSelectView::HandleInputMovement(ConsoleKeyDetails keyDetail
       if (highlightedOptionIndex >= 100) {
         highlightedOptionIndex -= 100;
         if (highlightedOptionIndex >= UserManager::GetInstance().UsersAndComputers().size() -
-                                          selectedPlayerOptions.size() + 3) {
+                                          selectedPlayerOptions.size() + unlockedAICount) {
           highlightedOptionIndex = UserManager::GetInstance().UsersAndComputers().size() - 1 -
-                                   selectedPlayerOptions.size() + 3;
+                                   selectedPlayerOptions.size() + unlockedAICount;
         }
       }
       ForceRender();
@@ -379,7 +385,15 @@ void GameConfigPlayerSelectView::RenderUnselectedPlayerOption(
 
 void GameConfigPlayerSelectView::RenderAIAddOption(size_t index) const {
   RenderAIAddOption(index, ComputerType::Easy);
+  if (!(UserManager::GetInstance().GetCurrentUser().unlockedContent &
+        UnlockableContent::MediumComputer))
+    return;
+
   RenderAIAddOption(index + 1, ComputerType::Medium);
+  if (!(UserManager::GetInstance().GetCurrentUser().unlockedContent &
+        UnlockableContent::HardComputer))
+    return;
+
   RenderAIAddOption(index + 2, ComputerType::Hard);
 }
 
