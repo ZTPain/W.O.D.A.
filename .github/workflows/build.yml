@@ -53,8 +53,6 @@ jobs:
               fi
           done <build.log
 
-      - name: Diagnostic
-        run: ls -la bin/
       - name: Archive build artifacts
         uses: actions/upload-artifact@v5
         with:
@@ -94,8 +92,6 @@ jobs:
           CXX: x86_64-w64-mingw32-g++-posix
       - name: Build project
         run: make
-      - name: Diagnostic
-        run: ls -la bin/
       - name: Archive build artifacts
         uses: actions/upload-artifact@v5
         with:
