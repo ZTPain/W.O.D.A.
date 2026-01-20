@@ -31,6 +31,8 @@ enum class Color {
   Green,
   Blue,
   Gold,
+
+  ValueCount,
 };
 
 enum class BorderPattern {
@@ -39,6 +41,8 @@ enum class BorderPattern {
   Double,
   Bold,
   Rounded,
+
+  ValueCount,
 };
 
 enum class UnitPattern {
@@ -48,6 +52,8 @@ enum class UnitPattern {
   CrosshairShipIcon,
   StarShipIcon,
   StoneShipIcon,
+
+  ValueCount,
 };
 
 struct UserSettings {

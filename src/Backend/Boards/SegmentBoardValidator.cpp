@@ -222,14 +222,19 @@ bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
   if (x >= Width() || y >= Height())
     return false;
 
-  if (segmentBoard.Segments()[y][x]) {
-    // Always allow unsetting segments
-    return segmentBoard.ToggleSegment(x, y);
-  }
-
   static std::vector<Coordinates> coordinates;
   GetCoordinatesOfFilledSegments(segmentBoard, coordinates);
-  coordinates.emplace_back(x, y);
+
+  const bool isSet = segmentBoard.Segments()[y][x];
+  if (isSet) {
+    if (!segmentBoard.ToggleSegment(x, y))
+      return false;
+    coordinates.erase(
+        std::remove(coordinates.begin(), coordinates.end(), Coordinates{x, y}), coordinates.end()
+    );
+  } else {
+    coordinates.emplace_back(x, y);
+  }
 
   if (!ValidateMaxTotalSegments(coordinates, mode)) {
     return false;
@@ -242,7 +247,7 @@ bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
     return false;
   }
 
-  if (!segmentBoard.ToggleSegment(x, y))
+  if (!isSet && !segmentBoard.ToggleSegment(x, y))
     return false;
 
   GroupsToUnits(
@@ -251,6 +256,7 @@ bool SegmentBoardValidator::ToggleSegment(size_t x, size_t y) {
       mode.isExtended ? segmentBoard.LandSegments() : std::vector<std::vector<bool>>(),
       lastUnits
   );
+
   return true;
 }
 
