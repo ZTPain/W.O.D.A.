@@ -262,3 +262,5 @@ const GameMode& GameManager::GetGameModeByName(const char* name) {
 
   throw std::invalid_argument("Game mode with the specified name does not exist!");
 }
+
+void GameManager::InitialzieNextGameId(unsigned int startingId) { nextGameId = startingId; }

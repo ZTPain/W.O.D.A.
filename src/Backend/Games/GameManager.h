@@ -59,4 +59,6 @@ public:
 
   static void RegisterGameBoard(GameBoard* board);
   static const GameMode& GetGameModeByName(const char* modeName);
+
+  static void InitialzieNextGameId(unsigned int startingId);
 };
