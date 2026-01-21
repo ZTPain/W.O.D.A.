@@ -1,5 +1,7 @@
 @startuml woda-uml
 
+skinparam backgroundColor #fefefe
+
 package Units {
     enum BattleUnitType {
         None,
